@@ -5,6 +5,13 @@ import { Input } from '@/components/ui/input';
 import { X, Phone, ArrowRight } from 'lucide-react';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { useAuth } from '@/hooks/useAuth';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface PhoneAuthModalProps {
   isOpen: boolean;
@@ -12,17 +19,33 @@ interface PhoneAuthModalProps {
   onSuccess: () => void;
 }
 
+const countryCodes = [
+  { code: '+1', country: 'US/CA' },
+  { code: '+44', country: 'UK' },
+  { code: '+91', country: 'IN' },
+  { code: '+61', country: 'AU' },
+  { code: '+49', country: 'DE' },
+  { code: '+33', country: 'FR' },
+  { code: '+81', country: 'JP' },
+  { code: '+86', country: 'CN' },
+  { code: '+971', country: 'UAE' },
+  { code: '+65', country: 'SG' },
+];
+
 const PhoneAuthModal = ({ isOpen, onClose, onSuccess }: PhoneAuthModalProps) => {
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
+  const [countryCode, setCountryCode] = useState('+91');
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const { sendOtp, verifyOtp } = useAuth();
 
+  const fullPhoneNumber = `${countryCode}${phone.replace(/\D/g, '')}`;
+
   const handleSendOtp = async () => {
     if (!phone) return;
     setLoading(true);
-    const success = await sendOtp(phone);
+    const success = await sendOtp(fullPhoneNumber);
     setLoading(false);
     if (success) {
       setStep('otp');
@@ -32,7 +55,7 @@ const PhoneAuthModal = ({ isOpen, onClose, onSuccess }: PhoneAuthModalProps) => 
   const handleVerifyOtp = async () => {
     if (otp.length !== 6) return;
     setLoading(true);
-    const success = await verifyOtp(phone, otp);
+    const success = await verifyOtp(fullPhoneNumber, otp);
     setLoading(false);
     if (success) {
       onSuccess();
@@ -86,13 +109,27 @@ const PhoneAuthModal = ({ isOpen, onClose, onSuccess }: PhoneAuthModalProps) => 
                 <p className="text-sm text-muted-foreground">
                   We'll send you a verification code to confirm your number.
                 </p>
-                <Input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+1 234 567 8900"
-                  className="h-12 rounded-xl bg-secondary border-0"
-                />
+                <div className="flex gap-2">
+                  <Select value={countryCode} onValueChange={setCountryCode}>
+                    <SelectTrigger className="w-24 h-12 rounded-xl bg-secondary border-0">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {countryCodes.map((c) => (
+                        <SelectItem key={c.code} value={c.code}>
+                          {c.code} {c.country}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="Phone number"
+                    className="h-12 rounded-xl bg-secondary border-0 flex-1"
+                  />
+                </div>
                 <Button
                   variant="accent"
                   size="lg"
@@ -107,7 +144,7 @@ const PhoneAuthModal = ({ isOpen, onClose, onSuccess }: PhoneAuthModalProps) => 
             ) : (
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  Enter the 6-digit code sent to {phone}
+                  Enter the 6-digit code sent to {fullPhoneNumber}
                 </p>
                 <div className="flex justify-center">
                   <InputOTP
