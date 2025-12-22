@@ -1,13 +1,39 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import MobileFrame from '@/components/MobileFrame';
+import MatchPopup from '@/components/MatchPopup';
+import LoginScreen from '@/screens/LoginScreen';
+import ProfileScreen from '@/screens/ProfileScreen';
+import TravelScreen from '@/screens/TravelScreen';
+import SwipeScreen from '@/screens/SwipeScreen';
+import ChatScreen from '@/screens/ChatScreen';
+import { useAppStore } from '@/store/useAppStore';
 
 const Index = () => {
+  const currentScreen = useAppStore((state) => state.currentScreen);
+
+  const renderScreen = () => {
+    switch (currentScreen) {
+      case 'login':
+        return <LoginScreen />;
+      case 'profile':
+        return <ProfileScreen />;
+      case 'travel':
+        return <TravelScreen />;
+      case 'swipe':
+        return <SwipeScreen />;
+      case 'chat':
+        return <ChatScreen />;
+      default:
+        return <LoginScreen />;
+    }
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
+    <>
+      <MobileFrame>
+        {renderScreen()}
+        <MatchPopup />
+      </MobileFrame>
+    </>
   );
 };
 
