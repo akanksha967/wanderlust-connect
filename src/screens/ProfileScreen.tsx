@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,16 +20,33 @@ const ProfileScreen = () => {
   const [selectedVibes, setSelectedVibes] = useState<string[]>([]);
   const [showSettings, setShowSettings] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [activePhotoIndex, setActivePhotoIndex] = useState<number>(0);
 
-  const handleAddPhoto = () => {
-    // Simulate photo upload with placeholder
-    const placeholders = [
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop',
-      'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=300&h=300&fit=crop',
-      'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=300&h=300&fit=crop',
-    ];
-    if (photos.length < 3) {
-      setPhotos([...photos, placeholders[photos.length]]);
+  const handlePhotoClick = (index: number) => {
+    setActivePhotoIndex(index);
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const newPhotos = [...photos];
+        if (activePhotoIndex < newPhotos.length) {
+          newPhotos[activePhotoIndex] = event.target?.result as string;
+        } else {
+          newPhotos.push(event.target?.result as string);
+        }
+        setPhotos(newPhotos);
+      };
+      reader.readAsDataURL(file);
+    }
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -65,6 +82,15 @@ const ProfileScreen = () => {
 
   return (
     <div className="h-full flex flex-col bg-background">
+      {/* Hidden file input for camera/gallery */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+      />
       {/* Header */}
       <div className="px-4 pt-12 pb-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -139,7 +165,7 @@ const ProfileScreen = () => {
                   </>
                 ) : (
                   <button
-                    onClick={handleAddPhoto}
+                    onClick={() => handlePhotoClick(index)}
                     className="w-full h-full flex flex-col items-center justify-center gap-1 transition-smooth hover:bg-secondary/70"
                   >
                     {index === 0 ? (
@@ -147,6 +173,9 @@ const ProfileScreen = () => {
                     ) : (
                       <Plus className="w-6 h-6 text-muted-foreground" />
                     )}
+                    <span className="text-[10px] text-muted-foreground">
+                      {index === 0 ? 'Camera' : 'Add'}
+                    </span>
                   </button>
                 )}
                 {index === 0 && photos[index] && (
