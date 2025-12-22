@@ -11,13 +11,13 @@ const MatchesListScreen = () => {
   };
 
   return (
-    <div className="h-full flex flex-col bg-background relative overflow-hidden">
-      {/* Nature Background */}
+    <div className="h-full flex flex-col relative overflow-hidden">
+      {/* Full-screen background like Apple homescreen */}
       <div 
-        className="absolute inset-0 bg-cover bg-center opacity-20"
-        style={{ backgroundImage: `url(https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&auto=format&fit=crop)` }}
+        className="fixed inset-0 bg-cover bg-center"
+        style={{ backgroundImage: `url(https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&auto=format&fit=crop)` }}
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-accent/10 via-background/95 to-background" />
+      <div className="fixed inset-0 bg-gradient-to-b from-accent/30 via-background/70 to-background/80 backdrop-blur-[2px]" />
 
       {/* Header */}
       <div className="relative z-10 px-4 pt-12 pb-4 flex items-center gap-4 border-b border-border/50">

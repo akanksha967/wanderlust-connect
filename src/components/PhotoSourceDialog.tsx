@@ -42,9 +42,14 @@ const PhotoSourceDialog = ({ isOpen, onClose, onSelectCamera, onSelectGallery }:
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => {
+                    // Close dialog first
                     onClose();
-                    // Delay to ensure dialog closes before triggering camera
-                    setTimeout(() => onSelectCamera(), 100);
+                    // Use requestAnimationFrame for better timing
+                    requestAnimationFrame(() => {
+                      requestAnimationFrame(() => {
+                        onSelectCamera();
+                      });
+                    });
                   }}
                   className="flex flex-col items-center justify-center gap-2 p-6 rounded-2xl bg-accent/10 border-2 border-accent/30 hover:border-accent transition-all"
                 >
@@ -60,7 +65,11 @@ const PhotoSourceDialog = ({ isOpen, onClose, onSelectCamera, onSelectGallery }:
                   whileTap={{ scale: 0.98 }}
                   onClick={() => {
                     onClose();
-                    setTimeout(() => onSelectGallery(), 100);
+                    requestAnimationFrame(() => {
+                      requestAnimationFrame(() => {
+                        onSelectGallery();
+                      });
+                    });
                   }}
                   className="flex flex-col items-center justify-center gap-2 p-6 rounded-2xl bg-secondary border-2 border-border hover:border-accent/50 transition-all"
                 >
