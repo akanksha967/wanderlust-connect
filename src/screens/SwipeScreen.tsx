@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, useMotionValue, useTransform, PanInfo, AnimatePresence } from 'framer-motion';
 import { useAppStore, UserProfile } from '@/store/useAppStore';
 import { mockProfiles } from '@/data/mockProfiles';
-import { Heart, X, MapPin, MessageCircle, User, Sparkles, Plane } from 'lucide-react';
+import { X, MapPin, MessageCircle, User, Sparkles, Plane, Compass } from 'lucide-react';
 
 const funFacts: Record<string, string[]> = {
   'Bali': [
@@ -29,6 +29,14 @@ const funFacts: Record<string, string[]> = {
     '📸 Every trip is a story waiting to be told',
     '🤝 The best journeys are shared ones',
   ],
+};
+
+const destinationImages: Record<string, string> = {
+  'Bali': 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&auto=format&fit=crop',
+  'Paris': 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&auto=format&fit=crop',
+  'Tokyo': 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&auto=format&fit=crop',
+  'Barcelona': 'https://images.unsplash.com/photo-1583422409516-2895a77efded?w=800&auto=format&fit=crop',
+  'default': 'https://images.unsplash.com/photo-1488085061387-422e29b40080?w=800&auto=format&fit=crop',
 };
 
 const SwipeCard = ({ 
@@ -138,6 +146,7 @@ const SwipeScreen = () => {
 
   const destination = travelDetails?.destination || 'Bali';
   const facts = funFacts[destination] || funFacts['default'];
+  const bgImage = destinationImages[destination] || destinationImages['default'];
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -164,25 +173,13 @@ const SwipeScreen = () => {
   const remainingProfiles = profiles.slice(currentIndex);
 
   return (
-    <div className="h-full flex flex-col bg-background overflow-hidden">
-      {/* Floating decorative elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          animate={{ y: [0, -15, 0], rotate: [0, 5, 0] }}
-          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-20 right-4 w-12 h-12 rounded-full gradient-accent opacity-20"
-        />
-        <motion.div
-          animate={{ y: [0, 10, 0], rotate: [0, -5, 0] }}
-          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute top-32 left-6 w-8 h-8 rounded-full bg-accent/20"
-        />
-        <motion.div
-          animate={{ y: [0, -8, 0] }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-40 right-8 w-6 h-6 rounded-full bg-primary/10"
-        />
-      </div>
+    <div className="h-full flex flex-col bg-background overflow-hidden relative">
+      {/* Background Image */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center opacity-10"
+        style={{ backgroundImage: `url(${bgImage})` }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-b from-background via-background/95 to-background" />
 
       {/* Header */}
       <div className="relative z-10 px-4 pt-12 pb-2 flex items-center justify-between">
@@ -217,25 +214,9 @@ const SwipeScreen = () => {
         </button>
       </div>
 
-      {/* Fun Fact Banner */}
-      <div className="px-4 py-2">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentFact}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent/10 border border-accent/20"
-          >
-            <Sparkles className="w-4 h-4 text-accent flex-shrink-0" />
-            <p className="text-xs text-foreground font-medium">{facts[currentFact]}</p>
-          </motion.div>
-        </AnimatePresence>
-      </div>
-
-      {/* Cards */}
-      <div className="flex-1 relative px-4 py-2">
-        <div className="relative w-full h-full max-h-[420px]">
+      {/* Cards - Centered */}
+      <div className="flex-1 relative px-4 py-2 flex items-center justify-center">
+        <div className="relative w-full h-full max-h-[400px]">
           {remainingProfiles.length > 0 ? (
             remainingProfiles.slice(0, 2).reverse().map((profile, index) => (
               <SwipeCard
@@ -267,26 +248,42 @@ const SwipeScreen = () => {
 
       {/* Action buttons */}
       {remainingProfiles.length > 0 && (
-        <div className="relative z-10 px-4 pb-6 pt-2 flex justify-center items-center gap-4">
+        <div className="relative z-10 px-4 pb-4 flex justify-center items-center gap-6">
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => handleButtonSwipe('left')}
-            className="w-16 h-16 rounded-full bg-card shadow-card flex items-center justify-center transition-smooth hover:shadow-float border-2 border-border"
+            className="w-14 h-14 rounded-full bg-card shadow-card flex items-center justify-center transition-smooth hover:shadow-float border-2 border-border"
           >
-            <X className="w-7 h-7 text-muted-foreground" />
+            <X className="w-6 h-6 text-muted-foreground" />
           </motion.button>
           
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => handleButtonSwipe('right')}
-            className="w-20 h-20 rounded-full gradient-accent shadow-card flex items-center justify-center transition-smooth hover:shadow-glow"
+            className="w-16 h-16 rounded-full gradient-accent shadow-card flex items-center justify-center transition-smooth hover:shadow-glow"
           >
-            <Heart className="w-9 h-9 text-accent-foreground" />
+            <Compass className="w-7 h-7 text-accent-foreground" />
           </motion.button>
         </div>
       )}
+
+      {/* Fun Fact at Bottom */}
+      <div className="relative z-10 px-4 pb-6">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentFact}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-card/80 backdrop-blur-sm border border-border shadow-soft"
+          >
+            <Sparkles className="w-4 h-4 text-accent flex-shrink-0" />
+            <p className="text-xs text-foreground font-medium">{facts[currentFact]}</p>
+          </motion.div>
+        </AnimatePresence>
+      </div>
     </div>
   );
 };
