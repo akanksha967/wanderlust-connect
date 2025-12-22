@@ -71,9 +71,16 @@ const ChatScreen = () => {
   };
 
   return (
-    <div className="h-full flex flex-col bg-background">
+    <div className="h-full flex flex-col bg-background relative overflow-hidden">
+      {/* Nature Background */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center opacity-15"
+        style={{ backgroundImage: `url(https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&auto=format&fit=crop)` }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-b from-accent/5 via-background/95 to-background" />
+
       {/* Header */}
-      <div className="px-4 pt-12 pb-3 flex items-center gap-3 border-b border-border">
+      <div className="relative z-10 px-4 pt-12 pb-3 flex items-center gap-3 border-b border-border/50">
         <button 
           onClick={() => setScreen('matches')}
           className="w-10 h-10 flex items-center justify-center rounded-xl bg-secondary transition-all duration-300 hover:bg-secondary/70"
@@ -130,7 +137,7 @@ const ChatScreen = () => {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 relative z-10">
         {/* Match notice */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -172,7 +179,7 @@ const ChatScreen = () => {
       </div>
 
       {/* Input */}
-      <div className="p-4 pb-8 border-t border-border">
+      <div className="relative z-10 p-4 pb-8 border-t border-border/50 bg-background/80 backdrop-blur-sm">
         <div className="flex gap-3">
           
           <div className="flex-1 relative">

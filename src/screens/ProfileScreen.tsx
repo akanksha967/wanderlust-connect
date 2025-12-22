@@ -91,7 +91,13 @@ const ProfileScreen = () => {
   const isValid = name && age && photos.length > 0 && selectedVibes.length > 0;
 
   return (
-    <div className="h-full flex flex-col bg-background">
+    <div className="h-full flex flex-col bg-background relative overflow-hidden">
+      {/* Nature Background */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center opacity-20"
+        style={{ backgroundImage: `url(https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&auto=format&fit=crop)` }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-b from-accent/20 via-background/95 to-background" />
       {/* Hidden file inputs */}
       <input
         type="file"
@@ -110,7 +116,7 @@ const ProfileScreen = () => {
       />
 
       {/* Header */}
-      <div className="px-4 pt-12 pb-4 flex items-center justify-between">
+      <div className="relative z-10 px-4 pt-12 pb-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button 
             onClick={() => setScreen('login')}
@@ -151,7 +157,7 @@ const ProfileScreen = () => {
       )}
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto px-4 pb-24">
+      <div className="flex-1 overflow-y-auto px-4 pb-24 relative z-10">
         {/* Photo upload */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -284,7 +290,7 @@ const ProfileScreen = () => {
       </div>
 
       {/* Footer */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-background via-background to-transparent">
+      <div className="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-background via-background to-transparent z-10">
         <Button
           variant="accent"
           size="lg"

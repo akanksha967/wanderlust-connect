@@ -11,9 +11,16 @@ const MatchesListScreen = () => {
   };
 
   return (
-    <div className="h-full flex flex-col bg-background">
+    <div className="h-full flex flex-col bg-background relative overflow-hidden">
+      {/* Nature Background */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center opacity-20"
+        style={{ backgroundImage: `url(https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&auto=format&fit=crop)` }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-b from-accent/10 via-background/95 to-background" />
+
       {/* Header */}
-      <div className="px-4 pt-12 pb-4 flex items-center gap-4 border-b border-border">
+      <div className="relative z-10 px-4 pt-12 pb-4 flex items-center gap-4 border-b border-border/50">
         <button 
           onClick={() => setScreen('swipe')}
           className="w-10 h-10 flex items-center justify-center rounded-xl bg-secondary transition-smooth hover:bg-secondary/70"
@@ -28,7 +35,7 @@ const MatchesListScreen = () => {
       </div>
 
       {/* Matches List */}
-      <div className="flex-1 overflow-y-auto px-4 py-4">
+      <div className="flex-1 overflow-y-auto px-4 py-4 relative z-10">
         {matches.length > 0 ? (
           <div className="space-y-3">
             {matches.map((match, index) => (
@@ -38,7 +45,7 @@ const MatchesListScreen = () => {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
                 onClick={() => handleOpenChat(match)}
-                className="w-full flex items-center gap-4 p-3 rounded-2xl bg-card shadow-soft transition-smooth hover:shadow-card hover:scale-[1.02] active:scale-[0.98]"
+                className="w-full flex items-center gap-4 p-3 rounded-2xl bg-card/80 backdrop-blur-sm shadow-soft transition-smooth hover:shadow-card hover:scale-[1.02] active:scale-[0.98]"
               >
                 <div className="relative">
                   <img
