@@ -3,7 +3,9 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAppStore } from '@/store/useAppStore';
-import { ArrowLeft, MapPin, Calendar } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Loader2 } from 'lucide-react';
+import { useGoogleMapsKey } from '@/hooks/useGoogleMapsKey';
+import GoogleMapsDestinationPicker from '@/components/GoogleMapsDestinationPicker';
 
 const popularDestinations = [
   { name: 'Bali', country: 'Indonesia', emoji: '🌴', image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=400&auto=format&fit=crop' },
@@ -14,6 +16,7 @@ const popularDestinations = [
 
 const TravelScreen = () => {
   const { setScreen, setTravelDetails, hasCompletedProfile } = useAppStore();
+  const { apiKey, loading: mapsLoading } = useGoogleMapsKey();
   // Always start with empty fields when adding a new trip
   const [destination, setDestination] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -63,7 +66,7 @@ const TravelScreen = () => {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-4 pb-24 relative z-10">
-        {/* Destination input */}
+        {/* Destination input with Google Maps */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -72,15 +75,32 @@ const TravelScreen = () => {
           <label className="text-sm font-medium text-foreground mb-2 block">
             Destination
           </label>
-          <div className="relative">
-            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input
+          {mapsLoading ? (
+            <div className="relative">
+              <Loader2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground animate-spin" />
+              <Input
+                disabled
+                placeholder="Loading maps..."
+                className="h-14 pl-12 rounded-2xl bg-card/80 backdrop-blur-sm border-0 shadow-soft text-base"
+              />
+            </div>
+          ) : apiKey ? (
+            <GoogleMapsDestinationPicker
+              apiKey={apiKey}
               value={destination}
-              onChange={(e) => setDestination(e.target.value)}
-              placeholder="Search destination..."
-              className="h-14 pl-12 rounded-2xl bg-card/80 backdrop-blur-sm border-0 shadow-soft text-base"
+              onChange={setDestination}
             />
-          </div>
+          ) : (
+            <div className="relative">
+              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Input
+                value={destination}
+                onChange={(e) => setDestination(e.target.value)}
+                placeholder="Search destination..."
+                className="h-14 pl-12 rounded-2xl bg-card/80 backdrop-blur-sm border-0 shadow-soft text-base"
+              />
+            </div>
+          )}
         </motion.div>
 
         {/* Popular destinations - simple cards without images */}
