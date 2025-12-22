@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useAppStore } from '@/store/useAppStore';
-import { ArrowLeft, Send, Phone, Trash2, UserX } from 'lucide-react';
+import { ArrowLeft, Send, Phone, MoreVertical, Trash2, UserX, Ban } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -115,6 +115,23 @@ const ChatScreen = () => {
     setShowOptions(false);
   };
 
+  const handleBlock = async () => {
+    if (matchedUser && profileId) {
+      try {
+        await supabase.from('blocks').insert({
+          blocker_id: profileId,
+          blocked_id: matchedUser.id,
+        });
+        removeMatch(matchedUser.id);
+        setMatchedUser(null);
+        setScreen('matches');
+      } catch (error) {
+        console.error('Error blocking user:', error);
+      }
+    }
+    setShowOptions(false);
+  };
+
   const handleUnmatch = () => {
     if (matchedUser) {
       removeMatch(matchedUser.id);
@@ -199,7 +216,7 @@ const ChatScreen = () => {
               onClick={() => setShowOptions(!showOptions)}
               className="w-10 h-10 flex items-center justify-center rounded-xl bg-secondary transition-smooth hover:bg-secondary/70"
             >
-              <Trash2 className="w-5 h-5 text-foreground" />
+              <MoreVertical className="w-5 h-5 text-foreground" />
             </button>
             {showOptions && (
               <div className="absolute right-0 top-12 w-48 bg-card rounded-xl shadow-elegant border border-border overflow-hidden z-50">
@@ -209,6 +226,13 @@ const ChatScreen = () => {
                 >
                   <Trash2 className="w-4 h-4" />
                   Delete Chat
+                </button>
+                <button
+                  onClick={handleBlock}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-destructive hover:bg-destructive/10 transition-smooth"
+                >
+                  <Ban className="w-4 h-4" />
+                  Block User
                 </button>
                 <button
                   onClick={handleUnmatch}
