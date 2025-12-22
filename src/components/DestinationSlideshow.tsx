@@ -88,18 +88,6 @@ const DestinationSlideshow = () => {
         );
       })}
       
-      {/* Dots indicator */}
-      <div className="absolute bottom-0 flex gap-1.5">
-        {destinations.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => setCurrentIndex(index)}
-            className={`w-2 h-2 rounded-full transition-all duration-300 ${
-              index === currentIndex ? 'bg-accent w-4' : 'bg-muted-foreground/30'
-            }`}
-          />
-        ))}
-      </div>
     </div>
   );
 };

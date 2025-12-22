@@ -1,42 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, useMotionValue, useTransform, PanInfo, AnimatePresence } from 'framer-motion';
 import { useAppStore, UserProfile } from '@/store/useAppStore';
 import { mockProfiles } from '@/data/mockProfiles';
-import { X, MapPin, MessageCircle, User, Sparkles, Plane, Compass } from 'lucide-react';
-
-const funFacts: Record<string, string[]> = {
-  'Bali': [
-    '🌴 Bali has over 20,000 temples!',
-    '🏄 Bali is a surfer\'s paradise',
-    '🌺 Balinese celebrate Nyepi - a day of silence',
-    '🐒 Sacred Monkey Forest has 700+ monkeys',
-  ],
-  'Paris': [
-    '🗼 Eiffel Tower grows 6 inches in summer',
-    '🥐 Paris has 30,000+ bakeries',
-    '🎨 Louvre would take 100 days to see everything',
-    '💡 Paris is called the City of Light',
-  ],
-  'Tokyo': [
-    '🍣 Tokyo has the most Michelin stars',
-    '🚄 Shinkansen trains are never late',
-    '🌸 Cherry blossoms bloom in spring',
-    '🎮 Tokyo is the gaming capital of the world',
-  ],
-  'default': [
-    '✈️ Adventure awaits around every corner!',
-    '🌍 Travel makes you richer in experiences',
-    '📸 Every trip is a story waiting to be told',
-    '🤝 The best journeys are shared ones',
-  ],
-};
+import { X, MapPin, MessageCircle, User, Heart } from 'lucide-react';
 
 const destinationImages: Record<string, string> = {
   'Bali': 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&auto=format&fit=crop',
   'Paris': 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&auto=format&fit=crop',
   'Tokyo': 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&auto=format&fit=crop',
   'Barcelona': 'https://images.unsplash.com/photo-1583422409516-2895a77efded?w=800&auto=format&fit=crop',
-  'default': 'https://images.unsplash.com/photo-1488085061387-422e29b40080?w=800&auto=format&fit=crop',
+  'default': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&auto=format&fit=crop',
 };
 
 const SwipeCard = ({ 
@@ -141,19 +114,10 @@ const SwipeCard = ({
 const SwipeScreen = () => {
   const { setScreen, setMatchedUser, setShowMatch, addMatch, travelDetails } = useAppStore();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [profiles, setProfiles] = useState(mockProfiles);
-  const [currentFact, setCurrentFact] = useState(0);
+  const [profiles] = useState(mockProfiles);
 
   const destination = travelDetails?.destination || 'Bali';
-  const facts = funFacts[destination] || funFacts['default'];
   const bgImage = destinationImages[destination] || destinationImages['default'];
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentFact((prev) => (prev + 1) % facts.length);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [facts.length]);
 
   const handleSwipe = (direction: 'left' | 'right') => {
     if (direction === 'right' && Math.random() > 0.5) {
@@ -176,16 +140,16 @@ const SwipeScreen = () => {
     <div className="h-full flex flex-col bg-background overflow-hidden relative">
       {/* Background Image */}
       <div 
-        className="absolute inset-0 bg-cover bg-center opacity-10"
+        className="absolute inset-0 bg-cover bg-center opacity-20"
         style={{ backgroundImage: `url(${bgImage})` }}
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-background/95 to-background" />
+      <div className="absolute inset-0 bg-gradient-to-b from-accent/10 via-background/95 to-background" />
 
       {/* Header */}
       <div className="relative z-10 px-4 pt-12 pb-2 flex items-center justify-between">
         <button 
           onClick={() => setScreen('account')}
-          className="w-11 h-11 flex items-center justify-center rounded-2xl bg-card shadow-soft transition-smooth hover:shadow-card active:scale-95"
+          className="w-11 h-11 flex items-center justify-center rounded-2xl bg-card/80 backdrop-blur-sm shadow-soft transition-smooth hover:shadow-card active:scale-95"
         >
           <User className="w-5 h-5 text-foreground" />
         </button>
@@ -195,20 +159,14 @@ const SwipeScreen = () => {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <div className="flex items-center justify-center gap-2">
-            <Plane className="w-4 h-4 text-accent" />
-            <h1 className="text-xl font-display text-foreground">
-              {destination}
-            </h1>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {remainingProfiles.length} travelers nearby
-          </p>
+          <h1 className="text-xl font-display text-foreground">
+            {destination}
+          </h1>
         </motion.div>
 
         <button 
           onClick={() => setScreen('matches')}
-          className="w-11 h-11 flex items-center justify-center rounded-2xl bg-card shadow-soft transition-smooth hover:shadow-card active:scale-95"
+          className="w-11 h-11 flex items-center justify-center rounded-2xl bg-card/80 backdrop-blur-sm shadow-soft transition-smooth hover:shadow-card active:scale-95"
         >
           <MessageCircle className="w-5 h-5 text-foreground" />
         </button>
@@ -216,44 +174,46 @@ const SwipeScreen = () => {
 
       {/* Cards - Centered */}
       <div className="flex-1 relative px-4 py-2 flex items-center justify-center">
-        <div className="relative w-full h-full max-h-[400px]">
-          {remainingProfiles.length > 0 ? (
-            remainingProfiles.slice(0, 2).reverse().map((profile, index) => (
-              <SwipeCard
-                key={profile.id}
-                profile={profile}
-                onSwipe={handleSwipe}
-                isTop={index === remainingProfiles.slice(0, 2).length - 1}
-              />
-            ))
-          ) : (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="flex flex-col items-center justify-center h-full text-center"
-            >
-              <div className="w-20 h-20 rounded-full gradient-accent flex items-center justify-center mb-4 shadow-glow animate-float">
-                <MapPin className="w-10 h-10 text-accent-foreground" />
-              </div>
-              <h3 className="text-xl font-display text-foreground mb-2">
-                No more travelers
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Check back later or adjust your travel dates
-              </p>
-            </motion.div>
-          )}
+        <div className="relative w-full h-full max-h-[450px]">
+          <AnimatePresence>
+            {remainingProfiles.length > 0 ? (
+              remainingProfiles.slice(0, 2).reverse().map((profile, index) => (
+                <SwipeCard
+                  key={profile.id}
+                  profile={profile}
+                  onSwipe={handleSwipe}
+                  isTop={index === remainingProfiles.slice(0, 2).length - 1}
+                />
+              ))
+            ) : (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex flex-col items-center justify-center h-full text-center"
+              >
+                <div className="w-20 h-20 rounded-full gradient-accent flex items-center justify-center mb-4 shadow-glow animate-float">
+                  <MapPin className="w-10 h-10 text-accent-foreground" />
+                </div>
+                <h3 className="text-xl font-display text-foreground mb-2">
+                  No more travelers
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Check back later or adjust your travel dates
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
       {/* Action buttons */}
       {remainingProfiles.length > 0 && (
-        <div className="relative z-10 px-4 pb-4 flex justify-center items-center gap-6">
+        <div className="relative z-10 px-4 pb-8 flex justify-center items-center gap-6">
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => handleButtonSwipe('left')}
-            className="w-14 h-14 rounded-full bg-card shadow-card flex items-center justify-center transition-smooth hover:shadow-float border-2 border-border"
+            className="w-14 h-14 rounded-full bg-card/60 backdrop-blur-sm shadow-card flex items-center justify-center transition-smooth hover:shadow-float border border-border/50"
           >
             <X className="w-6 h-6 text-muted-foreground" />
           </motion.button>
@@ -262,28 +222,12 @@ const SwipeScreen = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => handleButtonSwipe('right')}
-            className="w-16 h-16 rounded-full gradient-accent shadow-card flex items-center justify-center transition-smooth hover:shadow-glow"
+            className="w-16 h-16 rounded-full bg-accent/80 backdrop-blur-sm shadow-card flex items-center justify-center transition-smooth hover:shadow-glow border border-accent/50"
           >
-            <Compass className="w-7 h-7 text-accent-foreground" />
+            <Heart className="w-7 h-7 text-accent-foreground" />
           </motion.button>
         </div>
       )}
-
-      {/* Fun Fact at Bottom */}
-      <div className="relative z-10 px-4 pb-6">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentFact}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-card/80 backdrop-blur-sm border border-border shadow-soft"
-          >
-            <Sparkles className="w-4 h-4 text-accent flex-shrink-0" />
-            <p className="text-xs text-foreground font-medium">{facts[currentFact]}</p>
-          </motion.div>
-        </AnimatePresence>
-      </div>
     </div>
   );
 };
