@@ -281,18 +281,18 @@ const SwipeScreen = () => {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => handleButtonSwipe('left')}
-            className="w-16 h-16 rounded-full bg-destructive/90 backdrop-blur-sm flex items-center justify-center shadow-lg transition-smooth"
+            className="w-16 h-16 flex items-center justify-center transition-smooth"
           >
-            <X className="w-8 h-8 text-destructive-foreground" strokeWidth={2.5} />
+            <X className="w-10 h-10 text-background drop-shadow-lg" strokeWidth={2.5} />
           </motion.button>
           
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => handleButtonSwipe('right')}
-            className="w-16 h-16 rounded-full bg-accent/90 backdrop-blur-sm flex items-center justify-center shadow-lg transition-smooth"
+            className="w-16 h-16 flex items-center justify-center transition-smooth"
           >
-            <Heart className="w-8 h-8 text-accent-foreground" strokeWidth={2.5} />
+            <Heart className="w-10 h-10 text-background drop-shadow-lg" strokeWidth={2.5} />
           </motion.button>
         </div>
       )}
