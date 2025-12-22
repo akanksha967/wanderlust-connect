@@ -76,9 +76,6 @@ const LoginScreen = () => {
         transition={{ duration: 0.5, delay: 0.4 }}
         className="space-y-3"
       >
-        <Button variant="accent" size="lg" className="w-full" onClick={() => setScreen("profile")}>
-          Get Started
-        </Button>
 
         <Button variant="social" size="lg" className="w-full" onClick={signInWithGoogle}>
           <svg className="w-5 h-5" viewBox="0 0 24 24">
