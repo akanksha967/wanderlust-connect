@@ -1,20 +1,36 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAppStore } from '@/store/useAppStore';
-import { ArrowLeft, Camera, MapPin, Calendar, LogOut, Trash2, ChevronRight, Edit2 } from 'lucide-react';
+import { ArrowLeft, Camera, MapPin, Calendar, LogOut, Trash2, ChevronRight, Edit2, X, Plus, Image } from 'lucide-react';
 import DeleteAccountDialog from '@/components/DeleteAccountDialog';
 import { useAuth } from '@/hooks/useAuth';
 
+const vibeOptions = [
+  'Adventure', 'Relaxation', 'Culture', 'Foodie', 'Nature',
+  'Nightlife', 'Photography', 'Budget', 'Luxury', 'Solo'
+];
+
 const AccountScreen = () => {
-  const { setScreen, userProfile, travelDetails, setTravelDetails } = useAppStore();
+  const { setScreen, userProfile, travelDetails, setTravelDetails, setUserProfile } = useAppStore();
   const { signOut, user } = useAuth();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [editingTravel, setEditingTravel] = useState(false);
+  const [editingProfile, setEditingProfile] = useState(false);
   const [destination, setDestination] = useState(travelDetails?.destination || '');
   const [startDate, setStartDate] = useState(travelDetails?.startDate || '');
   const [endDate, setEndDate] = useState(travelDetails?.endDate || '');
+  
+  // Profile editing state
+  const [name, setName] = useState(userProfile.name || '');
+  const [age, setAge] = useState(userProfile.age?.toString() || '');
+  const [bio, setBio] = useState(userProfile.bio || '');
+  const [photos, setPhotos] = useState<string[]>(userProfile.photos || []);
+  const [selectedVibes, setSelectedVibes] = useState<string[]>(userProfile.travelVibes || []);
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
 
   const handleAccountDeleted = () => {
     setScreen('login');
@@ -34,8 +50,78 @@ const AccountScreen = () => {
     setEditingTravel(false);
   };
 
+  const handlePhotoClick = (index: number) => {
+    setActivePhotoIndex(index);
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && activePhotoIndex !== null) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const newPhotos = [...photos];
+        if (activePhotoIndex < newPhotos.length) {
+          newPhotos[activePhotoIndex] = event.target?.result as string;
+        } else {
+          newPhotos.push(event.target?.result as string);
+        }
+        setPhotos(newPhotos);
+      };
+      reader.readAsDataURL(file);
+    }
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemovePhoto = (index: number) => {
+    setPhotos(photos.filter((_, i) => i !== index));
+  };
+
+  const toggleVibe = (vibe: string) => {
+    if (selectedVibes.includes(vibe)) {
+      setSelectedVibes(selectedVibes.filter(v => v !== vibe));
+    } else if (selectedVibes.length < 4) {
+      setSelectedVibes([...selectedVibes, vibe]);
+    }
+  };
+
+  const handleSaveProfile = () => {
+    setUserProfile({
+      name,
+      age: parseInt(age),
+      bio,
+      photos,
+      travelVibes: selectedVibes,
+    });
+    setEditingProfile(false);
+  };
+
+  const handleCancelProfileEdit = () => {
+    setName(userProfile.name || '');
+    setAge(userProfile.age?.toString() || '');
+    setBio(userProfile.bio || '');
+    setPhotos(userProfile.photos || []);
+    setSelectedVibes(userProfile.travelVibes || []);
+    setEditingProfile(false);
+  };
+
+  const isProfileValid = name && age && photos.length > 0 && selectedVibes.length > 0;
+
   return (
     <div className="h-full flex flex-col bg-background">
+      {/* Hidden file input for camera/gallery */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+      />
+
       {/* Header */}
       <div className="px-4 pt-12 pb-4 flex items-center gap-3">
         <button 
@@ -55,53 +141,186 @@ const AccountScreen = () => {
           animate={{ opacity: 1, y: 0 }}
           className="p-4 rounded-2xl bg-card shadow-soft mb-6"
         >
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              {userProfile.photos?.[0] ? (
-                <img
-                  src={userProfile.photos[0]}
-                  alt="Profile"
-                  className="w-16 h-16 rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center">
-                  <Camera className="w-6 h-6 text-muted-foreground" />
-                </div>
-              )}
-            </div>
-            <div className="flex-1">
-              <h2 className="font-display text-lg text-foreground">
-                {userProfile.name || 'Traveler'}
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                {user?.phone || user?.email || 'No contact info'}
-              </p>
-              {userProfile.age && (
-                <p className="text-xs text-muted-foreground mt-1">{userProfile.age} years old</p>
-              )}
-            </div>
-            <button 
-              onClick={() => setScreen('profile')}
-              className="w-10 h-10 flex items-center justify-center rounded-xl bg-secondary transition-smooth hover:bg-secondary/70"
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-foreground">Profile</h3>
+            <button
+              onClick={() => editingProfile ? handleCancelProfileEdit() : setEditingProfile(true)}
+              className="text-xs text-accent font-medium"
             >
-              <Edit2 className="w-4 h-4 text-foreground" />
+              {editingProfile ? 'Cancel' : 'Edit'}
             </button>
           </div>
 
-          {userProfile.travelVibes && userProfile.travelVibes.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-border">
-              <p className="text-xs text-muted-foreground mb-2">Travel Vibes</p>
-              <div className="flex flex-wrap gap-2">
-                {userProfile.travelVibes.map((vibe) => (
-                  <span
-                    key={vibe}
-                    className="px-3 py-1 rounded-full text-xs font-medium bg-accent/10 text-accent"
-                  >
-                    {vibe}
-                  </span>
-                ))}
+          {editingProfile ? (
+            <div className="space-y-4">
+              {/* Photo upload */}
+              <div>
+                <label className="text-xs text-muted-foreground mb-2 block">
+                  Photos (1-3) - Tap to add from camera or gallery
+                </label>
+                <div className="flex gap-3">
+                  {[0, 1, 2].map((index) => (
+                    <div
+                      key={index}
+                      className="relative w-20 h-20 rounded-2xl overflow-hidden bg-secondary shadow-soft"
+                    >
+                      {photos[index] ? (
+                        <>
+                          <img
+                            src={photos[index]}
+                            alt={`Photo ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            onClick={() => handleRemovePhoto(index)}
+                            className="absolute top-1 right-1 w-5 h-5 bg-foreground/80 rounded-full flex items-center justify-center"
+                          >
+                            <X className="w-3 h-3 text-background" />
+                          </button>
+                          <button
+                            onClick={() => handlePhotoClick(index)}
+                            className="absolute bottom-1 right-1 w-5 h-5 bg-accent rounded-full flex items-center justify-center"
+                          >
+                            <Edit2 className="w-3 h-3 text-accent-foreground" />
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => handlePhotoClick(index)}
+                          className="w-full h-full flex flex-col items-center justify-center gap-1 transition-smooth hover:bg-secondary/70"
+                        >
+                          {index === 0 ? (
+                            <Camera className="w-5 h-5 text-muted-foreground" />
+                          ) : (
+                            <Plus className="w-5 h-5 text-muted-foreground" />
+                          )}
+                          <span className="text-[10px] text-muted-foreground">
+                            {index === 0 ? 'Camera' : 'Add'}
+                          </span>
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
+
+              {/* Name & Age */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Name</label>
+                  <Input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Your name"
+                    className="h-10 rounded-xl bg-secondary border-0"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Age</label>
+                  <Input
+                    type="number"
+                    value={age}
+                    onChange={(e) => setAge(e.target.value)}
+                    placeholder="Age"
+                    className="h-10 rounded-xl bg-secondary border-0"
+                  />
+                </div>
+              </div>
+
+              {/* Bio */}
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Bio</label>
+                <textarea
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  placeholder="Tell fellow travelers about yourself..."
+                  className="w-full h-20 p-3 rounded-xl bg-secondary border-0 resize-none text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                />
+              </div>
+
+              {/* Travel vibes */}
+              <div>
+                <label className="text-xs text-muted-foreground mb-2 block">
+                  Travel vibes (select up to 4)
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {vibeOptions.map((vibe) => (
+                    <button
+                      key={vibe}
+                      onClick={() => toggleVibe(vibe)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-smooth ${
+                        selectedVibes.includes(vibe)
+                          ? 'gradient-accent text-accent-foreground shadow-soft'
+                          : 'bg-secondary text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      {vibe}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <Button
+                variant="accent"
+                size="lg"
+                className="w-full"
+                onClick={handleSaveProfile}
+                disabled={!isProfileValid}
+              >
+                Save Profile
+              </Button>
             </div>
+          ) : (
+            <>
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  {userProfile.photos?.[0] ? (
+                    <img
+                      src={userProfile.photos[0]}
+                      alt="Profile"
+                      className="w-16 h-16 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center">
+                      <Camera className="w-6 h-6 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h2 className="font-display text-lg text-foreground">
+                    {userProfile.name || 'Traveler'}
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    {user?.phone || user?.email || 'No contact info'}
+                  </p>
+                  {userProfile.age && (
+                    <p className="text-xs text-muted-foreground mt-1">{userProfile.age} years old</p>
+                  )}
+                </div>
+              </div>
+
+              {userProfile.bio && (
+                <p className="text-sm text-muted-foreground mt-3 pt-3 border-t border-border">
+                  {userProfile.bio}
+                </p>
+              )}
+
+              {userProfile.travelVibes && userProfile.travelVibes.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-border">
+                  <p className="text-xs text-muted-foreground mb-2">Travel Vibes</p>
+                  <div className="flex flex-wrap gap-2">
+                    {userProfile.travelVibes.map((vibe) => (
+                      <span
+                        key={vibe}
+                        className="px-3 py-1 rounded-full text-xs font-medium bg-accent/10 text-accent"
+                      >
+                        {vibe}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </motion.div>
 
