@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [profileId, setProfileId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -28,6 +29,28 @@ export const useAuth = () => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Fetch profile ID when user changes
+  useEffect(() => {
+    const fetchProfileId = async () => {
+      if (!user) {
+        setProfileId(null);
+        return;
+      }
+
+      const { data } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (data) {
+        setProfileId(data.id);
+      }
+    };
+
+    fetchProfileId();
+  }, [user]);
 
   const signInWithGoogle = async () => {
     const redirectUrl = `${window.location.origin}/`;
@@ -106,6 +129,7 @@ export const useAuth = () => {
   return {
     user,
     session,
+    profileId,
     loading,
     signInWithGoogle,
     sendOtp,

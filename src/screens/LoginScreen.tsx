@@ -23,7 +23,7 @@ const LoginScreen = () => {
   };
 
   return (
-    <div className="h-full flex flex-col bg-background px-5 pt-8 pb-6">
+    <div className="h-full flex flex-col bg-background px-5 pt-8 pb-6 overflow-hidden">
       {/* Title */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
