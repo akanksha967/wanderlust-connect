@@ -154,27 +154,27 @@ const TravelScreen = () => {
           </label>
           
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs text-muted-foreground mb-1 block">From</label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <div className="flex flex-col">
+              <label className="text-xs text-muted-foreground mb-1.5 block">From</label>
+              <div className="relative flex-1">
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none z-10" />
                 <Input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="h-12 pl-10 rounded-xl bg-card/80 backdrop-blur-sm border-0 shadow-soft"
+                  className="h-12 pl-10 pr-3 rounded-xl bg-card/80 backdrop-blur-sm border-0 shadow-soft w-full [&::-webkit-calendar-picker-indicator]:opacity-100 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                 />
               </div>
             </div>
-            <div>
-              <label className="text-xs text-muted-foreground mb-1 block">To</label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <div className="flex flex-col">
+              <label className="text-xs text-muted-foreground mb-1.5 block">To</label>
+              <div className="relative flex-1">
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none z-10" />
                 <Input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="h-12 pl-10 rounded-xl bg-card/80 backdrop-blur-sm border-0 shadow-soft"
+                  className="h-12 pl-10 pr-3 rounded-xl bg-card/80 backdrop-blur-sm border-0 shadow-soft w-full [&::-webkit-calendar-picker-indicator]:opacity-100 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                 />
               </div>
             </div>
