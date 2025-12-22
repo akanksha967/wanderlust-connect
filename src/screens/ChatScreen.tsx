@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useAppStore } from '@/store/useAppStore';
 import { ArrowLeft, Send, Phone, Trash2, UserX } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Message {
   id: string;
@@ -11,32 +13,102 @@ interface Message {
   time: string;
 }
 
-const initialMessages: Message[] = [
-  {
-    id: '1',
-    text: 'Hey! I saw we matched. So excited to find someone heading to Bali too! 🌴',
-    sender: 'them',
-    time: '2:30 PM',
-  },
-  {
-    id: '2',
-    text: 'Hi! Yes! I can\'t wait. Are you planning on doing any diving there?',
-    sender: 'me',
-    time: '2:32 PM',
-  },
-  {
-    id: '3',
-    text: 'Absolutely! The coral reefs are on my bucket list. Would you be interested in going together?',
-    sender: 'them',
-    time: '2:33 PM',
-  },
-];
-
 const ChatScreen = () => {
   const { setScreen, matchedUser, setMatchedUser, removeMatch } = useAppStore();
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const { user, profileId } = useAuth();
+  const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [showOptions, setShowOptions] = useState(false);
+  const [matchId, setMatchId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Fetch match ID and messages
+  useEffect(() => {
+    const fetchMatchAndMessages = async () => {
+      if (!user || !matchedUser || !profileId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        // Find the match between current user and matched user
+        const { data: matchData } = await supabase
+          .from('matches')
+          .select('id')
+          .or(`and(profile1_id.eq.${profileId},profile2_id.eq.${matchedUser.id}),and(profile1_id.eq.${matchedUser.id},profile2_id.eq.${profileId})`)
+          .single();
+
+        if (matchData) {
+          setMatchId(matchData.id);
+
+          // Fetch messages for this match
+          const { data: messagesData } = await supabase
+            .from('messages')
+            .select('*')
+            .eq('match_id', matchData.id)
+            .order('created_at', { ascending: true });
+
+          if (messagesData) {
+            const formattedMessages: Message[] = messagesData.map((msg) => ({
+              id: msg.id,
+              text: msg.content,
+              sender: msg.sender_id === profileId ? 'me' : 'them',
+              time: new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            }));
+            setMessages(formattedMessages);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching messages:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMatchAndMessages();
+  }, [user, matchedUser, profileId]);
+
+  // Subscribe to new messages
+  useEffect(() => {
+    if (!matchId) return;
+
+    const channel = supabase
+      .channel(`messages-${matchId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `match_id=eq.${matchId}`,
+        },
+        (payload) => {
+          const newMsg = payload.new as any;
+          const formattedMsg: Message = {
+            id: newMsg.id,
+            text: newMsg.content,
+            sender: newMsg.sender_id === profileId ? 'me' : 'them',
+            time: new Date(newMsg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          };
+          setMessages((prev) => {
+            // Avoid duplicates
+            if (prev.some((m) => m.id === formattedMsg.id)) return prev;
+            return [...prev, formattedMsg];
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [matchId, profileId]);
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const handleDeleteChat = () => {
     setMessages([]);
@@ -51,21 +123,36 @@ const ChatScreen = () => {
     setScreen('matches');
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!newMessage.trim()) return;
 
-    const message: Message = {
-      id: Date.now().toString(),
-      text: newMessage,
-      sender: 'me',
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
+    if (matchId && profileId) {
+      // Send to database
+      const { error } = await supabase.from('messages').insert({
+        match_id: matchId,
+        sender_id: profileId,
+        content: newMessage.trim(),
+      });
 
-    setMessages([...messages, message]);
+      if (error) {
+        console.error('Error sending message:', error);
+        return;
+      }
+    } else {
+      // Demo mode - just add locally
+      const message: Message = {
+        id: Date.now().toString(),
+        text: newMessage,
+        sender: 'me',
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      setMessages((prev) => [...prev, message]);
+    }
+
     setNewMessage('');
   };
 
-  const user = matchedUser || {
+  const chatUser = matchedUser || {
     name: 'Emma',
     photos: ['https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop'],
   };
@@ -91,14 +178,14 @@ const ChatScreen = () => {
         <div className="flex items-center gap-3 flex-1">
           <div className="relative">
             <img
-              src={user.photos[0]}
-              alt={user.name}
+              src={chatUser.photos[0]}
+              alt={chatUser.name}
               className="w-10 h-10 rounded-full object-cover"
             />
             <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background" />
           </div>
           <div>
-            <h2 className="font-display text-foreground text-lg">{user.name}</h2>
+            <h2 className="font-display text-foreground text-lg">{chatUser.name}</h2>
             <p className="text-xs text-green-500">Online</p>
           </div>
         </div>

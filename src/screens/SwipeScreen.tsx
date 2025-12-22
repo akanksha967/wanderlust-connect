@@ -66,11 +66,15 @@ const SwipeCard = ({
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-foreground/90 via-foreground/20 to-transparent" />
 
-        {/* More options button */}
+        {/* More options (block/report) button */}
         {isTop && (
           <button
-            onClick={onOpenMenu}
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenMenu();
+            }}
             className="absolute top-4 right-4 w-10 h-10 rounded-full bg-background/20 backdrop-blur-sm flex items-center justify-center transition-all hover:bg-background/30"
+            aria-label="Report or block user"
           >
             <MoreVertical className="w-5 h-5 text-background" />
           </button>
@@ -149,10 +153,14 @@ const SwipeScreen = () => {
   );
 
   const handleSwipe = async (direction: 'left' | 'right') => {
+    // Don't allow swiping if no profiles remaining
+    if (remainingProfiles.length === 0) return;
+    
     const currentProfile = profiles[currentIndex];
+    if (!currentProfile) return;
     
     // Record swipe in backend if logged in
-    if (user && currentProfile) {
+    if (user) {
       const result = await recordSwipe(currentProfile.id, direction);
       if (result.matched) {
         addMatch(currentProfile);
@@ -272,7 +280,7 @@ const SwipeScreen = () => {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => handleButtonSwipe('left')}
-            className="w-16 h-16 rounded-full flex items-center justify-center transition-smooth"
+            className="w-16 h-16 rounded-full border-2 border-background/80 flex items-center justify-center transition-smooth"
           >
             <X className="w-10 h-10 text-background drop-shadow-lg" strokeWidth={3} />
           </motion.button>
@@ -281,9 +289,9 @@ const SwipeScreen = () => {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => handleButtonSwipe('right')}
-            className="w-20 h-20 rounded-full flex items-center justify-center transition-smooth"
+            className="w-20 h-20 rounded-full border-2 border-background/80 flex items-center justify-center transition-smooth"
           >
-            <Heart className="w-12 h-12 text-accent drop-shadow-lg" strokeWidth={2.5} fill="currentColor" />
+            <Heart className="w-12 h-12 text-background drop-shadow-lg" strokeWidth={2.5} />
           </motion.button>
         </div>
       )}
