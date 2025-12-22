@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useAppStore, UserProfile } from '@/store/useAppStore';
-import { ArrowLeft, MessageCircle } from 'lucide-react';
+import { ArrowLeft, MessageCircle, Heart } from 'lucide-react';
 
 const MatchesListScreen = () => {
   const { setScreen, matches, setMatchedUser } = useAppStore();
@@ -86,7 +86,7 @@ const MatchesListScreen = () => {
             className="flex flex-col items-center justify-center h-full text-center px-8"
           >
             <div className="w-24 h-24 rounded-full gradient-accent flex items-center justify-center mb-6 shadow-glow animate-float">
-              <Sparkles className="w-12 h-12 text-accent-foreground" />
+              <Heart className="w-12 h-12 text-accent-foreground" />
             </div>
             <h3 className="text-xl font-display text-foreground mb-2">
               No matches yet
