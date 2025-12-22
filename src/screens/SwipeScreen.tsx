@@ -136,7 +136,7 @@ const SwipeScreen = () => {
         </button>
         
         <div className="text-center">
-          <h1 className="text-lg font-semibold text-foreground">
+          <h1 className="text-lg font-display text-foreground">
             {travelDetails?.destination || 'Bali'}
           </h1>
           <p className="text-xs text-muted-foreground">

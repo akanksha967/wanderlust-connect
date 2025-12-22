@@ -39,12 +39,12 @@ const TravelScreen = () => {
       <div className="px-4 pt-12 pb-4 flex items-center gap-3">
         <button 
           onClick={() => setScreen('profile')}
-          className="w-10 h-10 flex items-center justify-center rounded-xl bg-secondary transition-smooth hover:bg-secondary/70"
+          className="w-10 h-10 flex items-center justify-center rounded-xl bg-secondary transition-all duration-300 hover:bg-secondary/70"
         >
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
         <div>
-          <h1 className="text-lg font-semibold text-foreground">Where to?</h1>
+          <h1 className="text-lg font-display text-foreground">Where to?</h1>
           <p className="text-xs text-muted-foreground">Step 2 of 2</p>
         </div>
       </div>
