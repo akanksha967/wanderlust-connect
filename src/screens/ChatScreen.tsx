@@ -62,7 +62,7 @@ const ChatScreen = () => {
       <div className="px-4 pt-12 pb-3 flex items-center gap-3 border-b border-border">
         <button 
           onClick={() => setScreen('swipe')}
-          className="w-10 h-10 flex items-center justify-center rounded-xl bg-secondary transition-smooth hover:bg-secondary/70"
+          className="w-10 h-10 flex items-center justify-center rounded-xl bg-secondary transition-all duration-300 hover:bg-secondary/70"
         >
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
@@ -77,7 +77,7 @@ const ChatScreen = () => {
             <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background" />
           </div>
           <div>
-            <h2 className="font-semibold text-foreground">{user.name}</h2>
+            <h2 className="font-display text-foreground text-lg">{user.name}</h2>
             <p className="text-xs text-green-500">Online</p>
           </div>
         </div>

@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/store/useAppStore';
+import roammateLogo from '@/assets/roammate-logo.png';
 import travelIllustration from '@/assets/travel-illustration.png';
-import { Plane, Users, Shield } from 'lucide-react';
+import { Users, Shield } from 'lucide-react';
 
 const LoginScreen = () => {
   const setScreen = useAppStore((state) => state.setScreen);
@@ -14,12 +15,13 @@ const LoginScreen = () => {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="flex items-center gap-2 mb-8"
+        className="flex items-center justify-center gap-2 mb-6"
       >
-        <div className="w-10 h-10 gradient-accent rounded-xl flex items-center justify-center">
-          <Plane className="w-5 h-5 text-accent-foreground" />
-        </div>
-        <span className="text-xl font-semibold text-foreground">TravelMate</span>
+        <img 
+          src={roammateLogo} 
+          alt="RoamMate" 
+          className="h-14 w-auto"
+        />
       </motion.div>
 
       {/* Illustration */}
@@ -32,7 +34,7 @@ const LoginScreen = () => {
         <img 
           src={travelIllustration} 
           alt="Travel together" 
-          className="w-full max-w-[280px] h-auto animate-float"
+          className="w-full max-w-[260px] h-auto animate-float"
         />
       </motion.div>
 
@@ -43,7 +45,7 @@ const LoginScreen = () => {
         transition={{ duration: 0.5, delay: 0.2 }}
         className="text-center mb-8"
       >
-        <h1 className="text-2xl font-bold text-foreground mb-3">
+        <h1 className="text-3xl font-display text-foreground mb-3">
           Find Your Perfect Travel Buddy
         </h1>
         <p className="text-muted-foreground text-sm leading-relaxed">
