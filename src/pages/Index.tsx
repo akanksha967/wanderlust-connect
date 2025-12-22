@@ -5,6 +5,7 @@ import ProfileScreen from '@/screens/ProfileScreen';
 import TravelScreen from '@/screens/TravelScreen';
 import SwipeScreen from '@/screens/SwipeScreen';
 import ChatScreen from '@/screens/ChatScreen';
+import AccountScreen from '@/screens/AccountScreen';
 import { useAppStore } from '@/store/useAppStore';
 
 const Index = () => {
@@ -22,6 +23,8 @@ const Index = () => {
         return <SwipeScreen />;
       case 'chat':
         return <ChatScreen />;
+      case 'account':
+        return <AccountScreen />;
       default:
         return <LoginScreen />;
     }

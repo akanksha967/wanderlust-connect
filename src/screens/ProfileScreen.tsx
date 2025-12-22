@@ -53,6 +53,7 @@ const ProfileScreen = () => {
       photos,
       travelVibes: selectedVibes,
     });
+    useAppStore.getState().setHasCompletedProfile(true);
     setScreen('travel');
   };
 
