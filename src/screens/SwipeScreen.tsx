@@ -273,25 +273,25 @@ const SwipeScreen = () => {
         </div>
       </div>
 
-      {/* Action buttons - No background, floating on image */}
+      {/* Action buttons */}
       {remainingProfiles.length > 0 && (
-        <div className="relative z-10 px-4 pb-8 flex justify-center items-center gap-6">
+        <div className="relative z-10 px-4 pb-8 flex justify-center items-center gap-8">
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => handleButtonSwipe('left')}
-            className="w-16 h-16 rounded-full border-2 border-background/80 flex items-center justify-center transition-smooth"
+            className="w-16 h-16 flex items-center justify-center transition-smooth"
           >
-            <X className="w-10 h-10 text-background drop-shadow-lg" strokeWidth={3} />
+            <X className="w-10 h-10 text-background drop-shadow-lg" strokeWidth={2.5} />
           </motion.button>
           
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => handleButtonSwipe('right')}
-            className="w-20 h-20 rounded-full border-2 border-background/80 flex items-center justify-center transition-smooth"
+            className="w-16 h-16 flex items-center justify-center transition-smooth"
           >
-            <Heart className="w-12 h-12 text-background drop-shadow-lg" strokeWidth={2.5} />
+            <Heart className="w-10 h-10 text-background drop-shadow-lg" strokeWidth={2.5} />
           </motion.button>
         </div>
       )}
