@@ -14,6 +14,67 @@ const popularDestinations = [
   { name: 'Barcelona', country: 'Spain', emoji: '🌊', image: 'https://images.unsplash.com/photo-1583422409516-2895a77efded?w=400&auto=format&fit=crop' },
 ];
 
+const allDestinations = [
+  'Bali', 'Tokyo', 'Paris', 'Barcelona', 'New York', 'London', 'Rome', 'Sydney',
+  'Dubai', 'Singapore', 'Bangkok', 'Amsterdam', 'Berlin', 'Prague', 'Vienna',
+  'Lisbon', 'Madrid', 'Athens', 'Istanbul', 'Cairo', 'Cape Town', 'Rio de Janeiro',
+  'Buenos Aires', 'Mexico City', 'Los Angeles', 'San Francisco', 'Miami', 'Toronto',
+  'Vancouver', 'Seoul', 'Hong Kong', 'Taipei', 'Mumbai', 'Delhi', 'Goa', 'Phuket',
+  'Maldives', 'Bora Bora', 'Santorini', 'Mykonos', 'Amalfi Coast', 'Swiss Alps',
+];
+
+// Simple destination input with dropdown suggestions
+const DestinationInput = ({ 
+  value, 
+  onChange 
+}: { 
+  value: string; 
+  onChange: (val: string) => void;
+}) => {
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  
+  const filteredDestinations = value.length > 0 
+    ? allDestinations.filter(d => d.toLowerCase().includes(value.toLowerCase()))
+    : allDestinations.slice(0, 6);
+
+  return (
+    <div className="relative">
+      <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground z-10" />
+      <Input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onFocus={() => setShowSuggestions(true)}
+        onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+        placeholder="Search destination..."
+        className="h-14 pl-12 rounded-2xl bg-card/80 backdrop-blur-sm border-0 shadow-soft text-base"
+      />
+      {showSuggestions && filteredDestinations.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="absolute top-full left-0 right-0 mt-2 rounded-xl shadow-lg border border-border overflow-hidden z-50 max-h-48 overflow-y-auto"
+          style={{ backgroundColor: 'hsl(var(--card))' }}
+        >
+          {filteredDestinations.slice(0, 6).map((dest) => (
+            <button
+              key={dest}
+              onClick={() => {
+                onChange(dest);
+                setShowSuggestions(false);
+              }}
+              className="w-full px-4 py-3 text-left hover:bg-accent/10 transition-colors flex items-center gap-3 border-b border-border/50 last:border-b-0"
+              style={{ backgroundColor: 'hsl(var(--card))' }}
+            >
+              <MapPin className="w-4 h-4 text-accent shrink-0" />
+              <span className="font-medium text-foreground text-sm">{dest}</span>
+            </button>
+          ))}
+        </motion.div>
+      )}
+    </div>
+  );
+};
+
 const TravelScreen = () => {
   const { setScreen, setTravelDetails, hasCompletedProfile } = useAppStore();
   const { apiKey, loading: mapsLoading } = useGoogleMapsKey();
@@ -66,7 +127,7 @@ const TravelScreen = () => {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-4 pb-24 relative z-10">
-        {/* Destination input with Google Maps */}
+        {/* Destination input with autocomplete */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -80,7 +141,7 @@ const TravelScreen = () => {
               <Loader2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground animate-spin" />
               <Input
                 disabled
-                placeholder="Loading maps..."
+                placeholder="Loading..."
                 className="h-14 pl-12 rounded-2xl bg-card/80 backdrop-blur-sm border-0 shadow-soft text-base"
               />
             </div>
@@ -91,15 +152,10 @@ const TravelScreen = () => {
               onChange={setDestination}
             />
           ) : (
-            <div className="relative">
-              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <Input
-                value={destination}
-                onChange={(e) => setDestination(e.target.value)}
-                placeholder="Search destination..."
-                className="h-14 pl-12 rounded-2xl bg-card/80 backdrop-blur-sm border-0 shadow-soft text-base"
-              />
-            </div>
+            <DestinationInput 
+              value={destination} 
+              onChange={setDestination}
+            />
           )}
         </motion.div>
 
@@ -156,25 +212,25 @@ const TravelScreen = () => {
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col">
               <label className="text-xs text-muted-foreground mb-1.5 block">From</label>
-              <div className="relative flex-1">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none z-10" />
+              <div className="relative h-12">
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                 <Input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="h-12 pl-10 pr-3 rounded-xl bg-card/80 backdrop-blur-sm border-0 shadow-soft w-full [&::-webkit-calendar-picker-indicator]:opacity-100 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                  className="h-full pl-10 pr-2 rounded-xl bg-card/80 backdrop-blur-sm border-0 shadow-soft w-full text-sm [&::-webkit-calendar-picker-indicator]:opacity-60 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                 />
               </div>
             </div>
             <div className="flex flex-col">
               <label className="text-xs text-muted-foreground mb-1.5 block">To</label>
-              <div className="relative flex-1">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none z-10" />
+              <div className="relative h-12">
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                 <Input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="h-12 pl-10 pr-3 rounded-xl bg-card/80 backdrop-blur-sm border-0 shadow-soft w-full [&::-webkit-calendar-picker-indicator]:opacity-100 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                  className="h-full pl-10 pr-2 rounded-xl bg-card/80 backdrop-blur-sm border-0 shadow-soft w-full text-sm [&::-webkit-calendar-picker-indicator]:opacity-60 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                 />
               </div>
             </div>
