@@ -6,25 +6,23 @@ import { useAuth } from "@/hooks/useAuth";
 import DestinationSlideshow from "@/components/DestinationSlideshow";
 import PhoneAuthModal from "@/components/PhoneAuthModal";
 import EmailAuthModal from "@/components/EmailAuthModal";
+import PrivacyPolicyModal from "@/components/PrivacyPolicyModal";
 import { Shield, Phone, Mail } from "lucide-react";
 
 const LoginScreen = () => {
   const setScreen = useAppStore((state) => state.setScreen);
   const { signInWithGoogle } = useAuth();
+
   const [showPhoneModal, setShowPhoneModal] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [showPolicyModal, setShowPolicyModal] = useState(false);
 
-  const handlePhoneSuccess = () => {
-    setScreen("profile");
-  };
-
-  const handleEmailSuccess = () => {
-    setScreen("profile");
-  };
+  const handlePhoneSuccess = () => setScreen("profile");
+  const handleEmailSuccess = () => setScreen("profile");
 
   return (
     <div className="h-full flex flex-col bg-background px-5 pt-8 pb-6 overflow-hidden">
-      {/* Title */}
+      {/* App Title */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -35,21 +33,21 @@ const LoginScreen = () => {
         <p className="text-xs text-muted-foreground mt-1">Travel is better with the right company.</p>
       </motion.div>
 
-      {/* Destination Slideshow */}
+      {/* Slideshow */}
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6, delay: 0.1 }}
+        transition={{ duration: 0.6 }}
         className="flex-1 flex items-center justify-center py-3 min-h-0"
       >
         <DestinationSlideshow />
       </motion.div>
 
-      {/* Text content */}
+      {/* Text */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
+        transition={{ duration: 0.5 }}
         className="text-center mb-4"
       >
         <h2 className="text-xl font-display text-foreground mb-1">Find Your Perfect Travel Buddy</h2>
@@ -58,31 +56,17 @@ const LoginScreen = () => {
         </p>
       </motion.div>
 
-      {/* Trust badges */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
-        className="flex justify-center gap-6 mb-4"
-      >
+      {/* Trust Badge */}
+      <div className="flex justify-center gap-6 mb-4">
         <div className="flex items-center gap-2 text-muted-foreground text-xs">
           <Shield className="w-4 h-4 text-accent" />
           <span>Verified profiles</span>
         </div>
-      </motion.div>
+      </div>
 
-      {/* Buttons */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
-        className="space-y-2"
-      >
-        <Button variant="accent" size="default" className="w-full h-11" onClick={() => setScreen("profile")}>
-          Get Started
-        </Button>
-
-        <Button variant="social" size="default" className="w-full h-11" onClick={signInWithGoogle}>
+      {/* Auth Buttons */}
+      <div className="space-y-2">
+        <Button variant="social" className="w-full h-11" onClick={signInWithGoogle}>
           <svg className="w-4 h-4" viewBox="0 0 24 24">
             <path
               fill="currentColor"
@@ -94,7 +78,7 @@ const LoginScreen = () => {
             />
             <path
               fill="currentColor"
-              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22z"
             />
             <path
               fill="currentColor"
@@ -104,24 +88,35 @@ const LoginScreen = () => {
           Continue with Google
         </Button>
 
-        <Button variant="social" size="default" className="w-full h-11" onClick={() => setShowPhoneModal(true)}>
+        <Button variant="social" className="w-full h-11" onClick={() => setShowPhoneModal(true)}>
           <Phone className="w-4 h-4" />
           Continue with Phone
         </Button>
 
-        <Button variant="social" size="default" className="w-full h-11" onClick={() => setShowEmailModal(true)}>
+        <Button variant="social" className="w-full h-11" onClick={() => setShowEmailModal(true)}>
           <Mail className="w-4 h-4" />
           Continue with Email
         </Button>
 
+        {/* Terms */}
         <p className="text-center text-[10px] text-muted-foreground pt-1">
-          By continuing, you agree to our <span className="text-accent">Terms</span> and{" "}
-          <span className="text-accent">Privacy Policy</span>
+          By continuing, you agree to our{" "}
+          <span className="text-accent cursor-pointer" onClick={() => setShowPolicyModal(true)}>
+            Terms
+          </span>{" "}
+          and{" "}
+          <span className="text-accent cursor-pointer" onClick={() => setShowPolicyModal(true)}>
+            Privacy Policy
+          </span>
         </p>
-      </motion.div>
+      </div>
 
+      {/* Modals */}
       <PhoneAuthModal isOpen={showPhoneModal} onClose={() => setShowPhoneModal(false)} onSuccess={handlePhoneSuccess} />
+
       <EmailAuthModal isOpen={showEmailModal} onClose={() => setShowEmailModal(false)} onSuccess={handleEmailSuccess} />
+
+      <PrivacyPolicyModal isOpen={showPolicyModal} onClose={() => setShowPolicyModal(false)} />
     </div>
   );
 };
