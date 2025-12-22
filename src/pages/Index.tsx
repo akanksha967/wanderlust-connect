@@ -1,4 +1,3 @@
-import MobileFrame from '@/components/MobileFrame';
 import MatchPopup from '@/components/MatchPopup';
 import LoginScreen from '@/screens/LoginScreen';
 import ProfileScreen from '@/screens/ProfileScreen';
@@ -34,12 +33,10 @@ const Index = () => {
   };
 
   return (
-    <>
-      <MobileFrame>
-        {renderScreen()}
-        <MatchPopup />
-      </MobileFrame>
-    </>
+    <div className="min-h-screen bg-background">
+      {renderScreen()}
+      <MatchPopup />
+    </div>
   );
 };
 
