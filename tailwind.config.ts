@@ -14,7 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Lancelot', 'serif'],
         display: ['Lancelot', 'serif'],
       },
       colors: {

@@ -6,6 +6,7 @@ import TravelScreen from '@/screens/TravelScreen';
 import SwipeScreen from '@/screens/SwipeScreen';
 import ChatScreen from '@/screens/ChatScreen';
 import AccountScreen from '@/screens/AccountScreen';
+import MatchesListScreen from '@/screens/MatchesListScreen';
 import { useAppStore } from '@/store/useAppStore';
 
 const Index = () => {
@@ -25,6 +26,8 @@ const Index = () => {
         return <ChatScreen />;
       case 'account':
         return <AccountScreen />;
+      case 'matches':
+        return <MatchesListScreen />;
       default:
         return <LoginScreen />;
     }

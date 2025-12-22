@@ -33,7 +33,7 @@ const initialMessages: Message[] = [
 ];
 
 const ChatScreen = () => {
-  const { setScreen, matchedUser, setMatchedUser } = useAppStore();
+  const { setScreen, matchedUser, setMatchedUser, removeMatch } = useAppStore();
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [newMessage, setNewMessage] = useState('');
   const [showOptions, setShowOptions] = useState(false);
@@ -44,8 +44,11 @@ const ChatScreen = () => {
   };
 
   const handleUnmatch = () => {
+    if (matchedUser) {
+      removeMatch(matchedUser.id);
+    }
     setMatchedUser(null);
-    setScreen('swipe');
+    setScreen('matches');
   };
 
   const handleSend = () => {
@@ -72,7 +75,7 @@ const ChatScreen = () => {
       {/* Header */}
       <div className="px-4 pt-12 pb-3 flex items-center gap-3 border-b border-border">
         <button 
-          onClick={() => setScreen('swipe')}
+          onClick={() => setScreen('matches')}
           className="w-10 h-10 flex items-center justify-center rounded-xl bg-secondary transition-all duration-300 hover:bg-secondary/70"
         >
           <ArrowLeft className="w-5 h-5 text-foreground" />
