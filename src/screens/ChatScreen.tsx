@@ -247,8 +247,8 @@ const ChatScreen = () => {
         </div>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 relative z-10">
+      {/* Messages - add bottom padding for input */}
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 relative z-10 pb-24">
         {/* Match notice */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -287,12 +287,12 @@ const ChatScreen = () => {
             </div>
           </motion.div>
         ))}
+        <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
-      <div className="relative z-10 p-4 pb-8 border-t border-border/50 bg-background/80 backdrop-blur-sm">
+      {/* Input - Fixed at absolute bottom */}
+      <div className="absolute bottom-0 left-0 right-0 z-10 p-4 pb-6 border-t border-border/50 bg-background/95 backdrop-blur-sm">
         <div className="flex gap-3">
-          
           <div className="flex-1 relative">
             <Input
               value={newMessage}

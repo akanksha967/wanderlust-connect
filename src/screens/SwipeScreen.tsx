@@ -238,8 +238,8 @@ const SwipeScreen = () => {
         </button>
       </div>
 
-      {/* Cards - Centered */}
-      <div className="flex-1 relative px-4 py-2 flex items-center justify-center">
+      {/* Cards - Centered with bottom padding for action buttons */}
+      <div className="flex-1 relative px-4 py-2 pb-24 flex items-center justify-center">
         <div className="relative w-full h-full max-h-[450px]">
           <AnimatePresence>
             {remainingProfiles.length > 0 ? (
@@ -273,9 +273,9 @@ const SwipeScreen = () => {
         </div>
       </div>
 
-      {/* Action buttons */}
+      {/* Action buttons - Fixed at absolute bottom */}
       {remainingProfiles.length > 0 && (
-        <div className="relative z-10 px-4 pb-8 flex justify-center items-center gap-8">
+        <div className="absolute bottom-0 left-0 right-0 z-10 px-4 pb-6 flex justify-center items-center gap-8">
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
