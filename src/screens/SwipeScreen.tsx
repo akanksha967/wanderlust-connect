@@ -55,11 +55,11 @@ const SwipeCard = ({
       }}
     >
       <div className="relative w-full h-full rounded-3xl overflow-hidden shadow-float bg-card">
-        {/* Photo */}
+        {/* Photo - object-top to show faces */}
         <img
           src={profile.photos[0]}
           alt={profile.name}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover object-top"
           draggable={false}
         />
 
@@ -239,9 +239,9 @@ const SwipeScreen = () => {
         </button>
       </div>
 
-      {/* Cards area - takes remaining space minus footer */}
-      <div className="relative z-10 flex-1 px-4 py-2 overflow-hidden" style={{ marginBottom: '100px' }}>
-        <div className="relative w-full h-full">
+      {/* Cards area - centered with max-width for desktop */}
+      <div className="relative z-10 flex-1 px-4 py-2 overflow-hidden flex items-center justify-center" style={{ marginBottom: '100px' }}>
+        <div className="relative w-full h-full max-w-md mx-auto" style={{ aspectRatio: '3/4', maxHeight: 'calc(100% - 20px)' }}>
           <AnimatePresence>
             {remainingProfiles.length > 0 ? (
               remainingProfiles.slice(0, 2).reverse().map((profile, index) => (
