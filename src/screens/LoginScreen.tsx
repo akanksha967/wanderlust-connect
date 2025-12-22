@@ -72,6 +72,9 @@ const LoginScreen = () => {
         transition={{ duration: 0.5, delay: 0.4 }}
         className="space-y-3"
       >
+        <Button variant="accent" size="lg" className="w-full" onClick={() => setScreen("profile")}>
+          Get Started
+        </Button>
 
         <Button variant="social" size="lg" className="w-full" onClick={signInWithGoogle}>
           <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -98,6 +101,14 @@ const LoginScreen = () => {
         <Button variant="social" size="lg" className="w-full" onClick={() => setShowPhoneModal(true)}>
           <Phone className="w-5 h-5" />
           Continue with Phone
+        </Button>
+
+        <Button variant="social" size="lg" className="w-full" onClick={() => setScreen("profile")}>
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="4" y="4" width="16" height="16" rx="2" />
+            <path d="M8 10h8M8 14h5" />
+          </svg>
+          Continue with Email
         </Button>
 
         <p className="text-center text-xs text-muted-foreground pt-2">
