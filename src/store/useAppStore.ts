@@ -16,16 +16,18 @@ export interface TravelDetails {
 }
 
 interface AppState {
-  currentScreen: 'login' | 'profile' | 'travel' | 'swipe' | 'chat';
+  currentScreen: 'login' | 'profile' | 'travel' | 'swipe' | 'chat' | 'account';
   userProfile: Partial<UserProfile>;
   travelDetails: TravelDetails | null;
   matchedUser: UserProfile | null;
   showMatch: boolean;
+  hasCompletedProfile: boolean;
   setScreen: (screen: AppState['currentScreen']) => void;
   setUserProfile: (profile: Partial<UserProfile>) => void;
   setTravelDetails: (details: TravelDetails) => void;
   setMatchedUser: (user: UserProfile | null) => void;
   setShowMatch: (show: boolean) => void;
+  setHasCompletedProfile: (completed: boolean) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -34,6 +36,7 @@ export const useAppStore = create<AppState>((set) => ({
   travelDetails: null,
   matchedUser: null,
   showMatch: false,
+  hasCompletedProfile: false,
   setScreen: (screen) => set({ currentScreen: screen }),
   setUserProfile: (profile) => set((state) => ({ 
     userProfile: { ...state.userProfile, ...profile } 
@@ -41,4 +44,5 @@ export const useAppStore = create<AppState>((set) => ({
   setTravelDetails: (details) => set({ travelDetails: details }),
   setMatchedUser: (user) => set({ matchedUser: user }),
   setShowMatch: (show) => set({ showMatch: show }),
+  setHasCompletedProfile: (completed) => set({ hasCompletedProfile: completed }),
 }));

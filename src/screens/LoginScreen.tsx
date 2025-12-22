@@ -5,7 +5,7 @@ import { useAppStore } from "@/store/useAppStore";
 import { useAuth } from "@/hooks/useAuth";
 import DestinationSlideshow from "@/components/DestinationSlideshow";
 import PhoneAuthModal from "@/components/PhoneAuthModal";
-import { Users, Shield, Phone } from "lucide-react";
+import { Shield, Phone } from "lucide-react";
 
 const LoginScreen = () => {
   const setScreen = useAppStore((state) => state.setScreen);
@@ -62,10 +62,6 @@ const LoginScreen = () => {
         <div className="flex items-center gap-2 text-muted-foreground text-xs">
           <Shield className="w-4 h-4 text-accent" />
           <span>Verified profiles</span>
-        </div>
-        <div className="flex items-center gap-2 text-muted-foreground text-xs">
-          <Users className="w-4 h-4 text-accent" />
-          <span>50k+ travelers</span>
         </div>
       </motion.div>
 

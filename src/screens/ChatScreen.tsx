@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAppStore } from '@/store/useAppStore';
-import { ArrowLeft, Send, Phone, Video, MoreHorizontal } from 'lucide-react';
+import { ArrowLeft, Send, Phone, Trash2, UserX } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
 interface Message {
@@ -33,9 +33,20 @@ const initialMessages: Message[] = [
 ];
 
 const ChatScreen = () => {
-  const { setScreen, matchedUser } = useAppStore();
+  const { setScreen, matchedUser, setMatchedUser } = useAppStore();
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [newMessage, setNewMessage] = useState('');
+  const [showOptions, setShowOptions] = useState(false);
+
+  const handleDeleteChat = () => {
+    setMessages([]);
+    setShowOptions(false);
+  };
+
+  const handleUnmatch = () => {
+    setMatchedUser(null);
+    setScreen('swipe');
+  };
 
   const handleSend = () => {
     if (!newMessage.trim()) return;
@@ -86,9 +97,32 @@ const ChatScreen = () => {
           <button className="w-10 h-10 flex items-center justify-center rounded-xl bg-secondary transition-smooth hover:bg-secondary/70">
             <Phone className="w-5 h-5 text-foreground" />
           </button>
-          <button className="w-10 h-10 flex items-center justify-center rounded-xl bg-secondary transition-smooth hover:bg-secondary/70">
-            <Video className="w-5 h-5 text-foreground" />
-          </button>
+          <div className="relative">
+            <button 
+              onClick={() => setShowOptions(!showOptions)}
+              className="w-10 h-10 flex items-center justify-center rounded-xl bg-secondary transition-smooth hover:bg-secondary/70"
+            >
+              <Trash2 className="w-5 h-5 text-foreground" />
+            </button>
+            {showOptions && (
+              <div className="absolute right-0 top-12 w-48 bg-card rounded-xl shadow-elegant border border-border overflow-hidden z-50">
+                <button
+                  onClick={handleDeleteChat}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-foreground hover:bg-secondary transition-smooth"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete Chat
+                </button>
+                <button
+                  onClick={handleUnmatch}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-destructive hover:bg-destructive/10 transition-smooth"
+                >
+                  <UserX className="w-4 h-4" />
+                  Unmatch
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -137,9 +171,6 @@ const ChatScreen = () => {
       {/* Input */}
       <div className="p-4 pb-8 border-t border-border">
         <div className="flex gap-3">
-          <button className="w-12 h-12 flex items-center justify-center rounded-xl bg-secondary transition-smooth hover:bg-secondary/70">
-            <MoreHorizontal className="w-5 h-5 text-muted-foreground" />
-          </button>
           
           <div className="flex-1 relative">
             <Input

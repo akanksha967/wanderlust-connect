@@ -129,7 +129,7 @@ const SwipeScreen = () => {
       {/* Header */}
       <div className="px-4 pt-12 pb-2 flex items-center justify-between">
         <button 
-          onClick={() => setScreen('profile')}
+          onClick={() => setScreen('account')}
           className="w-10 h-10 flex items-center justify-center rounded-xl bg-secondary transition-smooth hover:bg-secondary/70"
         >
           <User className="w-5 h-5 text-foreground" />
