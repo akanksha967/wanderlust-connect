@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { X, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface EmailAuthModalProps {
   isOpen: boolean;
@@ -24,14 +25,46 @@ const EmailAuthModal = ({ isOpen, onClose, onSuccess }: EmailAuthModalProps) => 
     setError('');
 
     try {
-      // For now, just proceed to profile
-      // In real implementation, you'd call supabase.auth.signInWithPassword or signUp
-      setTimeout(() => {
-        setLoading(false);
-        onSuccess();
-      }, 500);
-    } catch (err: any) {
-      setError(err.message || 'An error occurred');
+      if (isSignUp) {
+        const { error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+          },
+        });
+
+        if (signUpError) {
+          if (signUpError.message.includes('already registered')) {
+            setError('This email is already registered. Please sign in instead.');
+          } else {
+            setError(signUpError.message);
+          }
+          setLoading(false);
+          return;
+        }
+      } else {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (signInError) {
+          if (signInError.message.includes('Invalid login credentials')) {
+            setError('Invalid email or password. Please try again.');
+          } else {
+            setError(signInError.message);
+          }
+          setLoading(false);
+          return;
+        }
+      }
+
+      setLoading(false);
+      onSuccess();
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      setError(errorMessage);
       setLoading(false);
     }
   };
