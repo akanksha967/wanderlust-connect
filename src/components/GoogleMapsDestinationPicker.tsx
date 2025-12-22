@@ -42,9 +42,20 @@ const GoogleMapsDestinationPicker = ({
     libraries,
   });
 
+  // Initialize autocomplete service as soon as API is loaded
+  const initializeServices = useCallback(() => {
+    if (isLoaded && !autocompleteService.current) {
+      autocompleteService.current = new google.maps.places.AutocompleteService();
+    }
+  }, [isLoaded]);
+
+  // Call initialization when loaded
+  if (isLoaded && !autocompleteService.current) {
+    initializeServices();
+  }
+
   const onMapLoad = useCallback((map: google.maps.Map) => {
     placesService.current = new google.maps.places.PlacesService(map);
-    autocompleteService.current = new google.maps.places.AutocompleteService();
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
