@@ -6,10 +6,10 @@ import { useAppStore } from '@/store/useAppStore';
 import { ArrowLeft, MapPin, Calendar } from 'lucide-react';
 
 const popularDestinations = [
-  { name: 'Bali', country: 'Indonesia', emoji: '🌴', image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=400&auto=format&fit=crop' },
-  { name: 'Tokyo', country: 'Japan', emoji: '🗼', image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400&auto=format&fit=crop' },
-  { name: 'Paris', country: 'France', emoji: '🗼', image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400&auto=format&fit=crop' },
-  { name: 'Barcelona', country: 'Spain', emoji: '🌊', image: 'https://images.unsplash.com/photo-1583422409516-2895a77efded?w=400&auto=format&fit=crop' },
+  { name: 'Bali', country: 'Indonesia', emoji: '🌴' },
+  { name: 'Tokyo', country: 'Japan', emoji: '🗼' },
+  { name: 'Paris', country: 'France', emoji: '🗼' },
+  { name: 'Barcelona', country: 'Spain', emoji: '🌊' },
 ];
 
 const TravelScreen = () => {
@@ -39,13 +39,13 @@ const TravelScreen = () => {
   const isValid = destination && startDate && endDate;
 
   return (
-    <div className="h-full flex flex-col relative overflow-hidden">
-      {/* Full Screen Background Image */}
+    <div className="h-full flex flex-col bg-background relative overflow-hidden">
+      {/* Background Image */}
       <div 
-        className="fixed inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&auto=format&fit=crop)` }}
+        className="absolute inset-0 bg-cover bg-center opacity-20"
+        style={{ backgroundImage: `url(https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&auto=format&fit=crop)` }}
       />
-      <div className="fixed inset-0 bg-gradient-to-b from-accent/30 via-background/80 to-background/90" />
+      <div className="absolute inset-0 bg-gradient-to-b from-accent/20 via-background/95 to-background" />
 
       {/* Header */}
       <div className="relative z-10 px-4 pt-12 pb-4 flex items-center gap-3">
@@ -101,22 +101,15 @@ const TravelScreen = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.15 + index * 0.05 }}
                 onClick={() => handleSelectDestination(dest.name)}
-                className={`relative h-28 rounded-2xl text-left overflow-hidden transition-smooth ${
+                className={`p-4 rounded-2xl text-left transition-smooth bg-card/80 backdrop-blur-sm ${
                   destination === dest.name
                     ? 'ring-2 ring-accent shadow-glow'
                     : 'shadow-soft hover:shadow-card'
                 }`}
               >
-                <img 
-                  src={dest.image} 
-                  alt={dest.name}
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/30 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-3">
-                  <p className="font-medium text-background">{dest.name}</p>
-                  <p className="text-xs text-background/80">{dest.country}</p>
-                </div>
+                <span className="text-2xl mb-2 block">{dest.emoji}</span>
+                <p className="font-medium text-foreground">{dest.name}</p>
+                <p className="text-xs text-muted-foreground">{dest.country}</p>
               </motion.button>
             ))}
           </div>
