@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAppStore } from '@/store/useAppStore';
-import { ArrowLeft, Camera, Plus, X } from 'lucide-react';
+import { ArrowLeft, Camera, Plus, X, Settings, Trash2 } from 'lucide-react';
+import DeleteAccountDialog from '@/components/DeleteAccountDialog';
 
 const vibeOptions = [
   'Adventure', 'Relaxation', 'Culture', 'Foodie', 'Nature',
@@ -17,6 +18,8 @@ const ProfileScreen = () => {
   const [bio, setBio] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
   const [selectedVibes, setSelectedVibes] = useState<string[]>([]);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const handleAddPhoto = () => {
     // Simulate photo upload with placeholder
@@ -53,23 +56,54 @@ const ProfileScreen = () => {
     setScreen('travel');
   };
 
+  const handleAccountDeleted = () => {
+    setScreen('login');
+  };
+
   const isValid = name && age && photos.length > 0 && selectedVibes.length > 0;
 
   return (
     <div className="h-full flex flex-col bg-background">
       {/* Header */}
-      <div className="px-4 pt-12 pb-4 flex items-center gap-3">
-        <button 
-          onClick={() => setScreen('login')}
+      <div className="px-4 pt-12 pb-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => setScreen('login')}
+            className="w-10 h-10 flex items-center justify-center rounded-xl bg-secondary transition-all duration-300 hover:bg-secondary/70"
+          >
+            <ArrowLeft className="w-5 h-5 text-foreground" />
+          </button>
+          <div>
+            <h1 className="text-lg font-display text-foreground">Create Profile</h1>
+            <p className="text-xs text-muted-foreground">Step 1 of 2</p>
+          </div>
+        </div>
+        <button
+          onClick={() => setShowSettings(!showSettings)}
           className="w-10 h-10 flex items-center justify-center rounded-xl bg-secondary transition-all duration-300 hover:bg-secondary/70"
         >
-          <ArrowLeft className="w-5 h-5 text-foreground" />
+          <Settings className="w-5 h-5 text-foreground" />
         </button>
-        <div>
-          <h1 className="text-lg font-display text-foreground">Create Profile</h1>
-          <p className="text-xs text-muted-foreground">Step 1 of 2</p>
-        </div>
       </div>
+
+      {/* Settings Panel */}
+      {showSettings && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          className="mx-4 mb-4 p-4 rounded-2xl bg-secondary/50 border border-border"
+        >
+          <h3 className="text-sm font-medium text-foreground mb-3">Account Settings</h3>
+          <button
+            onClick={() => setShowDeleteDialog(true)}
+            className="w-full flex items-center gap-3 p-3 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive/20 transition-all duration-300"
+          >
+            <Trash2 className="w-5 h-5" />
+            <span className="text-sm font-medium">Delete Account</span>
+          </button>
+        </motion.div>
+      )}
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-4 pb-24">
@@ -213,6 +247,12 @@ const ProfileScreen = () => {
           Continue
         </Button>
       </div>
+
+      <DeleteAccountDialog
+        isOpen={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        onDeleted={handleAccountDeleted}
+      />
     </div>
   );
 };

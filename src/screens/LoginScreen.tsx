@@ -1,41 +1,46 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/store/useAppStore';
-import roammateLogo from '@/assets/roammate-logo.png';
-import travelIllustration from '@/assets/travel-illustration.png';
-import { Users, Shield } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import DestinationSlideshow from '@/components/DestinationSlideshow';
+import PhoneAuthModal from '@/components/PhoneAuthModal';
+import { Users, Shield, Phone } from 'lucide-react';
 
 const LoginScreen = () => {
   const setScreen = useAppStore((state) => state.setScreen);
+  const { signInWithGoogle } = useAuth();
+  const [showPhoneModal, setShowPhoneModal] = useState(false);
+
+  const handlePhoneSuccess = () => {
+    setScreen('profile');
+  };
 
   return (
-    <div className="h-full flex flex-col bg-background px-6 pt-14 pb-8">
-      {/* Logo */}
+    <div className="h-full flex flex-col bg-background px-6 pt-10 pb-8">
+      {/* Title */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="flex items-center justify-center gap-2 mb-6"
+        className="text-center mb-6"
       >
-        <img 
-          src={roammateLogo} 
-          alt="RoamMate" 
-          className="h-14 w-auto"
-        />
+        <h1 className="text-3xl font-display text-foreground">
+          RoamMate
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Find your travel companion
+        </p>
       </motion.div>
 
-      {/* Illustration */}
+      {/* Destination Slideshow */}
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6, delay: 0.1 }}
         className="flex-1 flex items-center justify-center py-4"
       >
-        <img 
-          src={travelIllustration} 
-          alt="Travel together" 
-          className="w-full max-w-[260px] h-auto animate-float"
-        />
+        <DestinationSlideshow />
       </motion.div>
 
       {/* Text content */}
@@ -43,11 +48,11 @@ const LoginScreen = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="text-center mb-8"
+        className="text-center mb-6"
       >
-        <h1 className="text-3xl font-display text-foreground mb-3">
+        <h2 className="text-2xl font-display text-foreground mb-2">
           Find Your Perfect Travel Buddy
-        </h1>
+        </h2>
         <p className="text-muted-foreground text-sm leading-relaxed">
           Connect with like-minded travelers heading to your dream destination
         </p>
@@ -58,7 +63,7 @@ const LoginScreen = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.3 }}
-        className="flex justify-center gap-6 mb-8"
+        className="flex justify-center gap-6 mb-6"
       >
         <div className="flex items-center gap-2 text-muted-foreground text-xs">
           <Shield className="w-4 h-4 text-accent" />
@@ -90,7 +95,7 @@ const LoginScreen = () => {
           variant="social" 
           size="lg" 
           className="w-full"
-          onClick={() => setScreen('profile')}
+          onClick={signInWithGoogle}
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -101,12 +106,28 @@ const LoginScreen = () => {
           Continue with Google
         </Button>
 
+        <Button 
+          variant="social" 
+          size="lg" 
+          className="w-full"
+          onClick={() => setShowPhoneModal(true)}
+        >
+          <Phone className="w-5 h-5" />
+          Continue with Phone
+        </Button>
+
         <p className="text-center text-xs text-muted-foreground pt-2">
           By continuing, you agree to our{' '}
           <span className="text-accent">Terms</span> and{' '}
           <span className="text-accent">Privacy Policy</span>
         </p>
       </motion.div>
+
+      <PhoneAuthModal
+        isOpen={showPhoneModal}
+        onClose={() => setShowPhoneModal(false)}
+        onSuccess={handlePhoneSuccess}
+      />
     </div>
   );
 };
