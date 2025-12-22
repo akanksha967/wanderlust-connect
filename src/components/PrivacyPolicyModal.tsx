@@ -25,38 +25,45 @@ const PrivacyPolicyModal = ({ isOpen, onClose }: PrivacyPolicyModalProps) => {
           transition={{ type: "spring", damping: 25 }}
         >
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-display">
-              Privacy Policy & Terms
-            </h2>
+            <h2 className="text-lg font-display">Privacy Policy & Terms</h2>
             <button onClick={onClose}>
               <X className="w-5 h-5 text-muted-foreground" />
             </button>
           </div>
           <div className="space-y-4 text-xs text-muted-foreground leading-relaxed">
             <p>
-              <strong>RoamMate</strong> helps travelers connect safely and
-              meaningfully.
+              <strong>Privacy Policy</strong>
             </p>
+
+            <p>RoamMate respects your privacy and is committed to protecting your personal information.</p>
+
             <p>
-              <strong>Data we collect:</strong> Name, email or phone number,
-              profile photo, travel preferences, and in-app messages.
+              We collect basic details such as your name, email address or phone number, profile photo, travel
+              preferences, and in-app messages to provide core functionality and ensure a safe experience.
             </p>
+
             <p>
-              <strong>How we use it:</strong> To match you with compatible
-              travelers, improve recommendations, and ensure platform safety.
+              Your data is used to match you with compatible travelers, improve app features, and prevent misuse. We
+              never sell your personal data and store all information securely using industry-standard practices.
             </p>
+
+            <p>You may request deletion of your account and associated data at any time.</p>
+
             <p>
-              <strong>Privacy:</strong> We never sell your personal data. All
-              information is securely stored using industry standards.
+              <strong>Terms of Service</strong>
             </p>
+
             <p>
-              <strong>User responsibility:</strong> Respectful behavior is
-              mandatory. Abuse, harassment, or misuse may lead to account
-              suspension.
+              By using RoamMate, you agree to provide accurate information and interact respectfully with other users.
+              Harassment, abuse, impersonation, or misuse may result in account suspension or removal.
             </p>
+
             <p>
-              By using RoamMate, you agree to these terms and privacy practices.
+              RoamMate is a platform for connecting travelers. We do not verify travel arrangements and are not
+              responsible for offline interactions between users. Please prioritize your personal safety.
             </p>
+
+            <p>We may update these terms periodically. Continued use of the app indicates acceptance of any changes.</p>
           </div>
         </motion.div>
       </motion.div>
