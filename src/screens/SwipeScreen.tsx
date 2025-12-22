@@ -1,25 +1,33 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, useMotionValue, useTransform, PanInfo, AnimatePresence } from 'framer-motion';
 import { useAppStore, UserProfile } from '@/store/useAppStore';
 import { mockProfiles } from '@/data/mockProfiles';
-import { X, MapPin, MessageCircle, User, Heart } from 'lucide-react';
+import { X, MapPin, MessageCircle, User, Heart, Shield, Flag, MoreVertical } from 'lucide-react';
 
 const destinationImages: Record<string, string> = {
-  'Bali': 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&auto=format&fit=crop',
-  'Paris': 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&auto=format&fit=crop',
-  'Tokyo': 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&auto=format&fit=crop',
-  'Barcelona': 'https://images.unsplash.com/photo-1583422409516-2895a77efded?w=800&auto=format&fit=crop',
-  'default': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&auto=format&fit=crop',
+  'Bali': 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=1200&auto=format&fit=crop',
+  'Paris': 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200&auto=format&fit=crop',
+  'Tokyo': 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1200&auto=format&fit=crop',
+  'Barcelona': 'https://images.unsplash.com/photo-1583422409516-2895a77efded?w=1200&auto=format&fit=crop',
+  'default': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&auto=format&fit=crop',
 };
 
 const SwipeCard = ({ 
   profile, 
   onSwipe,
-  isTop 
+  isTop,
+  onMenuToggle,
+  showMenu,
+  onBlock,
+  onReport
 }: { 
   profile: UserProfile; 
   onSwipe: (direction: 'left' | 'right') => void;
   isTop: boolean;
+  onMenuToggle: () => void;
+  showMenu: boolean;
+  onBlock: () => void;
+  onReport: () => void;
 }) => {
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-25, 25]);
@@ -61,17 +69,63 @@ const SwipeCard = ({
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-foreground/90 via-foreground/20 to-transparent" />
 
+        {/* Menu button */}
+        {isTop && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onMenuToggle();
+            }}
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-foreground/30 backdrop-blur-sm flex items-center justify-center z-10"
+          >
+            <MoreVertical className="w-5 h-5 text-background" />
+          </button>
+        )}
+
+        {/* Dropdown menu */}
+        <AnimatePresence>
+          {showMenu && isTop && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: -10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: -10 }}
+              className="absolute top-16 right-4 bg-card rounded-2xl shadow-float overflow-hidden z-20"
+            >
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onBlock();
+                }}
+                className="flex items-center gap-3 w-full px-4 py-3 hover:bg-secondary transition-colors"
+              >
+                <Shield className="w-5 h-5 text-muted-foreground" />
+                <span className="text-sm font-medium text-foreground">Block user</span>
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onReport();
+                }}
+                className="flex items-center gap-3 w-full px-4 py-3 hover:bg-secondary transition-colors border-t border-border"
+              >
+                <Flag className="w-5 h-5 text-destructive" />
+                <span className="text-sm font-medium text-destructive">Report user</span>
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Like/Nope indicators */}
         {isTop && (
           <>
             <motion.div
-              className="absolute top-6 right-6 px-4 py-2 border-4 border-accent rounded-xl rotate-12"
+              className="absolute top-6 left-6 px-4 py-2 border-4 border-accent rounded-xl rotate-[-12deg]"
               style={{ opacity: likeOpacity }}
             >
               <span className="text-accent text-xl font-display">LIKE</span>
             </motion.div>
             <motion.div
-              className="absolute top-6 left-6 px-4 py-2 border-4 border-destructive rounded-xl -rotate-12"
+              className="absolute top-6 right-6 px-4 py-2 border-4 border-destructive rounded-xl rotate-12"
               style={{ opacity: nopeOpacity }}
             >
               <span className="text-destructive text-xl font-display">NOPE</span>
@@ -115,9 +169,12 @@ const SwipeScreen = () => {
   const { setScreen, setMatchedUser, setShowMatch, addMatch, travelDetails } = useAppStore();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [profiles] = useState(mockProfiles);
+  const [showMenu, setShowMenu] = useState(false);
 
   const destination = travelDetails?.destination || 'Bali';
   const bgImage = destinationImages[destination] || destinationImages['default'];
+
+  const remainingProfiles = profiles.slice(currentIndex);
 
   const handleSwipe = (direction: 'left' | 'right') => {
     if (direction === 'right' && Math.random() > 0.5) {
@@ -128,28 +185,37 @@ const SwipeScreen = () => {
     }
     
     setCurrentIndex((prev) => prev + 1);
+    setShowMenu(false);
   };
 
   const handleButtonSwipe = (direction: 'left' | 'right') => {
     handleSwipe(direction);
   };
 
-  const remainingProfiles = profiles.slice(currentIndex);
+  const handleBlock = () => {
+    setCurrentIndex((prev) => prev + 1);
+    setShowMenu(false);
+  };
+
+  const handleReport = () => {
+    setCurrentIndex((prev) => prev + 1);
+    setShowMenu(false);
+  };
 
   return (
-    <div className="h-full flex flex-col bg-background overflow-hidden relative">
-      {/* Background Image */}
+    <div className="h-full flex flex-col relative overflow-hidden">
+      {/* Full Screen Background Image */}
       <div 
-        className="absolute inset-0 bg-cover bg-center opacity-20"
+        className="fixed inset-0 bg-cover bg-center"
         style={{ backgroundImage: `url(${bgImage})` }}
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-accent/10 via-background/95 to-background" />
+      <div className="fixed inset-0 bg-gradient-to-b from-accent/20 via-background/70 to-background/85" />
 
       {/* Header */}
       <div className="relative z-10 px-4 pt-12 pb-2 flex items-center justify-between">
         <button 
           onClick={() => setScreen('account')}
-          className="w-11 h-11 flex items-center justify-center rounded-2xl bg-card/80 backdrop-blur-sm shadow-soft transition-smooth hover:shadow-card active:scale-95"
+          className="w-11 h-11 flex items-center justify-center rounded-2xl bg-background/30 backdrop-blur-md shadow-soft transition-smooth hover:bg-background/50 active:scale-95"
         >
           <User className="w-5 h-5 text-foreground" />
         </button>
@@ -159,21 +225,21 @@ const SwipeScreen = () => {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <h1 className="text-xl font-display text-foreground">
+          <h1 className="text-xl font-display text-foreground drop-shadow-lg">
             {destination}
           </h1>
         </motion.div>
 
         <button 
           onClick={() => setScreen('matches')}
-          className="w-11 h-11 flex items-center justify-center rounded-2xl bg-card/80 backdrop-blur-sm shadow-soft transition-smooth hover:shadow-card active:scale-95"
+          className="w-11 h-11 flex items-center justify-center rounded-2xl bg-background/30 backdrop-blur-md shadow-soft transition-smooth hover:bg-background/50 active:scale-95"
         >
           <MessageCircle className="w-5 h-5 text-foreground" />
         </button>
       </div>
 
       {/* Cards - Centered */}
-      <div className="flex-1 relative px-4 py-2 flex items-center justify-center">
+      <div className="flex-1 relative px-4 py-2 flex items-center justify-center z-10">
         <div className="relative w-full h-full max-h-[450px]">
           <AnimatePresence>
             {remainingProfiles.length > 0 ? (
@@ -183,6 +249,10 @@ const SwipeScreen = () => {
                   profile={profile}
                   onSwipe={handleSwipe}
                   isTop={index === remainingProfiles.slice(0, 2).length - 1}
+                  onMenuToggle={() => setShowMenu(!showMenu)}
+                  showMenu={showMenu}
+                  onBlock={handleBlock}
+                  onReport={handleReport}
                 />
               ))
             ) : (
@@ -206,25 +276,25 @@ const SwipeScreen = () => {
         </div>
       </div>
 
-      {/* Action buttons */}
+      {/* Action buttons - Transparent on image */}
       {remainingProfiles.length > 0 && (
-        <div className="relative z-10 px-4 pb-8 flex justify-center items-center gap-6">
+        <div className="absolute bottom-24 left-0 right-0 z-20 px-4 flex justify-center items-center gap-8">
           <motion.button
-            whileHover={{ scale: 1.05 }}
+            whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => handleButtonSwipe('left')}
-            className="w-14 h-14 rounded-full bg-card/60 backdrop-blur-sm shadow-card flex items-center justify-center transition-smooth hover:shadow-float border border-border/50"
+            className="w-16 h-16 rounded-full bg-foreground/20 backdrop-blur-sm flex items-center justify-center transition-smooth hover:bg-foreground/30"
           >
-            <X className="w-6 h-6 text-muted-foreground" />
+            <X className="w-8 h-8 text-background" />
           </motion.button>
           
           <motion.button
-            whileHover={{ scale: 1.05 }}
+            whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => handleButtonSwipe('right')}
-            className="w-16 h-16 rounded-full bg-accent/80 backdrop-blur-sm shadow-card flex items-center justify-center transition-smooth hover:shadow-glow border border-accent/50"
+            className="w-20 h-20 rounded-full bg-accent/40 backdrop-blur-sm flex items-center justify-center transition-smooth hover:bg-accent/60"
           >
-            <Heart className="w-7 h-7 text-accent-foreground" />
+            <Heart className="w-10 h-10 text-background" />
           </motion.button>
         </div>
       )}

@@ -91,20 +91,20 @@ const ProfileScreen = () => {
   const isValid = name && age && photos.length > 0 && selectedVibes.length > 0;
 
   return (
-    <div className="h-full flex flex-col bg-background relative overflow-hidden">
-      {/* Nature Background */}
+    <div className="h-full flex flex-col relative overflow-hidden">
+      {/* Full Screen Nature Background */}
       <div 
-        className="absolute inset-0 bg-cover bg-center opacity-20"
-        style={{ backgroundImage: `url(https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&auto=format&fit=crop)` }}
+        className="fixed inset-0 bg-cover bg-center"
+        style={{ backgroundImage: `url(https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&auto=format&fit=crop)` }}
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-accent/20 via-background/95 to-background" />
-      {/* Hidden file inputs */}
+      <div className="fixed inset-0 bg-gradient-to-b from-accent/30 via-background/80 to-background/90" />
+      {/* Hidden file inputs - Camera uses user facing camera */}
       <input
         type="file"
         ref={cameraInputRef}
         onChange={handleFileChange}
         accept="image/*"
-        capture="environment"
+        capture="user"
         className="hidden"
       />
       <input
