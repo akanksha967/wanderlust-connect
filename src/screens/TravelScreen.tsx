@@ -6,20 +6,20 @@ import { useAppStore } from '@/store/useAppStore';
 import { ArrowLeft, MapPin, Calendar, Plane } from 'lucide-react';
 
 const popularDestinations = [
-  { name: 'Bali', country: 'Indonesia', emoji: '🌴' },
-  { name: 'Tokyo', country: 'Japan', emoji: '🗼' },
-  { name: 'Paris', country: 'France', emoji: '🗼' },
-  { name: 'Barcelona', country: 'Spain', emoji: '🌊' },
+  { name: 'Bali', country: 'Indonesia', emoji: '🌴', image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=400&auto=format&fit=crop' },
+  { name: 'Tokyo', country: 'Japan', emoji: '🗼', image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400&auto=format&fit=crop' },
+  { name: 'Paris', country: 'France', emoji: '🗼', image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400&auto=format&fit=crop' },
+  { name: 'Barcelona', country: 'Spain', emoji: '🌊', image: 'https://images.unsplash.com/photo-1583422409516-2895a77efded?w=400&auto=format&fit=crop' },
 ];
 
 const TravelScreen = () => {
-  const { setScreen, setTravelDetails, hasCompletedProfile, travelDetails } = useAppStore();
-  const [destination, setDestination] = useState(travelDetails?.destination || '');
-  const [startDate, setStartDate] = useState(travelDetails?.startDate || '');
-  const [endDate, setEndDate] = useState(travelDetails?.endDate || '');
+  const { setScreen, setTravelDetails, hasCompletedProfile } = useAppStore();
+  // Always start with empty fields when adding a new trip
+  const [destination, setDestination] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   const handleBack = () => {
-    // If user has completed profile, go to account; otherwise go to profile creation
     setScreen(hasCompletedProfile ? 'account' : 'profile');
   };
 
@@ -38,10 +38,25 @@ const TravelScreen = () => {
 
   const isValid = destination && startDate && endDate;
 
+  // Get background image for selected destination
+  const selectedDest = popularDestinations.find(d => d.name === destination);
+  const bgImage = selectedDest?.image || 'https://images.unsplash.com/photo-1488085061387-422e29b40080?w=800&auto=format&fit=crop';
+
   return (
-    <div className="h-full flex flex-col bg-background">
+    <div className="h-full flex flex-col bg-background relative overflow-hidden">
+      {/* Background Image */}
+      <motion.div 
+        key={destination}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.15 }}
+        transition={{ duration: 0.5 }}
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: `url(${bgImage})` }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-b from-background via-background/90 to-background" />
+
       {/* Header */}
-      <div className="px-4 pt-12 pb-4 flex items-center gap-3">
+      <div className="relative z-10 px-4 pt-12 pb-4 flex items-center gap-3">
         <button 
           onClick={handleBack}
           className="w-10 h-10 flex items-center justify-center rounded-xl bg-secondary transition-all duration-300 hover:bg-secondary/70"
@@ -55,7 +70,7 @@ const TravelScreen = () => {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto px-4 pb-24">
+      <div className="flex-1 overflow-y-auto px-4 pb-24 relative z-10">
         {/* Destination input */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -94,15 +109,22 @@ const TravelScreen = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.15 + index * 0.05 }}
                 onClick={() => handleSelectDestination(dest.name)}
-                className={`p-4 rounded-2xl text-left transition-smooth ${
+                className={`relative overflow-hidden p-4 rounded-2xl text-left transition-smooth ${
                   destination === dest.name
-                    ? 'bg-accent/10 border-2 border-accent shadow-soft'
-                    : 'bg-card shadow-soft hover:shadow-card border-2 border-transparent'
+                    ? 'ring-2 ring-accent shadow-glow'
+                    : 'shadow-soft hover:shadow-card'
                 }`}
               >
-                <span className="text-2xl mb-2 block">{dest.emoji}</span>
-                <p className="font-medium text-foreground">{dest.name}</p>
-                <p className="text-xs text-muted-foreground">{dest.country}</p>
+                <div 
+                  className="absolute inset-0 bg-cover bg-center"
+                  style={{ backgroundImage: `url(${dest.image})` }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/40 to-foreground/20" />
+                <div className="relative z-10">
+                  <span className="text-2xl mb-2 block">{dest.emoji}</span>
+                  <p className="font-medium text-background">{dest.name}</p>
+                  <p className="text-xs text-background/70">{dest.country}</p>
+                </div>
               </motion.button>
             ))}
           </div>
@@ -147,17 +169,44 @@ const TravelScreen = () => {
           </div>
         </motion.div>
 
-        {/* Info card */}
+        {/* Info card with flying airplane */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
-          className="mt-8 p-4 rounded-2xl bg-accent/5 border border-accent/20"
+          className="mt-8 p-4 rounded-2xl bg-card/80 backdrop-blur-sm border border-border overflow-hidden relative"
         >
+          {/* Animated flying airplane */}
+          <motion.div
+            animate={{ 
+              x: [0, 200, 0],
+              y: [0, -20, 0],
+            }}
+            transition={{ 
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            className="absolute top-2 right-0"
+          >
+            <Plane className="w-6 h-6 text-accent rotate-45" />
+          </motion.div>
+
           <div className="flex gap-3">
-            <div className="w-10 h-10 rounded-xl gradient-accent flex items-center justify-center shrink-0">
+            <motion.div 
+              animate={{ 
+                y: [0, -5, 0],
+                rotate: [0, 5, 0]
+              }}
+              transition={{ 
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+              className="w-10 h-10 rounded-xl gradient-accent flex items-center justify-center shrink-0"
+            >
               <Plane className="w-5 h-5 text-accent-foreground" />
-            </div>
+            </motion.div>
             <div>
               <p className="font-medium text-foreground text-sm">Find your travel match</p>
               <p className="text-xs text-muted-foreground mt-0.5">
@@ -169,7 +218,7 @@ const TravelScreen = () => {
       </div>
 
       {/* Footer */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-background via-background to-transparent">
+      <div className="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-background via-background to-transparent z-10">
         <Button
           variant="accent"
           size="lg"

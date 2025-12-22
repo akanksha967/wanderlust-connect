@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { useAppStore } from '@/store/useAppStore';
 import { ArrowLeft, Camera, Plus, X, Settings, Trash2 } from 'lucide-react';
 import DeleteAccountDialog from '@/components/DeleteAccountDialog';
+import PhotoSourceDialog from '@/components/PhotoSourceDialog';
 
 const vibeOptions = [
   'Adventure', 'Relaxation', 'Culture', 'Foodie', 'Nature',
@@ -20,13 +21,23 @@ const ProfileScreen = () => {
   const [selectedVibes, setSelectedVibes] = useState<string[]>([]);
   const [showSettings, setShowSettings] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showPhotoSourceDialog, setShowPhotoSourceDialog] = useState(false);
   
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
   const [activePhotoIndex, setActivePhotoIndex] = useState<number>(0);
 
   const handlePhotoClick = (index: number) => {
     setActivePhotoIndex(index);
-    fileInputRef.current?.click();
+    setShowPhotoSourceDialog(true);
+  };
+
+  const handleCameraSelect = () => {
+    cameraInputRef.current?.click();
+  };
+
+  const handleGallerySelect = () => {
+    galleryInputRef.current?.click();
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,10 +55,9 @@ const ProfileScreen = () => {
       };
       reader.readAsDataURL(file);
     }
-    // Reset file input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    // Reset file inputs
+    if (cameraInputRef.current) cameraInputRef.current.value = '';
+    if (galleryInputRef.current) galleryInputRef.current.value = '';
   };
 
   const handleRemovePhoto = (index: number) => {
@@ -82,15 +92,23 @@ const ProfileScreen = () => {
 
   return (
     <div className="h-full flex flex-col bg-background">
-      {/* Hidden file input for camera/gallery */}
+      {/* Hidden file inputs */}
       <input
         type="file"
-        ref={fileInputRef}
+        ref={cameraInputRef}
         onChange={handleFileChange}
         accept="image/*"
         capture="environment"
         className="hidden"
       />
+      <input
+        type="file"
+        ref={galleryInputRef}
+        onChange={handleFileChange}
+        accept="image/*"
+        className="hidden"
+      />
+
       {/* Header */}
       <div className="px-4 pt-12 pb-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -174,7 +192,7 @@ const ProfileScreen = () => {
                       <Plus className="w-6 h-6 text-muted-foreground" />
                     )}
                     <span className="text-[10px] text-muted-foreground">
-                      {index === 0 ? 'Camera' : 'Add'}
+                      {index === 0 ? 'Add' : 'Add'}
                     </span>
                   </button>
                 )}
@@ -282,6 +300,13 @@ const ProfileScreen = () => {
         isOpen={showDeleteDialog}
         onClose={() => setShowDeleteDialog(false)}
         onDeleted={handleAccountDeleted}
+      />
+
+      <PhotoSourceDialog
+        isOpen={showPhotoSourceDialog}
+        onClose={() => setShowPhotoSourceDialog(false)}
+        onSelectCamera={handleCameraSelect}
+        onSelectGallery={handleGallerySelect}
       />
     </div>
   );

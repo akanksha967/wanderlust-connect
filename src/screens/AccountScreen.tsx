@@ -3,8 +3,9 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAppStore } from '@/store/useAppStore';
-import { ArrowLeft, Camera, MapPin, Calendar, LogOut, Trash2, ChevronRight, Edit2, X, Plus, Image } from 'lucide-react';
+import { ArrowLeft, Camera, MapPin, Calendar, LogOut, Trash2, ChevronRight, Edit2, X, Plus } from 'lucide-react';
 import DeleteAccountDialog from '@/components/DeleteAccountDialog';
+import PhotoSourceDialog from '@/components/PhotoSourceDialog';
 import { useAuth } from '@/hooks/useAuth';
 
 const vibeOptions = [
@@ -16,6 +17,7 @@ const AccountScreen = () => {
   const { setScreen, userProfile, travelDetails, setTravelDetails, setUserProfile } = useAppStore();
   const { signOut, user } = useAuth();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showPhotoSourceDialog, setShowPhotoSourceDialog] = useState(false);
   const [editingTravel, setEditingTravel] = useState(false);
   const [editingProfile, setEditingProfile] = useState(false);
   const [destination, setDestination] = useState(travelDetails?.destination || '');
@@ -29,7 +31,8 @@ const AccountScreen = () => {
   const [photos, setPhotos] = useState<string[]>(userProfile.photos || []);
   const [selectedVibes, setSelectedVibes] = useState<string[]>(userProfile.travelVibes || []);
   
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
   const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
 
   const handleAccountDeleted = () => {
@@ -52,7 +55,15 @@ const AccountScreen = () => {
 
   const handlePhotoClick = (index: number) => {
     setActivePhotoIndex(index);
-    fileInputRef.current?.click();
+    setShowPhotoSourceDialog(true);
+  };
+
+  const handleCameraSelect = () => {
+    cameraInputRef.current?.click();
+  };
+
+  const handleGallerySelect = () => {
+    galleryInputRef.current?.click();
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,10 +81,9 @@ const AccountScreen = () => {
       };
       reader.readAsDataURL(file);
     }
-    // Reset file input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    // Reset file inputs
+    if (cameraInputRef.current) cameraInputRef.current.value = '';
+    if (galleryInputRef.current) galleryInputRef.current.value = '';
   };
 
   const handleRemovePhoto = (index: number) => {
@@ -112,13 +122,20 @@ const AccountScreen = () => {
 
   return (
     <div className="h-full flex flex-col bg-background">
-      {/* Hidden file input for camera/gallery */}
+      {/* Hidden file inputs */}
       <input
         type="file"
-        ref={fileInputRef}
+        ref={cameraInputRef}
         onChange={handleFileChange}
         accept="image/*"
         capture="environment"
+        className="hidden"
+      />
+      <input
+        type="file"
+        ref={galleryInputRef}
+        onChange={handleFileChange}
+        accept="image/*"
         className="hidden"
       />
 
@@ -194,9 +211,7 @@ const AccountScreen = () => {
                           ) : (
                             <Plus className="w-5 h-5 text-muted-foreground" />
                           )}
-                          <span className="text-[10px] text-muted-foreground">
-                            {index === 0 ? 'Camera' : 'Add'}
-                          </span>
+                          <span className="text-[10px] text-muted-foreground">Add</span>
                         </button>
                       )}
                     </div>
@@ -445,7 +460,7 @@ const AccountScreen = () => {
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
-                  <LogOut className="w-5 h-5 text-foreground" />
+                  <LogOut className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <span className="text-sm text-foreground">Sign Out</span>
               </div>
@@ -464,7 +479,7 @@ const AccountScreen = () => {
                 </div>
                 <span className="text-sm text-destructive">Delete Account</span>
               </div>
-              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+              <ChevronRight className="w-5 h-5 text-destructive/50" />
             </button>
           </div>
         </motion.div>
@@ -474,6 +489,13 @@ const AccountScreen = () => {
         isOpen={showDeleteDialog}
         onClose={() => setShowDeleteDialog(false)}
         onDeleted={handleAccountDeleted}
+      />
+
+      <PhotoSourceDialog
+        isOpen={showPhotoSourceDialog}
+        onClose={() => setShowPhotoSourceDialog(false)}
+        onSelectCamera={handleCameraSelect}
+        onSelectGallery={handleGallerySelect}
       />
     </div>
   );
