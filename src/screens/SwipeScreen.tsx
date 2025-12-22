@@ -2,23 +2,28 @@ import { useState } from 'react';
 import { motion, useMotionValue, useTransform, PanInfo, AnimatePresence } from 'framer-motion';
 import { useAppStore, UserProfile } from '@/store/useAppStore';
 import { mockProfiles } from '@/data/mockProfiles';
-import { X, MapPin, MessageCircle, User, Heart } from 'lucide-react';
+import { X, MapPin, MessageCircle, User, Heart, Shield, MoreVertical } from 'lucide-react';
+import ReportBlockDialog from '@/components/ReportBlockDialog';
+import { useSwipeProfiles } from '@/hooks/useSwipeProfiles';
+import { useAuth } from '@/hooks/useAuth';
 
 const destinationImages: Record<string, string> = {
-  'Bali': 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&auto=format&fit=crop',
-  'Paris': 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&auto=format&fit=crop',
-  'Tokyo': 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&auto=format&fit=crop',
-  'Barcelona': 'https://images.unsplash.com/photo-1583422409516-2895a77efded?w=800&auto=format&fit=crop',
-  'default': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&auto=format&fit=crop',
+  'Bali': 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=1200&auto=format&fit=crop',
+  'Paris': 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200&auto=format&fit=crop',
+  'Tokyo': 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1200&auto=format&fit=crop',
+  'Barcelona': 'https://images.unsplash.com/photo-1583422409516-2895a77efded?w=1200&auto=format&fit=crop',
+  'default': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&auto=format&fit=crop',
 };
 
 const SwipeCard = ({ 
   profile, 
   onSwipe,
+  onOpenMenu,
   isTop 
 }: { 
   profile: UserProfile; 
   onSwipe: (direction: 'left' | 'right') => void;
+  onOpenMenu: () => void;
   isTop: boolean;
 }) => {
   const x = useMotionValue(0);
@@ -61,11 +66,21 @@ const SwipeCard = ({
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-foreground/90 via-foreground/20 to-transparent" />
 
+        {/* More options button */}
+        {isTop && (
+          <button
+            onClick={onOpenMenu}
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-background/20 backdrop-blur-sm flex items-center justify-center transition-all hover:bg-background/30"
+          >
+            <MoreVertical className="w-5 h-5 text-background" />
+          </button>
+        )}
+
         {/* Like/Nope indicators */}
         {isTop && (
           <>
             <motion.div
-              className="absolute top-6 right-6 px-4 py-2 border-4 border-accent rounded-xl rotate-12"
+              className="absolute top-6 left-6 px-4 py-2 border-4 border-accent rounded-xl -rotate-12"
               style={{ opacity: likeOpacity }}
             >
               <span className="text-accent text-xl font-display">LIKE</span>
@@ -83,12 +98,16 @@ const SwipeCard = ({
         <div className="absolute bottom-0 left-0 right-0 p-4">
           <div className="flex items-end justify-between">
             <div className="flex-1">
-              <h2 className="text-2xl font-display text-background mb-1">
-                {profile.name}, {profile.age}
-              </h2>
+              <div className="flex items-center gap-2 mb-1">
+                <h2 className="text-2xl font-display text-background">
+                  {profile.name}, {profile.age}
+                </h2>
+                {/* Verified badge placeholder */}
+                <Shield className="w-5 h-5 text-accent" />
+              </div>
               <div className="flex items-center gap-1 text-background/80 text-sm mb-2">
                 <MapPin className="w-4 h-4" />
-                <span>5 km away</span>
+                <span>Same destination</span>
               </div>
               <p className="text-background/90 text-sm line-clamp-2 mb-2">
                 {profile.bio}
@@ -113,17 +132,37 @@ const SwipeCard = ({
 
 const SwipeScreen = () => {
   const { setScreen, setMatchedUser, setShowMatch, addMatch, travelDetails } = useAppStore();
+  const { user } = useAuth();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [profiles] = useState(mockProfiles);
+  const [showReportDialog, setShowReportDialog] = useState(false);
+  const [selectedProfile, setSelectedProfile] = useState<UserProfile | null>(null);
 
   const destination = travelDetails?.destination || 'Bali';
   const bgImage = destinationImages[destination] || destinationImages['default'];
 
-  const handleSwipe = (direction: 'left' | 'right') => {
-    if (direction === 'right' && Math.random() > 0.5) {
-      const matchedProfile = profiles[currentIndex];
-      addMatch(matchedProfile);
-      setMatchedUser(matchedProfile);
+  // Use backend hook when user is logged in
+  const { recordSwipe, blockUser, reportUser } = useSwipeProfiles(
+    destination,
+    travelDetails?.startDate || '',
+    travelDetails?.endDate || ''
+  );
+
+  const handleSwipe = async (direction: 'left' | 'right') => {
+    const currentProfile = profiles[currentIndex];
+    
+    // Record swipe in backend if logged in
+    if (user && currentProfile) {
+      const result = await recordSwipe(currentProfile.id, direction);
+      if (result.matched) {
+        addMatch(currentProfile);
+        setMatchedUser(currentProfile);
+        setShowMatch(true);
+      }
+    } else if (direction === 'right' && Math.random() > 0.5) {
+      // Fallback for demo mode
+      addMatch(currentProfile);
+      setMatchedUser(currentProfile);
       setShowMatch(true);
     }
     
@@ -134,22 +173,41 @@ const SwipeScreen = () => {
     handleSwipe(direction);
   };
 
+  const handleOpenMenu = (profile: UserProfile) => {
+    setSelectedProfile(profile);
+    setShowReportDialog(true);
+  };
+
+  const handleBlock = async () => {
+    if (selectedProfile) {
+      await blockUser(selectedProfile.id);
+      // Skip to next profile
+      setCurrentIndex((prev) => prev + 1);
+    }
+  };
+
+  const handleReport = async (reason: string, description?: string) => {
+    if (selectedProfile) {
+      await reportUser(selectedProfile.id, reason, description);
+    }
+  };
+
   const remainingProfiles = profiles.slice(currentIndex);
 
   return (
-    <div className="h-full flex flex-col bg-background overflow-hidden relative">
-      {/* Background Image */}
+    <div className="h-full flex flex-col relative overflow-hidden">
+      {/* Full-screen background like Apple homescreen */}
       <div 
-        className="absolute inset-0 bg-cover bg-center opacity-20"
+        className="fixed inset-0 bg-cover bg-center"
         style={{ backgroundImage: `url(${bgImage})` }}
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-accent/10 via-background/95 to-background" />
+      <div className="fixed inset-0 bg-gradient-to-b from-accent/30 via-background/70 to-background/80 backdrop-blur-[2px]" />
 
       {/* Header */}
       <div className="relative z-10 px-4 pt-12 pb-2 flex items-center justify-between">
         <button 
           onClick={() => setScreen('account')}
-          className="w-11 h-11 flex items-center justify-center rounded-2xl bg-card/80 backdrop-blur-sm shadow-soft transition-smooth hover:shadow-card active:scale-95"
+          className="w-11 h-11 flex items-center justify-center rounded-2xl bg-card/60 backdrop-blur-sm shadow-soft transition-smooth hover:shadow-card active:scale-95"
         >
           <User className="w-5 h-5 text-foreground" />
         </button>
@@ -166,7 +224,7 @@ const SwipeScreen = () => {
 
         <button 
           onClick={() => setScreen('matches')}
-          className="w-11 h-11 flex items-center justify-center rounded-2xl bg-card/80 backdrop-blur-sm shadow-soft transition-smooth hover:shadow-card active:scale-95"
+          className="w-11 h-11 flex items-center justify-center rounded-2xl bg-card/60 backdrop-blur-sm shadow-soft transition-smooth hover:shadow-card active:scale-95"
         >
           <MessageCircle className="w-5 h-5 text-foreground" />
         </button>
@@ -182,6 +240,7 @@ const SwipeScreen = () => {
                   key={profile.id}
                   profile={profile}
                   onSwipe={handleSwipe}
+                  onOpenMenu={() => handleOpenMenu(profile)}
                   isTop={index === remainingProfiles.slice(0, 2).length - 1}
                 />
               ))
@@ -206,28 +265,37 @@ const SwipeScreen = () => {
         </div>
       </div>
 
-      {/* Action buttons */}
+      {/* Action buttons - No background, floating on image */}
       {remainingProfiles.length > 0 && (
         <div className="relative z-10 px-4 pb-8 flex justify-center items-center gap-6">
           <motion.button
-            whileHover={{ scale: 1.05 }}
+            whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => handleButtonSwipe('left')}
-            className="w-14 h-14 rounded-full bg-card/60 backdrop-blur-sm shadow-card flex items-center justify-center transition-smooth hover:shadow-float border border-border/50"
+            className="w-16 h-16 rounded-full flex items-center justify-center transition-smooth"
           >
-            <X className="w-6 h-6 text-muted-foreground" />
+            <X className="w-10 h-10 text-background drop-shadow-lg" strokeWidth={3} />
           </motion.button>
           
           <motion.button
-            whileHover={{ scale: 1.05 }}
+            whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => handleButtonSwipe('right')}
-            className="w-16 h-16 rounded-full bg-accent/80 backdrop-blur-sm shadow-card flex items-center justify-center transition-smooth hover:shadow-glow border border-accent/50"
+            className="w-20 h-20 rounded-full flex items-center justify-center transition-smooth"
           >
-            <Heart className="w-7 h-7 text-accent-foreground" />
+            <Heart className="w-12 h-12 text-accent drop-shadow-lg" strokeWidth={2.5} fill="currentColor" />
           </motion.button>
         </div>
       )}
+
+      {/* Report/Block Dialog */}
+      <ReportBlockDialog
+        isOpen={showReportDialog}
+        onClose={() => setShowReportDialog(false)}
+        onBlock={handleBlock}
+        onReport={handleReport}
+        userName={selectedProfile?.name || ''}
+      />
     </div>
   );
 };
