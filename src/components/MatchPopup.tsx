@@ -4,7 +4,7 @@ import { Heart, MessageCircle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const MatchPopup = () => {
-  const { matchedUser, showMatch, setShowMatch, setScreen } = useAppStore();
+  const { matchedUser, showMatch, setShowMatch, setScreen, userProfile } = useAppStore();
 
   if (!matchedUser || !showMatch) return null;
 
@@ -16,6 +16,9 @@ const MatchPopup = () => {
   const handleKeepSwiping = () => {
     setShowMatch(false);
   };
+
+  // Get user's photo or fallback
+  const myPhoto = userProfile.photos?.[0] || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop';
 
   return (
     <AnimatePresence>
@@ -58,12 +61,12 @@ const MatchPopup = () => {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.8, opacity: 0 }}
             transition={{ type: 'spring', damping: 20 }}
-            className="bg-card rounded-3xl p-6 w-full max-w-sm shadow-float text-center"
+            className="bg-card rounded-3xl p-6 w-full max-w-sm shadow-float text-center relative"
           >
             {/* Close button */}
             <button
               onClick={handleKeepSwiping}
-              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-secondary flex items-center justify-center"
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-secondary flex items-center justify-center z-10"
             >
               <X className="w-4 h-4 text-muted-foreground" />
             </button>
@@ -104,14 +107,14 @@ const MatchPopup = () => {
               transition={{ delay: 0.5 }}
               className="flex justify-center -space-x-4 mb-8"
             >
-              <div className="w-24 h-24 rounded-full border-4 border-card overflow-hidden shadow-card">
+              <div className="w-24 h-24 rounded-full border-4 border-card overflow-hidden shadow-card bg-secondary">
                 <img
-                  src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop"
+                  src={myPhoto}
                   alt="You"
                   className="w-full h-full object-cover"
                 />
               </div>
-              <div className="w-24 h-24 rounded-full border-4 border-card overflow-hidden shadow-card">
+              <div className="w-24 h-24 rounded-full border-4 border-card overflow-hidden shadow-card bg-secondary">
                 <img
                   src={matchedUser.photos[0]}
                   alt={matchedUser.name}

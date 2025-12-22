@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useAppStore, UserProfile } from '@/store/useAppStore';
-import { ArrowLeft, MessageCircle, Sparkles } from 'lucide-react';
+import { ArrowLeft, MessageCircle } from 'lucide-react';
 
 const MatchesListScreen = () => {
   const { setScreen, matches, setMatchedUser } = useAppStore();
@@ -29,9 +29,7 @@ const MatchesListScreen = () => {
         </button>
         <div className="flex-1">
           <h1 className="text-xl font-display text-foreground">Your Matches</h1>
-          <p className="text-xs text-muted-foreground">{matches.length} travel buddies</p>
         </div>
-        <Sparkles className="w-5 h-5 text-accent animate-pulse-soft" />
       </div>
 
       {/* Matches List */}
