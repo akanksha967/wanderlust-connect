@@ -175,16 +175,16 @@ const ChatScreen = () => {
   };
 
   return (
-    <div className="h-full flex flex-col relative overflow-hidden">
-      {/* Full-screen background like Apple homescreen */}
+    <div className="fixed inset-0 flex flex-col">
+      {/* Full-screen background */}
       <div 
-        className="fixed inset-0 bg-cover bg-center"
+        className="absolute inset-0 bg-cover bg-center"
         style={{ backgroundImage: `url(https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&auto=format&fit=crop)` }}
       />
-      <div className="fixed inset-0 bg-gradient-to-b from-accent/30 via-background/70 to-background/80 backdrop-blur-[2px]" />
+      <div className="absolute inset-0 bg-gradient-to-b from-accent/30 via-background/70 to-background/80 backdrop-blur-[2px]" />
 
       {/* Header */}
-      <div className="relative z-10 px-4 pt-12 pb-3 flex items-center gap-3 border-b border-border/50">
+      <div className="relative z-10 px-4 pt-12 pb-3 flex items-center gap-3 border-b border-border/50 shrink-0">
         <button 
           onClick={() => setScreen('matches')}
           className="w-10 h-10 flex items-center justify-center rounded-xl bg-secondary transition-all duration-300 hover:bg-secondary/70"
@@ -247,8 +247,8 @@ const ChatScreen = () => {
         </div>
       </div>
 
-      {/* Messages - add bottom padding for input */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 relative z-10 pb-24">
+      {/* Messages area - takes remaining space minus input */}
+      <div className="relative z-10 flex-1 overflow-y-auto px-4 py-4 space-y-4" style={{ marginBottom: '80px' }}>
         {/* Match notice */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -290,8 +290,8 @@ const ChatScreen = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input - Fixed at absolute bottom */}
-      <div className="absolute bottom-0 left-0 right-0 z-10 p-4 pb-6 border-t border-border/50 bg-background/95 backdrop-blur-sm">
+      {/* Input - Fixed at bottom */}
+      <div className="fixed bottom-0 left-0 right-0 z-20 p-4 pb-6 border-t border-border/50 bg-background/95 backdrop-blur-sm">
         <div className="flex gap-3">
           <div className="flex-1 relative">
             <Input

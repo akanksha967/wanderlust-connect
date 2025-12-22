@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, useMotionValue, useTransform, PanInfo, AnimatePresence } from 'framer-motion';
 import { useAppStore, UserProfile } from '@/store/useAppStore';
-import { mockProfiles } from '@/data/mockProfiles';
+import { generateMockProfiles } from '@/data/mockProfiles';
 import { X, MapPin, MessageCircle, User, Heart, Shield, MoreVertical } from 'lucide-react';
 import ReportBlockDialog from '@/components/ReportBlockDialog';
 import { useSwipeProfiles } from '@/hooks/useSwipeProfiles';
@@ -138,7 +138,8 @@ const SwipeScreen = () => {
   const { setScreen, setMatchedUser, setShowMatch, addMatch, travelDetails } = useAppStore();
   const { user } = useAuth();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [profiles] = useState(mockProfiles);
+  // Generate fresh profiles each time component mounts
+  const profiles = useMemo(() => generateMockProfiles(), []);
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<UserProfile | null>(null);
 
@@ -151,6 +152,8 @@ const SwipeScreen = () => {
     travelDetails?.startDate || '',
     travelDetails?.endDate || ''
   );
+
+  const remainingProfiles = profiles.slice(currentIndex);
 
   const handleSwipe = async (direction: 'left' | 'right') => {
     // Don't allow swiping if no profiles remaining
@@ -200,19 +203,17 @@ const SwipeScreen = () => {
     }
   };
 
-  const remainingProfiles = profiles.slice(currentIndex);
-
   return (
-    <div className="h-full flex flex-col relative overflow-hidden">
-      {/* Full-screen background like Apple homescreen */}
+    <div className="fixed inset-0 flex flex-col">
+      {/* Full-screen background */}
       <div 
-        className="fixed inset-0 bg-cover bg-center"
+        className="absolute inset-0 bg-cover bg-center"
         style={{ backgroundImage: `url(${bgImage})` }}
       />
-      <div className="fixed inset-0 bg-gradient-to-b from-accent/30 via-background/70 to-background/80 backdrop-blur-[2px]" />
+      <div className="absolute inset-0 bg-gradient-to-b from-accent/30 via-background/70 to-background/80 backdrop-blur-[2px]" />
 
       {/* Header */}
-      <div className="relative z-10 px-4 pt-12 pb-2 flex items-center justify-between">
+      <div className="relative z-10 px-4 pt-12 pb-2 flex items-center justify-between shrink-0">
         <button 
           onClick={() => setScreen('account')}
           className="w-11 h-11 flex items-center justify-center rounded-2xl bg-card/60 backdrop-blur-sm shadow-soft transition-smooth hover:shadow-card active:scale-95"
@@ -238,9 +239,9 @@ const SwipeScreen = () => {
         </button>
       </div>
 
-      {/* Cards - Centered with bottom padding for action buttons */}
-      <div className="flex-1 relative px-4 py-2 pb-24 flex items-center justify-center">
-        <div className="relative w-full h-full max-h-[450px]">
+      {/* Cards area - takes remaining space minus footer */}
+      <div className="relative z-10 flex-1 px-4 py-2 overflow-hidden" style={{ marginBottom: '100px' }}>
+        <div className="relative w-full h-full">
           <AnimatePresence>
             {remainingProfiles.length > 0 ? (
               remainingProfiles.slice(0, 2).reverse().map((profile, index) => (
@@ -273,25 +274,25 @@ const SwipeScreen = () => {
         </div>
       </div>
 
-      {/* Action buttons - Fixed at absolute bottom */}
+      {/* Action buttons - Fixed at bottom */}
       {remainingProfiles.length > 0 && (
-        <div className="absolute bottom-0 left-0 right-0 z-10 px-4 pb-6 flex justify-center items-center gap-8">
+        <div className="fixed bottom-0 left-0 right-0 z-20 px-4 pb-8 pt-4 flex justify-center items-center gap-8 bg-gradient-to-t from-background/80 to-transparent">
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => handleButtonSwipe('left')}
-            className="w-16 h-16 flex items-center justify-center transition-smooth"
+            className="w-16 h-16 rounded-full bg-destructive/90 backdrop-blur-sm flex items-center justify-center shadow-lg transition-smooth"
           >
-            <X className="w-10 h-10 text-background drop-shadow-lg" strokeWidth={2.5} />
+            <X className="w-8 h-8 text-destructive-foreground" strokeWidth={2.5} />
           </motion.button>
           
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => handleButtonSwipe('right')}
-            className="w-16 h-16 flex items-center justify-center transition-smooth"
+            className="w-16 h-16 rounded-full bg-accent/90 backdrop-blur-sm flex items-center justify-center shadow-lg transition-smooth"
           >
-            <Heart className="w-10 h-10 text-background drop-shadow-lg" strokeWidth={2.5} />
+            <Heart className="w-8 h-8 text-accent-foreground" strokeWidth={2.5} />
           </motion.button>
         </div>
       )}
