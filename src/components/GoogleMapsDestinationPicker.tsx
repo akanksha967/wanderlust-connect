@@ -145,13 +145,15 @@ const GoogleMapsDestinationPicker = ({
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="absolute top-full left-0 right-0 mt-2 bg-card rounded-xl shadow-card border border-border overflow-hidden z-20"
+            className="absolute top-full left-0 right-0 mt-2 rounded-xl shadow-lg border border-border overflow-hidden z-50"
+            style={{ backgroundColor: 'hsl(var(--card))' }}
           >
             {predictions.map((prediction) => (
               <button
                 key={prediction.place_id}
                 onClick={() => handlePredictionSelect(prediction)}
-                className="w-full px-4 py-3 text-left hover:bg-accent/10 transition-colors flex items-center gap-3"
+                className="w-full px-4 py-3 text-left hover:bg-accent/10 transition-colors flex items-center gap-3 border-b border-border/50 last:border-b-0"
+                style={{ backgroundColor: 'hsl(var(--card))' }}
               >
                 <MapPin className="w-4 h-4 text-accent shrink-0" />
                 <div>
