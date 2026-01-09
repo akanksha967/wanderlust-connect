@@ -4,82 +4,82 @@
 
 @layer base {
   :root {
-    --background: 210 25% 98%;
-    --foreground: 220 40% 13%;
+    --background: 230 35% 98%;
+    --foreground: 234 40% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 40% 13%;
+    --card-foreground: 234 40% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 40% 13%;
+    --popover-foreground: 234 40% 12%;
 
-    --primary: 220 60% 25%;
+    --primary: 234 85% 55%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 180 30% 96%;
-    --secondary-foreground: 220 40% 13%;
+    --secondary: 234 30% 95%;
+    --secondary-foreground: 234 40% 12%;
 
-    --muted: 180 20% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 234 20% 94%;
+    --muted-foreground: 234 15% 46%;
 
-    --accent: 175 60% 40%;
+    --accent: 234 70% 65%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 200 25% 90%;
-    --input: 200 25% 90%;
-    --ring: 175 60% 40%;
+    --border: 234 25% 88%;
+    --input: 234 25% 88%;
+    --ring: 234 85% 55%;
 
     --radius: 1rem;
 
-    /* Custom design tokens */
-    --color-indigo: 220 60% 25%;
-    --color-teal: 175 60% 40%;
-    --color-teal-light: 175 50% 50%;
+    /* Custom design tokens - Indigo Blue */
+    --color-indigo: 234 85% 55%;
+    --color-indigo-dark: 234 75% 40%;
+    --color-indigo-light: 234 70% 70%;
 
-    --shadow-soft: 0 4px 20px -4px rgba(30, 58, 95, 0.08);
-    --shadow-card: 0 8px 32px -8px rgba(30, 58, 95, 0.12);
-    --shadow-float: 0 16px 48px -12px rgba(30, 58, 95, 0.18);
-    --shadow-glow: 0 0 24px rgba(45, 170, 160, 0.35);
+    --shadow-soft: 0 4px 20px -4px rgba(67, 56, 202, 0.1);
+    --shadow-card: 0 8px 32px -8px rgba(67, 56, 202, 0.15);
+    --shadow-float: 0 16px 48px -12px rgba(67, 56, 202, 0.2);
+    --shadow-glow: 0 0 24px rgba(99, 102, 241, 0.4);
 
-    --gradient-accent: linear-gradient(135deg, hsl(175, 60%, 40%) 0%, hsl(195, 65%, 45%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(220, 60%, 25%) 0%, hsl(200, 50%, 35%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(0, 0%, 100%) 0%, hsl(200, 25%, 99%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(234, 85%, 55%) 0%, hsl(250, 80%, 65%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(234, 75%, 40%) 0%, hsl(250, 65%, 50%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0, 0%, 100%) 0%, hsl(234, 30%, 98%) 100%);
 
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
   .dark {
-    --background: 220 40% 10%;
-    --foreground: 210 25% 98%;
+    --background: 234 40% 8%;
+    --foreground: 230 35% 98%;
 
-    --card: 220 35% 14%;
-    --card-foreground: 210 25% 98%;
+    --card: 234 35% 12%;
+    --card-foreground: 230 35% 98%;
 
-    --popover: 220 35% 14%;
-    --popover-foreground: 210 25% 98%;
+    --popover: 234 35% 12%;
+    --popover-foreground: 230 35% 98%;
 
-    --primary: 175 60% 50%;
-    --primary-foreground: 220 40% 10%;
+    --primary: 234 80% 65%;
+    --primary-foreground: 234 40% 8%;
 
-    --secondary: 220 30% 18%;
-    --secondary-foreground: 210 25% 98%;
+    --secondary: 234 30% 16%;
+    --secondary-foreground: 230 35% 98%;
 
-    --muted: 220 30% 18%;
-    --muted-foreground: 215 16% 65%;
+    --muted: 234 30% 16%;
+    --muted-foreground: 234 16% 60%;
 
-    --accent: 175 60% 45%;
+    --accent: 234 70% 60%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62% 30%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 30% 20%;
-    --input: 220 30% 20%;
-    --ring: 175 60% 45%;
+    --border: 234 30% 18%;
+    --input: 234 30% 18%;
+    --ring: 234 80% 65%;
   }
 }
 
@@ -90,13 +90,13 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Lancelot', serif;
+    font-family: 'Playfair Display', serif;
   }
 }
 
 @layer utilities {
   .font-display {
-    font-family: 'Lancelot', serif;
+    font-family: 'Playfair Display', serif;
   }
 
   .shadow-soft {

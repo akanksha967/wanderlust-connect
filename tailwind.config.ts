@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Lancelot', 'serif'],
-        display: ['Lancelot', 'serif'],
+        sans: ['Playfair Display', 'serif'],
+        display: ['Playfair Display', 'serif'],
       },
       colors: {
         border: "hsl(var(--border))",
