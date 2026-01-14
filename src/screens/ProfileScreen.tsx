@@ -107,20 +107,20 @@ const ProfileScreen = () => {
   const isValid = name && age && photos.length > 0 && selectedVibes.length > 0;
 
   return (
-    <div className="h-full flex flex-col relative overflow-hidden">
+    <div className="h-[100dvh] flex flex-col relative overflow-hidden">
       {/* Full-screen background like Apple homescreen */}
       <div 
         className="fixed inset-0 bg-cover bg-center"
         style={{ backgroundImage: `url(https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&auto=format&fit=crop)` }}
       />
       <div className="fixed inset-0 bg-gradient-to-b from-accent/30 via-background/70 to-background/80 backdrop-blur-[2px]" />
-      {/* Hidden file inputs */}
+      {/* Hidden file inputs - using user media type for better camera support */}
       <input
         type="file"
         ref={cameraInputRef}
         onChange={handleFileChange}
         accept="image/*"
-        capture="environment"
+        capture="user"
         className="hidden"
       />
       <input
@@ -132,24 +132,24 @@ const ProfileScreen = () => {
       />
 
       {/* Header */}
-      <div className="relative z-10 px-4 pt-12 pb-4 flex items-center justify-between">
+      <div className="relative z-10 px-4 pt-8 pb-2 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <button 
             onClick={() => setScreen('login')}
-            className="w-10 h-10 flex items-center justify-center rounded-xl bg-secondary transition-all duration-300 hover:bg-secondary/70"
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-secondary transition-all duration-300 hover:bg-secondary/70"
           >
-            <ArrowLeft className="w-5 h-5 text-foreground" />
+            <ArrowLeft className="w-4 h-4 text-foreground" />
           </button>
           <div>
-            <h1 className="text-lg font-display text-foreground">Create Profile</h1>
-            <p className="text-xs text-muted-foreground">Step 1 of 2</p>
+            <h1 className="text-base font-display text-foreground">Create Profile</h1>
+            <p className="text-[10px] text-muted-foreground">Step 1 of 2</p>
           </div>
         </div>
         <button
           onClick={() => setShowSettings(!showSettings)}
-          className="w-10 h-10 flex items-center justify-center rounded-xl bg-secondary transition-all duration-300 hover:bg-secondary/70"
+          className="w-9 h-9 flex items-center justify-center rounded-xl bg-secondary transition-all duration-300 hover:bg-secondary/70"
         >
-          <Settings className="w-5 h-5 text-foreground" />
+          <Settings className="w-4 h-4 text-foreground" />
         </button>
       </div>
 
@@ -159,35 +159,35 @@ const ProfileScreen = () => {
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
-          className="mx-4 mb-4 p-4 rounded-2xl bg-secondary/50 border border-border"
+          className="mx-4 mb-2 p-3 rounded-xl bg-secondary/50 border border-border shrink-0"
         >
-          <h3 className="text-sm font-medium text-foreground mb-3">Account Settings</h3>
+          <h3 className="text-xs font-medium text-foreground mb-2">Account Settings</h3>
           <button
             onClick={() => setShowDeleteDialog(true)}
-            className="w-full flex items-center gap-3 p-3 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive/20 transition-all duration-300"
+            className="w-full flex items-center gap-2 p-2 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-all duration-300"
           >
-            <Trash2 className="w-5 h-5" />
-            <span className="text-sm font-medium">Delete Account</span>
+            <Trash2 className="w-4 h-4" />
+            <span className="text-xs font-medium">Delete Account</span>
           </button>
         </motion.div>
       )}
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto px-4 pb-24 relative z-10">
+      <div className="flex-1 overflow-hidden px-4 pb-16 relative z-10 flex flex-col">
         {/* Photo upload */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-6"
+          className="mb-3 shrink-0"
         >
-          <label className="text-sm font-medium text-foreground mb-3 block">
+          <label className="text-xs font-medium text-foreground mb-2 block">
             Add photos (1-3)
           </label>
-          <div className="flex gap-3">
+          <div className="flex gap-2">
             {[0, 1, 2].map((index) => (
               <div
                 key={index}
-                className="relative w-24 h-24 rounded-2xl overflow-hidden bg-secondary shadow-soft"
+                className="relative w-20 h-20 rounded-xl overflow-hidden bg-secondary shadow-soft"
               >
                 {photos[index] ? (
                   <>
@@ -198,28 +198,26 @@ const ProfileScreen = () => {
                     />
                     <button
                       onClick={() => handleRemovePhoto(index)}
-                      className="absolute top-1 right-1 w-6 h-6 bg-foreground/80 rounded-full flex items-center justify-center"
+                      className="absolute top-0.5 right-0.5 w-5 h-5 bg-foreground/80 rounded-full flex items-center justify-center"
                     >
-                      <X className="w-3 h-3 text-background" />
+                      <X className="w-2.5 h-2.5 text-background" />
                     </button>
                   </>
                 ) : (
                   <button
                     onClick={() => handlePhotoClick(index)}
-                    className="w-full h-full flex flex-col items-center justify-center gap-1 transition-smooth hover:bg-secondary/70"
+                    className="w-full h-full flex flex-col items-center justify-center gap-0.5 transition-smooth hover:bg-secondary/70"
                   >
                     {index === 0 ? (
-                      <Camera className="w-6 h-6 text-muted-foreground" />
+                      <Camera className="w-5 h-5 text-muted-foreground" />
                     ) : (
-                      <Plus className="w-6 h-6 text-muted-foreground" />
+                      <Plus className="w-5 h-5 text-muted-foreground" />
                     )}
-                    <span className="text-[10px] text-muted-foreground">
-                      {index === 0 ? 'Add' : 'Add'}
-                    </span>
+                    <span className="text-[9px] text-muted-foreground">Add</span>
                   </button>
                 )}
                 {index === 0 && photos[index] && (
-                  <div className="absolute bottom-1 left-1 px-2 py-0.5 bg-accent text-accent-foreground text-[10px] font-medium rounded-full">
+                  <div className="absolute bottom-0.5 left-0.5 px-1.5 py-0.5 bg-accent text-accent-foreground text-[8px] font-medium rounded-full">
                     Main
                   </div>
                 )}
@@ -233,21 +231,21 @@ const ProfileScreen = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="grid grid-cols-2 gap-3 mb-4"
+          className="grid grid-cols-2 gap-2 mb-2 shrink-0"
         >
           <div>
-            <label className="text-sm font-medium text-foreground mb-2 block">
+            <label className="text-xs font-medium text-foreground mb-1 block">
               First name
             </label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Your name"
-              className="h-12 rounded-xl bg-secondary border-0 shadow-soft"
+              className="h-9 rounded-lg bg-secondary border-0 shadow-soft text-sm"
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-foreground mb-2 block">
+            <label className="text-xs font-medium text-foreground mb-1 block">
               Age
             </label>
             <Input
@@ -255,7 +253,7 @@ const ProfileScreen = () => {
               value={age}
               onChange={(e) => setAge(e.target.value)}
               placeholder="Age"
-              className="h-12 rounded-xl bg-secondary border-0 shadow-soft"
+              className="h-9 rounded-lg bg-secondary border-0 shadow-soft text-sm"
             />
           </div>
         </motion.div>
@@ -265,16 +263,16 @@ const ProfileScreen = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="mb-6"
+          className="mb-2 shrink-0"
         >
-          <label className="text-sm font-medium text-foreground mb-2 block">
+          <label className="text-xs font-medium text-foreground mb-1 block">
             Bio
           </label>
           <textarea
             value={bio}
             onChange={(e) => setBio(e.target.value)}
             placeholder="Tell fellow travelers about yourself..."
-            className="w-full h-24 p-3 rounded-xl bg-secondary border-0 shadow-soft resize-none text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+            className="w-full h-16 p-2 rounded-lg bg-secondary border-0 shadow-soft resize-none text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
           />
         </motion.div>
 
@@ -283,16 +281,17 @@ const ProfileScreen = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
+          className="shrink-0"
         >
-          <label className="text-sm font-medium text-foreground mb-3 block">
+          <label className="text-xs font-medium text-foreground mb-2 block">
             Travel vibes (select up to 4)
           </label>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {vibeOptions.map((vibe) => (
               <button
                 key={vibe}
                 onClick={() => toggleVibe(vibe)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-smooth ${
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-smooth ${
                   selectedVibes.includes(vibe)
                     ? 'gradient-accent text-accent-foreground shadow-soft'
                     : 'bg-secondary text-muted-foreground hover:text-foreground'
@@ -306,11 +305,11 @@ const ProfileScreen = () => {
       </div>
 
       {/* Footer */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-background via-background to-transparent z-10">
+      <div className="absolute bottom-0 left-0 right-0 p-3 pb-5 bg-gradient-to-t from-background via-background to-transparent z-10">
         <Button
           variant="accent"
-          size="lg"
-          className="w-full"
+          size="default"
+          className="w-full h-10"
           disabled={!isValid}
           onClick={handleContinue}
         >
