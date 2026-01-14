@@ -7,6 +7,7 @@ import { ArrowLeft, Camera, MapPin, Calendar, LogOut, Trash2, ChevronRight, Edit
 import DeleteAccountDialog from '@/components/DeleteAccountDialog';
 import PhotoSourceDialog from '@/components/PhotoSourceDialog';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 const vibeOptions = [
   'Adventure', 'Relaxation', 'Culture', 'Foodie', 'Nature',
@@ -16,6 +17,7 @@ const vibeOptions = [
 const AccountScreen = () => {
   const { setScreen, userProfile, travelDetails, setTravelDetails, setUserProfile } = useAppStore();
   const { signOut, user } = useAuth();
+  const { toast } = useToast();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showPhotoSourceDialog, setShowPhotoSourceDialog] = useState(false);
   const [editingTravel, setEditingTravel] = useState(false);
@@ -71,11 +73,25 @@ const AccountScreen = () => {
     if (file && activePhotoIndex !== null) {
       const reader = new FileReader();
       reader.onload = (event) => {
+        const dataUrl = event.target?.result as string | undefined;
+        if (!dataUrl) return;
+
+        // Prevent duplicate photos (but allow re-selecting the same photo for the same slot)
+        const isDuplicate = photos.some((p, i) => p === dataUrl && i !== activePhotoIndex);
+        if (isDuplicate) {
+          toast({
+            title: 'Duplicate photo',
+            description: 'That photo is already added. Please pick a different one.',
+            variant: 'destructive',
+          });
+          return;
+        }
+
         const newPhotos = [...photos];
         if (activePhotoIndex < newPhotos.length) {
-          newPhotos[activePhotoIndex] = event.target?.result as string;
+          newPhotos[activePhotoIndex] = dataUrl;
         } else {
-          newPhotos.push(event.target?.result as string);
+          newPhotos.push(dataUrl);
         }
         setPhotos(newPhotos);
       };

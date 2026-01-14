@@ -6,6 +6,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { ArrowLeft, Camera, Plus, X, Settings, Trash2 } from 'lucide-react';
 import DeleteAccountDialog from '@/components/DeleteAccountDialog';
 import PhotoSourceDialog from '@/components/PhotoSourceDialog';
+import { useToast } from '@/hooks/use-toast';
 
 const vibeOptions = [
   'Adventure', 'Relaxation', 'Culture', 'Foodie', 'Nature',
@@ -14,6 +15,7 @@ const vibeOptions = [
 
 const ProfileScreen = () => {
   const { setScreen, setUserProfile } = useAppStore();
+  const { toast } = useToast();
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
   const [bio, setBio] = useState('');
@@ -45,11 +47,25 @@ const ProfileScreen = () => {
     if (file) {
       const reader = new FileReader();
       reader.onload = (event) => {
+        const dataUrl = event.target?.result as string | undefined;
+        if (!dataUrl) return;
+
+        // Prevent duplicate photos (but allow re-selecting the same photo for the same slot)
+        const isDuplicate = photos.some((p, i) => p === dataUrl && i !== activePhotoIndex);
+        if (isDuplicate) {
+          toast({
+            title: 'Duplicate photo',
+            description: 'That photo is already added. Please pick a different one.',
+            variant: 'destructive',
+          });
+          return;
+        }
+
         const newPhotos = [...photos];
         if (activePhotoIndex < newPhotos.length) {
-          newPhotos[activePhotoIndex] = event.target?.result as string;
+          newPhotos[activePhotoIndex] = dataUrl;
         } else {
-          newPhotos.push(event.target?.result as string);
+          newPhotos.push(dataUrl);
         }
         setPhotos(newPhotos);
       };
