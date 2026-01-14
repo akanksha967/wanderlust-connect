@@ -61,7 +61,7 @@ const DestinationSlideshow = () => {
   };
 
   return (
-    <div className="relative w-full h-64 flex items-center justify-center overflow-hidden">
+    <div className="relative w-full h-[32vh] max-h-64 min-h-52 flex items-center justify-center overflow-hidden">
       {destinations.map((dest, index) => {
         const style = getCardStyle(index);
         return (
@@ -69,7 +69,7 @@ const DestinationSlideshow = () => {
             key={dest.id}
             animate={style}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="absolute w-40 h-56 rounded-2xl overflow-hidden shadow-elegant"
+            className="absolute w-[42vw] max-w-40 h-[58vw] max-h-56 rounded-2xl overflow-hidden shadow-elegant"
             style={{ zIndex: style.zIndex }}
           >
             <img
