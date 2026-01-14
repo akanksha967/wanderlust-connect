@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAppStore } from '@/store/useAppStore';
@@ -20,6 +20,27 @@ const vibeOptions = [
   { id: 'Luxury', icon: '✨', label: 'Luxury' },
   { id: 'Solo', icon: '🧍', label: 'Solo' },
 ];
+
+// Staggered animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.2,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] as const },
+  },
+};
 
 const ProfileScreen = () => {
   const { setScreen, setUserProfile } = useAppStore();
@@ -114,30 +135,48 @@ const ProfileScreen = () => {
   const previewBio = bio.length > 80 ? bio.substring(0, 80) + '...' : bio;
 
   return (
-    <div className="h-[100dvh] w-full flex flex-col relative overflow-hidden">
-      {/* Lavender Gradient Background */}
-      <div className="fixed inset-0 gradient-hero" />
-      <div className="fixed inset-0 bg-gradient-to-b from-transparent via-transparent to-background/30" />
+    <div className="min-h-[100dvh] w-full flex items-center justify-center relative overflow-hidden">
+      {/* Background Image with Lavender Overlay */}
+      <div 
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: `url('https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=1920&q=80')`,
+        }}
+      />
+      {/* Soft lavender gradient overlay */}
+      <div className="fixed inset-0 bg-gradient-to-br from-[hsl(270,40%,85%)]/80 via-[hsl(280,35%,80%)]/70 to-[hsl(260,45%,75%)]/80" />
+      <div className="fixed inset-0 bg-gradient-to-t from-[hsl(270,30%,20%)]/40 via-transparent to-transparent" />
       
-      {/* Subtle floating orbs for depth */}
+      {/* Dreamy floating orbs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <motion.div
           animate={{ 
-            y: [0, -20, 0],
-            x: [0, 10, 0],
-            scale: [1, 1.1, 1]
+            y: [0, -30, 0],
+            x: [0, 15, 0],
+            scale: [1, 1.15, 1],
+            opacity: [0.3, 0.5, 0.3]
           }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-20 -right-20 w-64 h-64 rounded-full bg-primary/20 blur-3xl"
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-10 right-10 w-96 h-96 rounded-full bg-[hsl(270,60%,75%)]/30 blur-[80px]"
         />
         <motion.div
           animate={{ 
-            y: [0, 15, 0],
-            x: [0, -10, 0],
-            scale: [1, 1.05, 1]
+            y: [0, 25, 0],
+            x: [0, -20, 0],
+            scale: [1, 1.1, 1],
+            opacity: [0.25, 0.4, 0.25]
+          }}
+          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute bottom-20 left-5 w-80 h-80 rounded-full bg-[hsl(280,50%,70%)]/25 blur-[60px]"
+        />
+        <motion.div
+          animate={{ 
+            y: [0, -15, 0],
+            scale: [1, 1.08, 1],
+            opacity: [0.2, 0.35, 0.2]
           }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute bottom-40 -left-20 w-72 h-72 rounded-full bg-accent/15 blur-3xl"
+          className="absolute top-1/3 left-1/4 w-64 h-64 rounded-full bg-[hsl(265,55%,80%)]/20 blur-[50px]"
         />
       </div>
       
@@ -158,229 +197,236 @@ const ProfileScreen = () => {
         className="hidden"
       />
 
-      {/* Header */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        className="relative z-10 px-4 pt-4 pb-2 flex items-center gap-3 shrink-0"
-      >
+      {/* Main Centered Card Container */}
+      <div className="relative z-10 w-full max-w-md mx-4 my-8 max-h-[90dvh] flex flex-col">
+        {/* Back Button - Floating outside card */}
         <motion.button 
           onClick={handleBack}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="w-10 h-10 flex items-center justify-center rounded-2xl glass-lavender shadow-glass transition-all duration-200"
+          className="absolute -top-2 -left-2 w-11 h-11 flex items-center justify-center rounded-full bg-white/15 backdrop-blur-xl border border-white/20 shadow-lg shadow-[hsl(270,30%,20%)]/20 transition-all duration-300 hover:bg-white/25 z-20"
         >
-          <ArrowLeft className="w-4 h-4 text-foreground" />
+          <ArrowLeft className="w-4 h-4 text-white" />
         </motion.button>
-        <div>
-          <h1 className="text-lg font-display font-semibold text-foreground">Create Profile</h1>
-          <p className="text-[11px] text-muted-foreground font-medium">Step 1 of 2</p>
-        </div>
-      </motion.div>
 
-      {/* Main Content */}
-      <div className="flex-1 overflow-y-auto px-4 pb-28 relative z-10">
-        <div className="max-w-lg mx-auto">
-          {/* Floating Glass Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
-            className="glass-card rounded-3xl p-5 shadow-float glow-edge"
-          >
-            {/* Helper Card */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="p-3 rounded-2xl glass-lavender mb-4"
+        {/* Main Floating Glass Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 40, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          className="relative overflow-hidden rounded-[26px] bg-white/12 backdrop-blur-[16px] border border-white/20 shadow-2xl shadow-[hsl(270,40%,15%)]/30"
+          style={{
+            boxShadow: `
+              0 25px 60px -15px hsl(270 40% 20% / 0.35),
+              0 10px 25px -10px hsl(270 30% 15% / 0.2),
+              inset 0 1px 1px hsl(0 0% 100% / 0.15)
+            `
+          }}
+        >
+          {/* Subtle inner glow at top */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-16 bg-gradient-to-b from-white/10 to-transparent blur-xl" />
+
+          {/* Scrollable Content */}
+          <div className="overflow-y-auto max-h-[calc(90dvh-80px)] overscroll-contain">
+            <motion.div 
+              className="p-6"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
             >
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-primary/30 flex items-center justify-center shrink-0">
-                  <Sparkles className="w-4 h-4 text-primary" />
+              {/* Header inside card */}
+              <motion.div variants={itemVariants} className="text-center mb-5">
+                <h1 className="text-xl font-display font-semibold text-white drop-shadow-sm">Create Profile</h1>
+                <p className="text-xs text-white/60 font-medium mt-0.5">Step 1 of 2</p>
+              </motion.div>
+
+              {/* Helper Card */}
+              <motion.div
+                variants={itemVariants}
+                className="p-3.5 rounded-2xl bg-white/8 backdrop-blur-md border border-white/10 mb-5"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[hsl(270,50%,70%)]/30 backdrop-blur-sm flex items-center justify-center shrink-0 border border-white/10">
+                    <Sparkles className="w-4 h-4 text-white/90" />
+                  </div>
+                  <p className="text-xs leading-relaxed text-white/70">
+                    Profiles with photos get <span className="font-semibold text-white">3× more matches</span>
+                  </p>
                 </div>
-                <p className="text-xs leading-relaxed text-foreground/80">
-                  Profiles with photos get <span className="font-semibold text-foreground">3× more matches</span>
-                </p>
-              </div>
-            </motion.div>
+              </motion.div>
 
-            {/* Photo upload */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35 }}
-              className="mb-4"
-            >
-              <label className="text-xs font-medium text-foreground mb-2 block">
-                Add photos <span className="text-muted-foreground font-normal">(1-3)</span>
-              </label>
-              <div className="flex gap-3 justify-center">
-                {[0, 1, 2].map((index) => (
-                  <motion.div
-                    key={index}
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    className="relative w-[72px] h-[72px] rounded-2xl overflow-hidden glass-lavender shadow-glass transition-all duration-300"
-                  >
-                    {photos[index] ? (
-                      <>
-                        <img
-                          src={photos[index]}
-                          alt={`Photo ${index + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                        <button
-                          onClick={() => handleRemovePhoto(index)}
-                          className="absolute top-1 right-1 w-5 h-5 bg-foreground/80 rounded-full flex items-center justify-center shadow-lg"
-                        >
-                          <X className="w-2.5 h-2.5 text-background" />
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        onClick={() => handlePhotoClick(index)}
-                        className="w-full h-full flex flex-col items-center justify-center gap-1"
-                      >
-                        {index === 0 ? (
-                          <Camera className="w-5 h-5 text-muted-foreground" />
-                        ) : (
-                          <Plus className="w-5 h-5 text-muted-foreground" />
-                        )}
-                        <span className="text-[9px] text-muted-foreground font-medium">Add</span>
-                      </button>
-                    )}
-                    {index === 0 && photos[index] && (
-                      <div className="absolute bottom-1 left-1 px-1.5 py-0.5 bg-primary text-primary-foreground text-[8px] font-semibold rounded-md shadow-sm">
-                        Main
-                      </div>
-                    )}
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-
-            {/* Name & Age */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="grid grid-cols-2 gap-3 mb-4"
-            >
-              <div>
-                <label className="text-xs font-medium text-foreground mb-1.5 block">First name</label>
-                <Input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Akanksha"
-                  className="h-10 rounded-xl glass-lavender border-0 text-sm placeholder:text-muted-foreground/50 focus:ring-2 focus:ring-primary/40 focus:shadow-glow transition-all duration-200"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-medium text-foreground mb-1.5 block">Age</label>
-                <Input
-                  type="number"
-                  value={age}
-                  onChange={(e) => setAge(e.target.value)}
-                  placeholder="Your age"
-                  className="h-10 rounded-xl glass-lavender border-0 text-sm placeholder:text-muted-foreground/50 focus:ring-2 focus:ring-primary/40 focus:shadow-glow transition-all duration-200"
-                />
-              </div>
-            </motion.div>
-
-            {/* Bio */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.45 }}
-              className="mb-4"
-            >
-              <label className="text-xs font-medium text-foreground mb-1.5 block">About you</label>
-              <textarea
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                placeholder="Solo traveler heading to Bali. Love photography & cafes."
-                className="w-full h-16 p-3 rounded-xl glass-lavender border-0 resize-none text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:shadow-glow transition-all duration-200"
-              />
-              <p className="text-[10px] text-muted-foreground mt-1">
-                Keep it short — helps others feel comfortable reaching out.
-              </p>
-            </motion.div>
-
-            {/* Travel vibes */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="p-3 rounded-2xl glass-lavender"
-            >
-              <div className="mb-2">
-                <h3 className="text-xs font-medium text-foreground">How do you like to travel?</h3>
-                <p className="text-[10px] text-muted-foreground">Select up to 4</p>
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {vibeOptions.map((vibe) => {
-                  const isSelected = selectedVibes.includes(vibe.id);
-                  return (
-                    <motion.button
-                      key={vibe.id}
-                      onClick={() => toggleVibe(vibe.id)}
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
-                      className={`px-2.5 py-1.5 rounded-full text-[11px] font-medium transition-all duration-200 flex items-center gap-1 ${
-                        isSelected
-                          ? 'gradient-lavender-deep text-primary-foreground shadow-glass glow-lavender'
-                          : 'glass text-foreground/80 hover:bg-primary/10'
-                      }`}
+              {/* Photo upload */}
+              <motion.div variants={itemVariants} className="mb-5">
+                <label className="text-xs font-medium text-white/90 mb-2.5 block">
+                  Add photos <span className="text-white/50 font-normal">(1-3)</span>
+                </label>
+                <div className="flex gap-3 justify-center">
+                  {[0, 1, 2].map((index) => (
+                    <motion.div
+                      key={index}
+                      whileHover={{ scale: 1.04, y: -2 }}
+                      whileTap={{ scale: 0.96 }}
+                      className="relative w-[76px] h-[76px] rounded-2xl overflow-hidden bg-white/8 backdrop-blur-md border border-white/15 shadow-lg shadow-[hsl(270,30%,15%)]/20 transition-all duration-300 hover:border-white/30 hover:bg-white/12 group"
                     >
-                      <span>{vibe.icon}</span>
-                      <span>{vibe.label}</span>
-                    </motion.button>
-                  );
-                })}
-              </div>
+                      {/* Inner glow */}
+                      <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
+                      
+                      {photos[index] ? (
+                        <>
+                          <img
+                            src={photos[index]}
+                            alt={`Photo ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            onClick={() => handleRemovePhoto(index)}
+                            className="absolute top-1.5 right-1.5 w-5 h-5 bg-black/60 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg border border-white/10 hover:bg-black/80 transition-colors"
+                          >
+                            <X className="w-2.5 h-2.5 text-white" />
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => handlePhotoClick(index)}
+                          className="w-full h-full flex flex-col items-center justify-center gap-1.5 relative z-10"
+                        >
+                          <motion.div
+                            whileHover={{ scale: 1.1 }}
+                            className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors"
+                          >
+                            {index === 0 ? (
+                              <Camera className="w-4 h-4 text-white/70" />
+                            ) : (
+                              <Plus className="w-4 h-4 text-white/70" />
+                            )}
+                          </motion.div>
+                          <span className="text-[10px] text-white/50 font-medium">Add</span>
+                        </button>
+                      )}
+                      {index === 0 && photos[index] && (
+                        <div className="absolute bottom-1.5 left-1.5 px-2 py-0.5 bg-[hsl(270,50%,60%)]/90 backdrop-blur-sm text-white text-[8px] font-semibold rounded-md shadow-sm border border-white/20">
+                          Main
+                        </div>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+
+              {/* Name & Age */}
+              <motion.div variants={itemVariants} className="grid grid-cols-2 gap-3 mb-4">
+                <div>
+                  <label className="text-xs font-medium text-white/90 mb-1.5 block">First name</label>
+                  <Input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="e.g. Akanksha"
+                    className="h-11 rounded-2xl bg-white/8 backdrop-blur-md border-0 text-sm text-white placeholder:text-white/35 focus:ring-2 focus:ring-[hsl(270,50%,70%)]/50 focus:bg-white/12 transition-all duration-300 px-4"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-white/90 mb-1.5 block">Age</label>
+                  <Input
+                    type="number"
+                    value={age}
+                    onChange={(e) => setAge(e.target.value)}
+                    placeholder="Your age"
+                    className="h-11 rounded-2xl bg-white/8 backdrop-blur-md border-0 text-sm text-white placeholder:text-white/35 focus:ring-2 focus:ring-[hsl(270,50%,70%)]/50 focus:bg-white/12 transition-all duration-300 px-4"
+                  />
+                </div>
+              </motion.div>
+
+              {/* Bio */}
+              <motion.div variants={itemVariants} className="mb-5">
+                <label className="text-xs font-medium text-white/90 mb-1.5 block">About you</label>
+                <textarea
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  placeholder="Solo traveler heading to Bali. Love photography & cafes."
+                  className="w-full h-[72px] p-3.5 rounded-2xl bg-white/8 backdrop-blur-md border-0 resize-none text-sm text-white placeholder:text-white/35 focus:outline-none focus:ring-2 focus:ring-[hsl(270,50%,70%)]/50 focus:bg-white/12 transition-all duration-300"
+                />
+                <p className="text-[10px] text-white/45 mt-1.5">
+                  Keep it short — helps others feel comfortable reaching out.
+                </p>
+              </motion.div>
+
+              {/* Travel vibes */}
+              <motion.div 
+                variants={itemVariants}
+                className="p-4 rounded-2xl bg-white/6 backdrop-blur-md border border-white/10"
+              >
+                <div className="mb-3">
+                  <h3 className="text-xs font-medium text-white/90">How do you like to travel?</h3>
+                  <p className="text-[10px] text-white/50">Select up to 4</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {vibeOptions.map((vibe, index) => {
+                    const isSelected = selectedVibes.includes(vibe.id);
+                    return (
+                      <motion.button
+                        key={vibe.id}
+                        onClick={() => toggleVibe(vibe.id)}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.5 + index * 0.03 }}
+                        whileHover={{ scale: 1.05, y: -1 }}
+                        whileTap={{ scale: 0.95 }}
+                        className={`px-3 py-1.5 rounded-full text-[11px] font-medium transition-all duration-300 flex items-center gap-1.5 ${
+                          isSelected
+                            ? 'bg-[hsl(270,50%,60%)] text-white shadow-lg shadow-[hsl(270,50%,50%)]/30 border border-white/20'
+                            : 'bg-white/8 text-white/70 border border-white/10 hover:bg-white/15 hover:text-white/90'
+                        }`}
+                      >
+                        <span>{vibe.icon}</span>
+                        <span>{vibe.label}</span>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </motion.div>
+
+              {/* Profile Preview */}
+              <motion.div variants={itemVariants} className="mt-5">
+                <ProfilePreviewCard
+                  photo={photos[0]}
+                  name={name}
+                  age={age}
+                  bio={previewBio}
+                  vibes={selectedVibes}
+                />
+              </motion.div>
+
+              {/* Continue Button */}
+              <motion.div variants={itemVariants} className="mt-5">
+                <p className="text-center text-[10px] text-white/40 mb-2.5 font-medium">
+                  Step 1 of 2 • Takes less than a minute
+                </p>
+                <motion.div 
+                  whileHover={{ scale: isValid ? 1.02 : 1 }} 
+                  whileTap={{ scale: isValid ? 0.98 : 1 }}
+                >
+                  <Button
+                    variant="default"
+                    size="default"
+                    className={`w-full h-12 text-sm font-semibold rounded-2xl transition-all duration-300 ${
+                      isValid 
+                        ? 'bg-gradient-to-r from-[hsl(270,50%,60%)] to-[hsl(280,55%,65%)] hover:from-[hsl(270,55%,65%)] hover:to-[hsl(280,60%,70%)] text-white shadow-lg shadow-[hsl(270,50%,50%)]/40 border border-white/20' 
+                        : 'bg-white/10 text-white/40 cursor-not-allowed'
+                    }`}
+                    disabled={!isValid}
+                    onClick={handleContinue}
+                  >
+                    Continue
+                  </Button>
+                </motion.div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-
-          {/* Profile Preview */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="mt-4"
-          >
-            <ProfilePreviewCard
-              photo={photos[0]}
-              name={name}
-              age={age}
-              bio={previewBio}
-              vibes={selectedVibes}
-            />
-          </motion.div>
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 pb-6 bg-gradient-to-t from-background via-background/95 to-transparent z-10">
-        <div className="max-w-lg mx-auto">
-          <p className="text-center text-[10px] text-muted-foreground mb-2 font-medium">
-            Step 1 of 2 • Takes less than a minute
-          </p>
-          <motion.div whileHover={{ scale: isValid ? 1.01 : 1 }} whileTap={{ scale: isValid ? 0.98 : 1 }}>
-            <Button
-              variant="accent"
-              size="default"
-              className={`w-full h-12 text-sm font-semibold rounded-2xl transition-all duration-300 ${
-                isValid ? 'shadow-float glow-lavender' : 'opacity-50'
-              }`}
-              disabled={!isValid}
-              onClick={handleContinue}
-            >
-              Continue
-            </Button>
-          </motion.div>
-        </div>
+          </div>
+        </motion.div>
       </div>
 
       <PhotoSourceDialog
@@ -405,23 +451,23 @@ interface ProfilePreviewCardProps {
 const ProfilePreviewCard = ({ photo, name, age, bio, vibes }: ProfilePreviewCardProps) => {
   return (
     <motion.div 
-      className="p-4 rounded-2xl glass-card shadow-glass glow-edge"
+      className="p-4 rounded-2xl bg-white/6 backdrop-blur-md border border-white/10"
       whileHover={{ scale: 1.01 }}
-      transition={{ duration: 0.2 }}
+      transition={{ duration: 0.3 }}
     >
-      <p className="text-[10px] text-muted-foreground font-semibold mb-3 uppercase tracking-wider">
+      <p className="text-[10px] text-white/50 font-semibold mb-3 uppercase tracking-wider">
         Your profile preview
       </p>
       <div className="flex items-start gap-3">
-        <div className="w-14 h-14 rounded-full overflow-hidden glass-lavender border-2 border-primary/30 shrink-0 flex items-center justify-center shadow-glass">
+        <div className="w-14 h-14 rounded-full overflow-hidden bg-white/10 border-2 border-white/20 shrink-0 flex items-center justify-center shadow-lg shadow-[hsl(270,30%,15%)]/20">
           {photo ? (
             <img src={photo} alt="Profile" className="w-full h-full object-cover" />
           ) : (
-            <User className="w-6 h-6 text-muted-foreground/50" />
+            <User className="w-6 h-6 text-white/30" />
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <h4 className="text-base font-display font-semibold text-foreground truncate">
+          <h4 className="text-base font-display font-semibold text-white truncate drop-shadow-sm">
             {name || 'Your name'}{age ? `, ${age}` : ''}
           </h4>
           {vibes.length > 0 && (
@@ -431,7 +477,7 @@ const ProfilePreviewCard = ({ photo, name, age, bio, vibes }: ProfilePreviewCard
                 return (
                   <span 
                     key={vibeId}
-                    className="px-1.5 py-0.5 rounded-md glass-lavender text-foreground/80 text-[9px] font-medium"
+                    className="px-1.5 py-0.5 rounded-md bg-white/10 text-white/70 text-[9px] font-medium border border-white/10"
                   >
                     {vibe?.icon} {vibe?.label}
                   </span>
@@ -440,7 +486,7 @@ const ProfilePreviewCard = ({ photo, name, age, bio, vibes }: ProfilePreviewCard
             </div>
           )}
           {bio && (
-            <p className="text-[10px] text-muted-foreground mt-1.5 line-clamp-2">{bio}</p>
+            <p className="text-[10px] text-white/50 mt-1.5 line-clamp-2">{bio}</p>
           )}
         </div>
       </div>
