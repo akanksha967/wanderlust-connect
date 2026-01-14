@@ -88,19 +88,9 @@
     @apply border-border;
   }
 
-  html,
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Inter', sans-serif;
-    overflow: hidden;
-    height: 100dvh;
-    max-height: 100dvh;
-  }
-
-  #root {
-    height: 100dvh;
-    max-height: 100dvh;
-    overflow: hidden;
   }
 }
 
