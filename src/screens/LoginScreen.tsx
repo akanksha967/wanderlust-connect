@@ -21,13 +21,13 @@ const LoginScreen = () => {
   const handleEmailSuccess = () => setScreen("profile");
 
   return (
-    <div className="h-full flex flex-col bg-background px-5 pt-8 pb-6 overflow-hidden">
+    <div className="h-[100dvh] flex flex-col bg-background px-5 pt-6 pb-5 overflow-hidden">
       {/* App Title */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="text-center mb-4"
+        className="text-center mb-3"
       >
         <h1 className="text-2xl font-display text-foreground">RoamMate</h1>
         <p className="text-xs text-muted-foreground mt-1">Travel is better with the right company.</p>
@@ -38,7 +38,7 @@ const LoginScreen = () => {
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6 }}
-        className="flex-1 flex items-center justify-center py-3 min-h-0"
+        className="flex-1 flex items-center justify-center py-2 min-h-0"
       >
         <DestinationSlideshow />
       </motion.div>
@@ -48,7 +48,7 @@ const LoginScreen = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="text-center mb-4"
+        className="text-center mb-3"
       >
         <h2 className="text-xl font-display text-foreground mb-1">Find Your Perfect Travel Buddy</h2>
         <p className="text-muted-foreground text-xs leading-relaxed">
@@ -57,7 +57,7 @@ const LoginScreen = () => {
       </motion.div>
 
       {/* Trust Badge */}
-      <div className="flex justify-center gap-6 mb-4">
+      <div className="flex justify-center gap-6 mb-3">
         <div className="flex items-center gap-2 text-muted-foreground text-xs">
           <Shield className="w-4 h-4 text-accent" />
           <span>Verified profiles</span>

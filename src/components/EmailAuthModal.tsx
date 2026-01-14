@@ -86,7 +86,7 @@ const EmailAuthModal = ({ isOpen, onClose, onSuccess }: EmailAuthModalProps) => 
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-md mx-auto"
+            className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-md mx-auto max-h-[calc(100dvh-2rem)] overflow-y-auto"
           >
             <div className="bg-card rounded-3xl shadow-float p-6 border border-border">
               <div className="flex items-center justify-between mb-6">
