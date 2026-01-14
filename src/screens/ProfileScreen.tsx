@@ -115,12 +115,31 @@ const ProfileScreen = () => {
 
   return (
     <div className="h-[100dvh] w-full flex flex-col relative overflow-hidden">
-      {/* Background */}
-      <div 
-        className="fixed inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&auto=format&fit=crop)` }}
-      />
-      <div className="fixed inset-0 bg-gradient-to-b from-accent/20 via-background/80 to-background/95" />
+      {/* Lavender Gradient Background */}
+      <div className="fixed inset-0 gradient-hero" />
+      <div className="fixed inset-0 bg-gradient-to-b from-transparent via-transparent to-background/30" />
+      
+      {/* Subtle floating orbs for depth */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <motion.div
+          animate={{ 
+            y: [0, -20, 0],
+            x: [0, 10, 0],
+            scale: [1, 1.1, 1]
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-20 -right-20 w-64 h-64 rounded-full bg-primary/20 blur-3xl"
+        />
+        <motion.div
+          animate={{ 
+            y: [0, 15, 0],
+            x: [0, -10, 0],
+            scale: [1, 1.05, 1]
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute bottom-40 -left-20 w-72 h-72 rounded-full bg-accent/15 blur-3xl"
+        />
+      </div>
       
       {/* Hidden file inputs */}
       <input
@@ -140,55 +159,70 @@ const ProfileScreen = () => {
       />
 
       {/* Header */}
-      <div className="relative z-10 px-4 pt-4 pb-2 flex items-center gap-3 shrink-0">
-        <button 
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="relative z-10 px-4 pt-4 pb-2 flex items-center gap-3 shrink-0"
+      >
+        <motion.button 
           onClick={handleBack}
-          className="w-8 h-8 flex items-center justify-center rounded-lg bg-card/70 backdrop-blur-md border border-border/40 transition-all duration-200 hover:bg-card active:scale-95"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="w-10 h-10 flex items-center justify-center rounded-2xl glass-lavender shadow-glass transition-all duration-200"
         >
           <ArrowLeft className="w-4 h-4 text-foreground" />
-        </button>
+        </motion.button>
         <div>
-          <h1 className="text-base font-display text-foreground">Create Profile</h1>
-          <p className="text-[10px] text-muted-foreground">Step 1 of 2</p>
+          <h1 className="text-lg font-display font-semibold text-foreground">Create Profile</h1>
+          <p className="text-[11px] text-muted-foreground font-medium">Step 1 of 2</p>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Main Content - Two column layout on desktop */}
-      <div className="flex-1 overflow-y-auto px-4 pb-24 relative z-10">
-        <div className="max-w-3xl mx-auto flex flex-col lg:flex-row lg:gap-6">
-          {/* Left Column - Form */}
-          <div className="flex-1 flex flex-col gap-3 lg:max-w-md">
+      {/* Main Content */}
+      <div className="flex-1 overflow-y-auto px-4 pb-28 relative z-10">
+        <div className="max-w-lg mx-auto">
+          {/* Floating Glass Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
+            className="glass-card rounded-3xl p-5 shadow-float glow-edge"
+          >
             {/* Helper Card */}
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="p-2.5 rounded-xl bg-card/50 backdrop-blur-md border border-border/30"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="p-3 rounded-2xl glass-lavender mb-4"
             >
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-full bg-accent/20 flex items-center justify-center shrink-0">
-                  <Sparkles className="w-3.5 h-3.5 text-accent" />
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-primary/30 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-4 h-4 text-primary" />
                 </div>
-                <p className="text-[10px] leading-relaxed text-foreground/80">
-                  Profiles with photos get <span className="font-semibold text-foreground">3× more matches</span>. Help travelers get to know you!
+                <p className="text-xs leading-relaxed text-foreground/80">
+                  Profiles with photos get <span className="font-semibold text-foreground">3× more matches</span>
                 </p>
               </div>
             </motion.div>
 
             {/* Photo upload */}
             <motion.div
-              initial={{ opacity: 0, y: 15 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.05 }}
+              transition={{ delay: 0.35 }}
+              className="mb-4"
             >
-              <label className="text-[11px] font-medium text-foreground mb-1.5 block">
+              <label className="text-xs font-medium text-foreground mb-2 block">
                 Add photos <span className="text-muted-foreground font-normal">(1-3)</span>
               </label>
-              <div className="flex gap-2">
+              <div className="flex gap-3 justify-center">
                 {[0, 1, 2].map((index) => (
                   <motion.div
                     key={index}
+                    whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
-                    className="relative w-[66px] h-[66px] rounded-lg overflow-hidden bg-card/70 backdrop-blur-md border border-border/40"
+                    className="relative w-[72px] h-[72px] rounded-2xl overflow-hidden glass-lavender shadow-glass transition-all duration-300"
                   >
                     {photos[index] ? (
                       <>
@@ -199,26 +233,26 @@ const ProfileScreen = () => {
                         />
                         <button
                           onClick={() => handleRemovePhoto(index)}
-                          className="absolute top-0.5 right-0.5 w-4 h-4 bg-foreground/80 rounded-full flex items-center justify-center"
+                          className="absolute top-1 right-1 w-5 h-5 bg-foreground/80 rounded-full flex items-center justify-center shadow-lg"
                         >
-                          <X className="w-2 h-2 text-background" />
+                          <X className="w-2.5 h-2.5 text-background" />
                         </button>
                       </>
                     ) : (
                       <button
                         onClick={() => handlePhotoClick(index)}
-                        className="w-full h-full flex flex-col items-center justify-center gap-0.5"
+                        className="w-full h-full flex flex-col items-center justify-center gap-1"
                       >
                         {index === 0 ? (
-                          <Camera className="w-4 h-4 text-muted-foreground" />
+                          <Camera className="w-5 h-5 text-muted-foreground" />
                         ) : (
-                          <Plus className="w-4 h-4 text-muted-foreground" />
+                          <Plus className="w-5 h-5 text-muted-foreground" />
                         )}
-                        <span className="text-[8px] text-muted-foreground">Add</span>
+                        <span className="text-[9px] text-muted-foreground font-medium">Add</span>
                       </button>
                     )}
                     {index === 0 && photos[index] && (
-                      <div className="absolute bottom-0.5 left-0.5 px-1 py-0.5 bg-accent text-accent-foreground text-[7px] font-medium rounded">
+                      <div className="absolute bottom-1 left-1 px-1.5 py-0.5 bg-primary text-primary-foreground text-[8px] font-semibold rounded-md shadow-sm">
                         Main
                       </div>
                     )}
@@ -229,73 +263,75 @@ const ProfileScreen = () => {
 
             {/* Name & Age */}
             <motion.div
-              initial={{ opacity: 0, y: 15 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="grid grid-cols-2 gap-2"
+              transition={{ delay: 0.4 }}
+              className="grid grid-cols-2 gap-3 mb-4"
             >
               <div>
-                <label className="text-[11px] font-medium text-foreground mb-1 block">First name</label>
+                <label className="text-xs font-medium text-foreground mb-1.5 block">First name</label>
                 <Input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Akanksha"
-                  className="h-8 rounded-lg bg-card/70 backdrop-blur-md border-border/40 text-xs placeholder:text-muted-foreground/50"
+                  className="h-10 rounded-xl glass-lavender border-0 text-sm placeholder:text-muted-foreground/50 focus:ring-2 focus:ring-primary/40 focus:shadow-glow transition-all duration-200"
                 />
               </div>
               <div>
-                <label className="text-[11px] font-medium text-foreground mb-1 block">Age</label>
+                <label className="text-xs font-medium text-foreground mb-1.5 block">Age</label>
                 <Input
                   type="number"
                   value={age}
                   onChange={(e) => setAge(e.target.value)}
                   placeholder="Your age"
-                  className="h-8 rounded-lg bg-card/70 backdrop-blur-md border-border/40 text-xs placeholder:text-muted-foreground/50"
+                  className="h-10 rounded-xl glass-lavender border-0 text-sm placeholder:text-muted-foreground/50 focus:ring-2 focus:ring-primary/40 focus:shadow-glow transition-all duration-200"
                 />
               </div>
             </motion.div>
 
             {/* Bio */}
             <motion.div
-              initial={{ opacity: 0, y: 15 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
+              transition={{ delay: 0.45 }}
+              className="mb-4"
             >
-              <label className="text-[11px] font-medium text-foreground mb-1 block">About you</label>
+              <label className="text-xs font-medium text-foreground mb-1.5 block">About you</label>
               <textarea
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
                 placeholder="Solo traveler heading to Bali. Love photography & cafes."
-                className="w-full h-12 p-2 rounded-lg bg-card/70 backdrop-blur-md border border-border/40 resize-none text-xs placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-accent/50"
+                className="w-full h-16 p-3 rounded-xl glass-lavender border-0 resize-none text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:shadow-glow transition-all duration-200"
               />
-              <p className="text-[9px] text-muted-foreground mt-0.5">
+              <p className="text-[10px] text-muted-foreground mt-1">
                 Keep it short — helps others feel comfortable reaching out.
               </p>
             </motion.div>
 
             {/* Travel vibes */}
             <motion.div
-              initial={{ opacity: 0, y: 15 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="p-2.5 rounded-xl bg-card/40 backdrop-blur-md border border-border/30"
+              transition={{ delay: 0.5 }}
+              className="p-3 rounded-2xl glass-lavender"
             >
               <div className="mb-2">
-                <h3 className="text-[11px] font-medium text-foreground">How do you like to travel?</h3>
-                <p className="text-[9px] text-muted-foreground">Select up to 4</p>
+                <h3 className="text-xs font-medium text-foreground">How do you like to travel?</h3>
+                <p className="text-[10px] text-muted-foreground">Select up to 4</p>
               </div>
-              <div className="flex flex-wrap gap-1">
+              <div className="flex flex-wrap gap-1.5">
                 {vibeOptions.map((vibe) => {
                   const isSelected = selectedVibes.includes(vibe.id);
                   return (
                     <motion.button
                       key={vibe.id}
                       onClick={() => toggleVibe(vibe.id)}
-                      whileTap={{ scale: 0.95 }}
-                      className={`px-2 py-1 rounded-full text-[10px] font-medium transition-all duration-150 flex items-center gap-0.5 ${
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                      className={`px-2.5 py-1.5 rounded-full text-[11px] font-medium transition-all duration-200 flex items-center gap-1 ${
                         isSelected
-                          ? 'gradient-accent text-accent-foreground shadow-sm'
-                          : 'bg-card/70 text-muted-foreground border border-border/40'
+                          ? 'gradient-lavender-deep text-primary-foreground shadow-glass glow-lavender'
+                          : 'glass text-foreground/80 hover:bg-primary/10'
                       }`}
                     >
                       <span>{vibe.icon}</span>
@@ -305,30 +341,14 @@ const ProfileScreen = () => {
                 })}
               </div>
             </motion.div>
-          </div>
-
-          {/* Right Column - Profile Preview (Desktop only) */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.25 }}
-            className="hidden lg:block lg:w-64 lg:sticky lg:top-0 shrink-0"
-          >
-            <ProfilePreviewCard
-              photo={photos[0]}
-              name={name}
-              age={age}
-              bio={previewBio}
-              vibes={selectedVibes}
-            />
           </motion.div>
 
-          {/* Mobile Profile Preview */}
+          {/* Profile Preview */}
           <motion.div
-            initial={{ opacity: 0, y: 15 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
-            className="lg:hidden mt-3"
+            transition={{ delay: 0.6 }}
+            className="mt-4"
           >
             <ProfilePreviewCard
               photo={photos[0]}
@@ -342,17 +362,17 @@ const ProfileScreen = () => {
       </div>
 
       {/* Footer */}
-      <div className="absolute bottom-0 left-0 right-0 p-3 pb-4 bg-gradient-to-t from-background via-background/95 to-transparent z-10">
-        <div className="max-w-3xl mx-auto">
-          <p className="text-center text-[9px] text-muted-foreground mb-1.5">
+      <div className="absolute bottom-0 left-0 right-0 p-4 pb-6 bg-gradient-to-t from-background via-background/95 to-transparent z-10">
+        <div className="max-w-lg mx-auto">
+          <p className="text-center text-[10px] text-muted-foreground mb-2 font-medium">
             Step 1 of 2 • Takes less than a minute
           </p>
-          <motion.div whileTap={{ scale: isValid ? 0.98 : 1 }}>
+          <motion.div whileHover={{ scale: isValid ? 1.01 : 1 }} whileTap={{ scale: isValid ? 0.98 : 1 }}>
             <Button
               variant="accent"
               size="default"
-              className={`w-full h-10 text-sm font-medium transition-all duration-200 ${
-                isValid ? 'shadow-glow' : 'opacity-50'
+              className={`w-full h-12 text-sm font-semibold rounded-2xl transition-all duration-300 ${
+                isValid ? 'shadow-float glow-lavender' : 'opacity-50'
               }`}
               disabled={!isValid}
               onClick={handleContinue}
@@ -384,30 +404,34 @@ interface ProfilePreviewCardProps {
 
 const ProfilePreviewCard = ({ photo, name, age, bio, vibes }: ProfilePreviewCardProps) => {
   return (
-    <div className="p-3 rounded-xl bg-card/60 backdrop-blur-md border border-border/30">
-      <p className="text-[9px] text-muted-foreground font-medium mb-2 uppercase tracking-wide">
+    <motion.div 
+      className="p-4 rounded-2xl glass-card shadow-glass glow-edge"
+      whileHover={{ scale: 1.01 }}
+      transition={{ duration: 0.2 }}
+    >
+      <p className="text-[10px] text-muted-foreground font-semibold mb-3 uppercase tracking-wider">
         Your profile preview
       </p>
-      <div className="flex items-start gap-2.5">
-        <div className="w-12 h-12 rounded-full overflow-hidden bg-secondary/50 border border-border/40 shrink-0 flex items-center justify-center">
+      <div className="flex items-start gap-3">
+        <div className="w-14 h-14 rounded-full overflow-hidden glass-lavender border-2 border-primary/30 shrink-0 flex items-center justify-center shadow-glass">
           {photo ? (
             <img src={photo} alt="Profile" className="w-full h-full object-cover" />
           ) : (
-            <User className="w-5 h-5 text-muted-foreground/50" />
+            <User className="w-6 h-6 text-muted-foreground/50" />
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <h4 className="text-sm font-display text-foreground truncate">
+          <h4 className="text-base font-display font-semibold text-foreground truncate">
             {name || 'Your name'}{age ? `, ${age}` : ''}
           </h4>
           {vibes.length > 0 && (
-            <div className="flex flex-wrap gap-0.5 mt-1">
+            <div className="flex flex-wrap gap-1 mt-1.5">
               {vibes.slice(0, 3).map((vibeId) => {
                 const vibe = vibeOptions.find(v => v.id === vibeId);
                 return (
                   <span 
                     key={vibeId}
-                    className="px-1 py-0.5 rounded bg-accent/20 text-accent text-[8px] font-medium"
+                    className="px-1.5 py-0.5 rounded-md glass-lavender text-foreground/80 text-[9px] font-medium"
                   >
                     {vibe?.icon} {vibe?.label}
                   </span>
@@ -416,11 +440,11 @@ const ProfilePreviewCard = ({ photo, name, age, bio, vibes }: ProfilePreviewCard
             </div>
           )}
           {bio && (
-            <p className="text-[9px] text-muted-foreground mt-1 line-clamp-2">{bio}</p>
+            <p className="text-[10px] text-muted-foreground mt-1.5 line-clamp-2">{bio}</p>
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
