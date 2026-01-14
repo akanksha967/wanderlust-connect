@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAppStore } from '@/store/useAppStore';
-import { ArrowLeft, MapPin, Calendar, Loader2 } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Loader2, ArrowRight } from 'lucide-react';
 import { useGoogleMapsKey } from '@/hooks/useGoogleMapsKey';
 import GoogleMapsDestinationPicker from '@/components/GoogleMapsDestinationPicker';
 
@@ -41,20 +41,27 @@ const DestinationInput = ({
 
   return (
     <div className="relative">
-      <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground z-10" />
+      <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60 z-10" />
       <Input
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onFocus={() => setShowSuggestions(true)}
         onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
         placeholder="Search destination..."
-        className="h-12 pl-12 rounded-2xl glass-lavender border-0 shadow-glass text-sm focus:ring-2 focus:ring-primary/40 focus:shadow-glow transition-all duration-200"
+        className="h-14 pl-14 pr-14 rounded-full bg-white/15 backdrop-blur-[16px] border border-white/25 shadow-[0_8px_32px_-8px_rgba(139,92,246,0.3)] text-white placeholder:text-white/50 text-base focus:ring-2 focus:ring-white/30 focus:bg-white/20 focus:shadow-[0_0_40px_rgba(167,139,250,0.4)] transition-all duration-300"
       />
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-lg"
+      >
+        <ArrowRight className="w-4 h-4 text-white" />
+      </motion.button>
       {showSuggestions && filteredDestinations.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="absolute top-full left-0 right-0 mt-2 rounded-2xl shadow-float overflow-hidden z-50 max-h-48 overflow-y-auto glass-card"
+          className="absolute top-full left-0 right-0 mt-3 rounded-2xl bg-white/15 backdrop-blur-[18px] border border-white/25 shadow-[0_16px_48px_-12px_rgba(139,92,246,0.35)] overflow-hidden z-50 max-h-52 overflow-y-auto"
         >
           {filteredDestinations.slice(0, 6).map((dest) => (
             <button
@@ -63,10 +70,12 @@ const DestinationInput = ({
                 onChange(dest);
                 setShowSuggestions(false);
               }}
-              className="w-full px-4 py-3 text-left hover:bg-primary/10 transition-all duration-200 flex items-center gap-3 border-b border-border/20 last:border-b-0"
+              className="w-full px-5 py-3.5 text-left hover:bg-white/15 transition-all duration-200 flex items-center gap-4 border-b border-white/10 last:border-b-0"
             >
-              <MapPin className="w-4 h-4 text-primary shrink-0" />
-              <span className="font-medium text-foreground text-sm">{dest}</span>
+              <div className="w-8 h-8 rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center">
+                <MapPin className="w-4 h-4 text-white/80" />
+              </div>
+              <span className="font-medium text-white text-sm">{dest}</span>
             </button>
           ))}
         </motion.div>
@@ -107,89 +116,114 @@ const TravelScreen = () => {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.08,
-        delayChildren: 0.2,
+        staggerChildren: 0.1,
+        delayChildren: 0.3,
       },
     },
   };
 
   const cardVariants = {
-    hidden: { opacity: 0, y: 30, scale: 0.95 },
+    hidden: { opacity: 0, y: 40, scale: 0.9 },
     visible: { 
       opacity: 1, 
       y: 0, 
       scale: 1,
+      transition: {
+        duration: 0.5,
+        ease: [0.25, 0.46, 0.45, 0.94] as const
+      }
     },
   };
 
   return (
     <div className="h-[100dvh] flex flex-col relative overflow-hidden">
-      {/* Lavender Gradient Background */}
-      <div className="fixed inset-0 gradient-hero" />
-      <div className="fixed inset-0 bg-gradient-to-b from-transparent via-transparent to-background/40" />
+      {/* Nature Background Image with Lavender Overlay */}
+      <div className="fixed inset-0">
+        <img 
+          src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&auto=format&fit=crop&q=80"
+          alt="Mountain landscape"
+          className="w-full h-full object-cover blur-[2px] brightness-90 saturate-75"
+        />
+        {/* Soft lavender gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/40 via-primary/25 to-primary/50" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+      </div>
 
-      {/* Floating orbs for depth */}
+      {/* Floating dreamy orbs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <motion.div
           animate={{ 
-            y: [0, -25, 0],
-            x: [0, 15, 0],
-            scale: [1, 1.15, 1]
+            y: [0, -30, 0],
+            x: [0, 20, 0],
+            scale: [1, 1.2, 1],
+            opacity: [0.4, 0.6, 0.4]
           }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-10 right-0 w-72 h-72 rounded-full bg-primary/25 blur-3xl"
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-20 right-10 w-80 h-80 rounded-full bg-white/20 blur-3xl"
         />
         <motion.div
           animate={{ 
-            y: [0, 20, 0],
-            x: [0, -15, 0],
-            scale: [1, 1.1, 1]
+            y: [0, 25, 0],
+            x: [0, -18, 0],
+            scale: [1, 1.15, 1],
+            opacity: [0.3, 0.5, 0.3]
           }}
-          transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-20 -left-10 w-80 h-80 rounded-full bg-accent/20 blur-3xl"
+          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut", delay: 3 }}
+          className="absolute bottom-40 -left-20 w-96 h-96 rounded-full bg-accent/30 blur-3xl"
+        />
+        <motion.div
+          animate={{ 
+            y: [0, -20, 0],
+            scale: [1, 1.1, 1],
+            opacity: [0.25, 0.4, 0.25]
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-primary/15 blur-3xl"
         />
       </div>
 
       {/* Header */}
       <motion.div 
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        className="relative z-10 px-4 pt-6 pb-3 flex items-center gap-3 shrink-0"
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="relative z-10 px-5 pt-8 pb-4 flex items-center gap-4 shrink-0"
       >
         <motion.button 
           onClick={handleBack}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="w-10 h-10 flex items-center justify-center rounded-2xl glass-lavender shadow-glass transition-all duration-200"
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.92 }}
+          className="w-11 h-11 flex items-center justify-center rounded-full bg-white/15 backdrop-blur-[14px] border border-white/25 shadow-[0_8px_32px_-8px_rgba(139,92,246,0.3)] transition-all duration-300"
         >
-          <ArrowLeft className="w-4 h-4 text-foreground" />
+          <ArrowLeft className="w-5 h-5 text-white" />
         </motion.button>
         <div>
-          <h1 className="text-lg font-display font-semibold text-foreground">Where to?</h1>
-          {!hasCompletedProfile && <p className="text-[11px] text-muted-foreground font-medium">Step 2 of 2</p>}
+          <h1 className="text-xl font-display font-semibold text-white drop-shadow-lg">Where to?</h1>
+          {!hasCompletedProfile && (
+            <p className="text-xs text-white/70 font-medium">Step 2 of 2</p>
+          )}
         </div>
       </motion.div>
 
       {/* Content */}
-      <div className="flex-1 overflow-hidden px-4 pb-24 relative z-10 flex flex-col">
-        {/* Destination input */}
+      <div className="flex-1 overflow-hidden px-5 pb-28 relative z-10 flex flex-col">
+        {/* Hero Search Section */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.4 }}
-          className="mb-4 shrink-0"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.2, duration: 0.5, ease: "easeOut" }}
+          className="mb-6 shrink-0"
         >
-          <label className="text-xs font-medium text-foreground mb-2 block">
+          <label className="text-xs font-semibold text-white/90 mb-3 block tracking-wide uppercase drop-shadow">
             Destination
           </label>
           {mapsLoading ? (
             <div className="relative">
-              <Loader2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground animate-spin" />
+              <Loader2 className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60 animate-spin" />
               <Input
                 disabled
                 placeholder="Loading..."
-                className="h-12 pl-12 rounded-2xl glass-lavender border-0 shadow-glass text-sm"
+                className="h-14 pl-14 rounded-full bg-white/15 backdrop-blur-[16px] border border-white/25 text-white placeholder:text-white/50"
               />
             </div>
           ) : apiKey ? (
@@ -206,21 +240,21 @@ const TravelScreen = () => {
           )}
         </motion.div>
 
-        {/* Popular destinations - Masonry-style staggered layout */}
+        {/* Popular destinations - Staggered masonry layout */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.15 }}
-          className="mb-4 flex-1 min-h-0"
+          transition={{ delay: 0.3 }}
+          className="mb-5 flex-1 min-h-0"
         >
-          <label className="text-xs font-medium text-foreground mb-3 block">
+          <label className="text-xs font-semibold text-white/90 mb-4 block tracking-wide uppercase drop-shadow">
             Popular destinations
           </label>
           <motion.div 
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="grid grid-cols-3 gap-3 h-[calc(100%-1.5rem)]"
+            className="grid grid-cols-3 gap-4 h-[calc(100%-2rem)]"
             style={{
               gridTemplateRows: 'repeat(2, 1fr)',
             }}
@@ -231,44 +265,58 @@ const TravelScreen = () => {
                 variants={cardVariants}
                 onClick={() => handleSelectDestination(dest.name)}
                 whileHover={{ 
-                  scale: 1.04, 
-                  y: -4,
-                  transition: { duration: 0.25, ease: "easeOut" }
+                  scale: 1.05, 
+                  y: -8,
+                  transition: { duration: 0.3, ease: "easeOut" }
                 }}
-                whileTap={{ scale: 0.98 }}
-                className={`relative rounded-2xl overflow-hidden text-left transition-all duration-300 ${
+                whileTap={{ scale: 0.96 }}
+                className={`relative rounded-[18px] overflow-hidden text-left group ${
                   destination === dest.name
-                    ? 'ring-2 ring-primary shadow-float glow-lavender'
-                    : 'shadow-glass hover:shadow-float'
+                    ? 'ring-2 ring-white/60 shadow-[0_20px_60px_-15px_rgba(139,92,246,0.5),0_0_40px_rgba(167,139,250,0.3)]'
+                    : 'shadow-[0_8px_32px_-8px_rgba(0,0,0,0.3)] hover:shadow-[0_20px_60px_-15px_rgba(139,92,246,0.4)]'
                 }`}
                 style={{
-                  marginTop: index % 2 === 1 ? '8px' : '0', // Staggered vertical offset
+                  marginTop: index % 2 === 1 ? '12px' : '0',
                 }}
               >
-                {/* Image */}
-                <img 
+                {/* Full-bleed Image with zoom effect */}
+                <motion.img 
                   src={dest.image} 
                   alt={dest.name}
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-115"
                 />
                 
-                {/* Lavender gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/30 to-transparent" />
+                {/* Lavender gradient overlay for text legibility */}
+                <div className="absolute inset-0 bg-gradient-to-t from-primary/85 via-primary/40 to-primary/10 group-hover:from-primary/90 group-hover:via-primary/50 transition-all duration-300" />
                 
-                {/* Glass overlay for text */}
-                <div className="absolute bottom-0 left-0 right-0 p-2.5">
-                  <p className="font-semibold text-primary-foreground text-xs drop-shadow-lg">{dest.name}</p>
-                  <p className="text-[10px] text-primary-foreground/80 drop-shadow-md">{dest.country}</p>
+                {/* Glass surface effect */}
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                
+                {/* Content with glass backdrop */}
+                <div className="absolute bottom-0 left-0 right-0 p-3">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <div className="w-5 h-5 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                      <MapPin className="w-3 h-3 text-white/90" />
+                    </div>
+                    <p className="font-semibold text-white text-sm drop-shadow-lg">{dest.name}</p>
+                  </div>
+                  <p className="text-[11px] text-white/75 font-light tracking-wide drop-shadow-md ml-7">{dest.country}</p>
                 </div>
 
                 {/* Selection indicator */}
                 {destination === dest.name && (
                   <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary-foreground flex items-center justify-center shadow-lg"
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                    className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-white/30 backdrop-blur-md flex items-center justify-center border border-white/40 shadow-lg"
                   >
-                    <div className="w-2.5 h-2.5 rounded-full bg-primary" />
+                    <motion.div 
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: 0.1 }}
+                      className="w-3 h-3 rounded-full bg-white"
+                    />
                   </motion.div>
                 )}
               </motion.button>
@@ -276,39 +324,39 @@ const TravelScreen = () => {
           </motion.div>
         </motion.div>
 
-        {/* Dates */}
+        {/* Travel Dates - Glass panel */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="shrink-0"
+          transition={{ delay: 0.5, duration: 0.5 }}
+          className="shrink-0 p-4 rounded-2xl bg-white/12 backdrop-blur-[14px] border border-white/20 shadow-[0_8px_32px_-8px_rgba(139,92,246,0.25)]"
         >
-          <label className="text-xs font-medium text-foreground mb-2 block">
+          <label className="text-xs font-semibold text-white/90 mb-3 block tracking-wide uppercase drop-shadow">
             Travel dates
           </label>
           
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col">
-              <label className="text-[10px] text-muted-foreground mb-1.5 block font-medium">From</label>
-              <div className="relative h-10">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <label className="text-[11px] text-white/60 mb-2 block font-medium">From</label>
+              <div className="relative h-11">
+                <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 pointer-events-none" />
                 <Input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="h-full pl-9 pr-2 rounded-xl glass-lavender border-0 shadow-glass w-full text-xs focus:ring-2 focus:ring-primary/40 focus:shadow-glow transition-all duration-200 [&::-webkit-calendar-picker-indicator]:opacity-60 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                  className="h-full pl-10 pr-3 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 w-full text-sm text-white focus:ring-2 focus:ring-white/25 focus:bg-white/15 focus:shadow-[0_0_20px_rgba(167,139,250,0.3)] transition-all duration-300 [&::-webkit-calendar-picker-indicator]:opacity-50 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:invert"
                 />
               </div>
             </div>
             <div className="flex flex-col">
-              <label className="text-[10px] text-muted-foreground mb-1.5 block font-medium">To</label>
-              <div className="relative h-10">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <label className="text-[11px] text-white/60 mb-2 block font-medium">To</label>
+              <div className="relative h-11">
+                <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 pointer-events-none" />
                 <Input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="h-full pl-9 pr-2 rounded-xl glass-lavender border-0 shadow-glass w-full text-xs focus:ring-2 focus:ring-primary/40 focus:shadow-glow transition-all duration-200 [&::-webkit-calendar-picker-indicator]:opacity-60 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                  className="h-full pl-10 pr-3 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 w-full text-sm text-white focus:ring-2 focus:ring-white/25 focus:bg-white/15 focus:shadow-[0_0_20px_rgba(167,139,250,0.3)] transition-all duration-300 [&::-webkit-calendar-picker-indicator]:opacity-50 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:invert"
                 />
               </div>
             </div>
@@ -316,17 +364,20 @@ const TravelScreen = () => {
         </motion.div>
       </div>
 
-      {/* Footer */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 pb-6 bg-gradient-to-t from-background via-background/95 to-transparent z-10">
+      {/* Footer CTA */}
+      <div className="absolute bottom-0 left-0 right-0 p-5 pb-8 bg-gradient-to-t from-black/40 via-black/20 to-transparent z-10">
         <motion.div 
-          whileHover={{ scale: isValid ? 1.01 : 1 }} 
-          whileTap={{ scale: isValid ? 0.98 : 1 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.4 }}
+          whileHover={{ scale: isValid ? 1.02 : 1 }} 
+          whileTap={{ scale: isValid ? 0.97 : 1 }}
         >
           <Button
-            variant="accent"
-            size="default"
-            className={`w-full h-12 rounded-2xl text-sm font-semibold transition-all duration-300 ${
-              isValid ? 'shadow-float glow-lavender' : 'opacity-50'
+            className={`w-full h-14 rounded-full text-base font-semibold transition-all duration-300 ${
+              isValid 
+                ? 'bg-gradient-to-r from-primary/90 via-accent/85 to-primary/90 text-white border border-white/30 shadow-[0_8px_32px_-8px_rgba(139,92,246,0.5),0_0_40px_rgba(167,139,250,0.25)] hover:shadow-[0_12px_48px_-8px_rgba(139,92,246,0.6),0_0_60px_rgba(167,139,250,0.35)]' 
+                : 'bg-white/15 text-white/50 border border-white/10'
             }`}
             disabled={!isValid}
             onClick={handleContinue}
