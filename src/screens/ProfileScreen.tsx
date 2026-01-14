@@ -188,7 +188,7 @@ const ProfileScreen = () => {
                   <motion.div
                     key={index}
                     whileTap={{ scale: 0.97 }}
-                    className="relative w-16 h-16 rounded-lg overflow-hidden bg-card/70 backdrop-blur-md border border-border/40"
+                    className="relative w-[66px] h-[66px] rounded-lg overflow-hidden bg-card/70 backdrop-blur-md border border-border/40"
                   >
                     {photos[index] ? (
                       <>
