@@ -114,7 +114,7 @@ const ProfileScreen = () => {
   const previewBio = bio.length > 80 ? bio.substring(0, 80) + '...' : bio;
 
   return (
-    <div className="h-[100dvh] flex flex-col relative overflow-hidden">
+    <div className="h-[100dvh] w-full flex flex-col relative overflow-hidden">
       {/* Background */}
       <div 
         className="fixed inset-0 bg-cover bg-center"
@@ -139,7 +139,7 @@ const ProfileScreen = () => {
         className="hidden"
       />
 
-      {/* Header - Compact */}
+      {/* Header */}
       <div className="relative z-10 px-4 pt-4 pb-2 flex items-center gap-3 shrink-0">
         <button 
           onClick={handleBack}
@@ -153,221 +153,214 @@ const ProfileScreen = () => {
         </div>
       </div>
 
-      {/* Main Content - Scrollable area with proper sizing */}
+      {/* Main Content - Two column layout on desktop */}
       <div className="flex-1 overflow-y-auto px-4 pb-24 relative z-10">
-        <div className="max-w-md mx-auto flex flex-col gap-3">
-          {/* Helper Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="p-2.5 rounded-xl bg-card/50 backdrop-blur-md border border-border/30"
-          >
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-full bg-accent/20 flex items-center justify-center shrink-0">
-                <Sparkles className="w-3.5 h-3.5 text-accent" />
+        <div className="max-w-3xl mx-auto flex flex-col lg:flex-row lg:gap-6">
+          {/* Left Column - Form */}
+          <div className="flex-1 flex flex-col gap-3 lg:max-w-md">
+            {/* Helper Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-2.5 rounded-xl bg-card/50 backdrop-blur-md border border-border/30"
+            >
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-full bg-accent/20 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-3.5 h-3.5 text-accent" />
+                </div>
+                <p className="text-[10px] leading-relaxed text-foreground/80">
+                  Profiles with photos get <span className="font-semibold text-foreground">3× more matches</span>. Help travelers get to know you!
+                </p>
               </div>
-              <p className="text-[10px] leading-relaxed text-foreground/80">
-                Profiles with photos get <span className="font-semibold text-foreground">3× more matches</span>. Help travelers get to know you!
-              </p>
-            </div>
-          </motion.div>
+            </motion.div>
 
-          {/* Photo upload - Smaller */}
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
-          >
-            <label className="text-[11px] font-medium text-foreground mb-1.5 block">
-              Add photos <span className="text-muted-foreground font-normal">(1-3)</span>
-            </label>
-            <div className="flex gap-2">
-              {[0, 1, 2].map((index) => (
-                <motion.div
-                  key={index}
-                  whileTap={{ scale: 0.97 }}
-                  className="relative w-16 h-16 rounded-lg overflow-hidden bg-card/70 backdrop-blur-md border border-border/40"
-                >
-                  {photos[index] ? (
-                    <>
-                      <img
-                        src={photos[index]}
-                        alt={`Photo ${index + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                      <button
-                        onClick={() => handleRemovePhoto(index)}
-                        className="absolute top-0.5 right-0.5 w-4 h-4 bg-foreground/80 rounded-full flex items-center justify-center"
-                      >
-                        <X className="w-2 h-2 text-background" />
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      onClick={() => handlePhotoClick(index)}
-                      className="w-full h-full flex flex-col items-center justify-center gap-0.5"
-                    >
-                      {index === 0 ? (
-                        <Camera className="w-4 h-4 text-muted-foreground" />
-                      ) : (
-                        <Plus className="w-4 h-4 text-muted-foreground" />
-                      )}
-                      <span className="text-[8px] text-muted-foreground">Add</span>
-                    </button>
-                  )}
-                  {index === 0 && photos[index] && (
-                    <div className="absolute bottom-0.5 left-0.5 px-1 py-0.5 bg-accent text-accent-foreground text-[7px] font-medium rounded">
-                      Main
-                    </div>
-                  )}
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* Name & Age - Compact */}
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="grid grid-cols-2 gap-2"
-          >
-            <div>
-              <label className="text-[11px] font-medium text-foreground mb-1 block">First name</label>
-              <Input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Akanksha"
-                className="h-8 rounded-lg bg-card/70 backdrop-blur-md border-border/40 text-xs placeholder:text-muted-foreground/50"
-              />
-            </div>
-            <div>
-              <label className="text-[11px] font-medium text-foreground mb-1 block">Age</label>
-              <Input
-                type="number"
-                value={age}
-                onChange={(e) => setAge(e.target.value)}
-                placeholder="Your age"
-                className="h-8 rounded-lg bg-card/70 backdrop-blur-md border-border/40 text-xs placeholder:text-muted-foreground/50"
-              />
-            </div>
-          </motion.div>
-
-          {/* Bio - Compact */}
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-          >
-            <label className="text-[11px] font-medium text-foreground mb-1 block">About you</label>
-            <textarea
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              placeholder="Solo traveler heading to Bali. Love photography & cafes."
-              className="w-full h-12 p-2 rounded-lg bg-card/70 backdrop-blur-md border border-border/40 resize-none text-xs placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-accent/50"
-            />
-            <p className="text-[9px] text-muted-foreground mt-0.5">
-              Keep it short — helps others feel comfortable reaching out.
-            </p>
-          </motion.div>
-
-          {/* Travel vibes - Compact */}
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="p-2.5 rounded-xl bg-card/40 backdrop-blur-md border border-border/30"
-          >
-            <div className="mb-2">
-              <h3 className="text-[11px] font-medium text-foreground">How do you like to travel?</h3>
-              <p className="text-[9px] text-muted-foreground">Select up to 4</p>
-            </div>
-            <div className="flex flex-wrap gap-1">
-              {vibeOptions.map((vibe) => {
-                const isSelected = selectedVibes.includes(vibe.id);
-                return (
-                  <motion.button
-                    key={vibe.id}
-                    onClick={() => toggleVibe(vibe.id)}
-                    whileTap={{ scale: 0.95 }}
-                    className={`px-2 py-1 rounded-full text-[10px] font-medium transition-all duration-150 flex items-center gap-0.5 ${
-                      isSelected
-                        ? 'gradient-accent text-accent-foreground shadow-sm'
-                        : 'bg-card/70 text-muted-foreground border border-border/40'
-                    }`}
+            {/* Photo upload */}
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 }}
+            >
+              <label className="text-[11px] font-medium text-foreground mb-1.5 block">
+                Add photos <span className="text-muted-foreground font-normal">(1-3)</span>
+              </label>
+              <div className="flex gap-2">
+                {[0, 1, 2].map((index) => (
+                  <motion.div
+                    key={index}
+                    whileTap={{ scale: 0.97 }}
+                    className="relative w-16 h-16 rounded-lg overflow-hidden bg-card/70 backdrop-blur-md border border-border/40"
                   >
-                    <span>{vibe.icon}</span>
-                    <span>{vibe.label}</span>
-                  </motion.button>
-                );
-              })}
-            </div>
+                    {photos[index] ? (
+                      <>
+                        <img
+                          src={photos[index]}
+                          alt={`Photo ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          onClick={() => handleRemovePhoto(index)}
+                          className="absolute top-0.5 right-0.5 w-4 h-4 bg-foreground/80 rounded-full flex items-center justify-center"
+                        >
+                          <X className="w-2 h-2 text-background" />
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => handlePhotoClick(index)}
+                        className="w-full h-full flex flex-col items-center justify-center gap-0.5"
+                      >
+                        {index === 0 ? (
+                          <Camera className="w-4 h-4 text-muted-foreground" />
+                        ) : (
+                          <Plus className="w-4 h-4 text-muted-foreground" />
+                        )}
+                        <span className="text-[8px] text-muted-foreground">Add</span>
+                      </button>
+                    )}
+                    {index === 0 && photos[index] && (
+                      <div className="absolute bottom-0.5 left-0.5 px-1 py-0.5 bg-accent text-accent-foreground text-[7px] font-medium rounded">
+                        Main
+                      </div>
+                    )}
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Name & Age */}
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="grid grid-cols-2 gap-2"
+            >
+              <div>
+                <label className="text-[11px] font-medium text-foreground mb-1 block">First name</label>
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Akanksha"
+                  className="h-8 rounded-lg bg-card/70 backdrop-blur-md border-border/40 text-xs placeholder:text-muted-foreground/50"
+                />
+              </div>
+              <div>
+                <label className="text-[11px] font-medium text-foreground mb-1 block">Age</label>
+                <Input
+                  type="number"
+                  value={age}
+                  onChange={(e) => setAge(e.target.value)}
+                  placeholder="Your age"
+                  className="h-8 rounded-lg bg-card/70 backdrop-blur-md border-border/40 text-xs placeholder:text-muted-foreground/50"
+                />
+              </div>
+            </motion.div>
+
+            {/* Bio */}
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+            >
+              <label className="text-[11px] font-medium text-foreground mb-1 block">About you</label>
+              <textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Solo traveler heading to Bali. Love photography & cafes."
+                className="w-full h-12 p-2 rounded-lg bg-card/70 backdrop-blur-md border border-border/40 resize-none text-xs placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-accent/50"
+              />
+              <p className="text-[9px] text-muted-foreground mt-0.5">
+                Keep it short — helps others feel comfortable reaching out.
+              </p>
+            </motion.div>
+
+            {/* Travel vibes */}
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="p-2.5 rounded-xl bg-card/40 backdrop-blur-md border border-border/30"
+            >
+              <div className="mb-2">
+                <h3 className="text-[11px] font-medium text-foreground">How do you like to travel?</h3>
+                <p className="text-[9px] text-muted-foreground">Select up to 4</p>
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {vibeOptions.map((vibe) => {
+                  const isSelected = selectedVibes.includes(vibe.id);
+                  return (
+                    <motion.button
+                      key={vibe.id}
+                      onClick={() => toggleVibe(vibe.id)}
+                      whileTap={{ scale: 0.95 }}
+                      className={`px-2 py-1 rounded-full text-[10px] font-medium transition-all duration-150 flex items-center gap-0.5 ${
+                        isSelected
+                          ? 'gradient-accent text-accent-foreground shadow-sm'
+                          : 'bg-card/70 text-muted-foreground border border-border/40'
+                      }`}
+                    >
+                      <span>{vibe.icon}</span>
+                      <span>{vibe.label}</span>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Right Column - Profile Preview (Desktop only) */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.25 }}
+            className="hidden lg:block lg:w-64 lg:sticky lg:top-0 shrink-0"
+          >
+            <ProfilePreviewCard
+              photo={photos[0]}
+              name={name}
+              age={age}
+              bio={previewBio}
+              vibes={selectedVibes}
+            />
           </motion.div>
 
-          {/* Profile Preview - Compact */}
+          {/* Mobile Profile Preview */}
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
-            className="p-2.5 rounded-xl bg-card/60 backdrop-blur-md border border-border/30"
+            className="lg:hidden mt-3"
           >
-            <p className="text-[9px] text-muted-foreground font-medium mb-2 uppercase tracking-wide">
-              Your profile preview
-            </p>
-            <div className="flex items-start gap-2.5">
-              <div className="w-10 h-10 rounded-full overflow-hidden bg-secondary/50 border border-border/40 shrink-0 flex items-center justify-center">
-                {photos[0] ? (
-                  <img src={photos[0]} alt="Profile" className="w-full h-full object-cover" />
-                ) : (
-                  <User className="w-4 h-4 text-muted-foreground/50" />
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="text-xs font-display text-foreground truncate">
-                  {name || 'Your name'}{age ? `, ${age}` : ''}
-                </h4>
-                {selectedVibes.length > 0 && (
-                  <div className="flex flex-wrap gap-0.5 mt-1">
-                    {selectedVibes.slice(0, 3).map((vibeId) => {
-                      const vibe = vibeOptions.find(v => v.id === vibeId);
-                      return (
-                        <span 
-                          key={vibeId}
-                          className="px-1 py-0.5 rounded bg-accent/20 text-accent text-[8px] font-medium"
-                        >
-                          {vibe?.icon} {vibe?.label}
-                        </span>
-                      );
-                    })}
-                  </div>
-                )}
-                {previewBio && (
-                  <p className="text-[9px] text-muted-foreground mt-1 line-clamp-2">{previewBio}</p>
-                )}
-              </div>
-            </div>
+            <ProfilePreviewCard
+              photo={photos[0]}
+              name={name}
+              age={age}
+              bio={previewBio}
+              vibes={selectedVibes}
+            />
           </motion.div>
         </div>
       </div>
 
-      {/* Footer - Fixed */}
+      {/* Footer */}
       <div className="absolute bottom-0 left-0 right-0 p-3 pb-4 bg-gradient-to-t from-background via-background/95 to-transparent z-10">
-        <p className="text-center text-[9px] text-muted-foreground mb-1.5">
-          Step 1 of 2 • Takes less than a minute
-        </p>
-        <motion.div whileTap={{ scale: isValid ? 0.98 : 1 }}>
-          <Button
-            variant="accent"
-            size="default"
-            className={`w-full h-10 text-sm font-medium transition-all duration-200 ${
-              isValid ? 'shadow-glow' : 'opacity-50'
-            }`}
-            disabled={!isValid}
-            onClick={handleContinue}
-          >
-            Continue
-          </Button>
-        </motion.div>
+        <div className="max-w-3xl mx-auto">
+          <p className="text-center text-[9px] text-muted-foreground mb-1.5">
+            Step 1 of 2 • Takes less than a minute
+          </p>
+          <motion.div whileTap={{ scale: isValid ? 0.98 : 1 }}>
+            <Button
+              variant="accent"
+              size="default"
+              className={`w-full h-10 text-sm font-medium transition-all duration-200 ${
+                isValid ? 'shadow-glow' : 'opacity-50'
+              }`}
+              disabled={!isValid}
+              onClick={handleContinue}
+            >
+              Continue
+            </Button>
+          </motion.div>
+        </div>
       </div>
 
       <PhotoSourceDialog
@@ -376,6 +369,57 @@ const ProfileScreen = () => {
         onSelectCamera={handleCameraSelect}
         onSelectGallery={handleGallerySelect}
       />
+    </div>
+  );
+};
+
+// Profile Preview Card Component
+interface ProfilePreviewCardProps {
+  photo?: string;
+  name: string;
+  age: string;
+  bio: string;
+  vibes: string[];
+}
+
+const ProfilePreviewCard = ({ photo, name, age, bio, vibes }: ProfilePreviewCardProps) => {
+  return (
+    <div className="p-3 rounded-xl bg-card/60 backdrop-blur-md border border-border/30">
+      <p className="text-[9px] text-muted-foreground font-medium mb-2 uppercase tracking-wide">
+        Your profile preview
+      </p>
+      <div className="flex items-start gap-2.5">
+        <div className="w-12 h-12 rounded-full overflow-hidden bg-secondary/50 border border-border/40 shrink-0 flex items-center justify-center">
+          {photo ? (
+            <img src={photo} alt="Profile" className="w-full h-full object-cover" />
+          ) : (
+            <User className="w-5 h-5 text-muted-foreground/50" />
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <h4 className="text-sm font-display text-foreground truncate">
+            {name || 'Your name'}{age ? `, ${age}` : ''}
+          </h4>
+          {vibes.length > 0 && (
+            <div className="flex flex-wrap gap-0.5 mt-1">
+              {vibes.slice(0, 3).map((vibeId) => {
+                const vibe = vibeOptions.find(v => v.id === vibeId);
+                return (
+                  <span 
+                    key={vibeId}
+                    className="px-1 py-0.5 rounded bg-accent/20 text-accent text-[8px] font-medium"
+                  >
+                    {vibe?.icon} {vibe?.label}
+                  </span>
+                );
+              })}
+            </div>
+          )}
+          {bio && (
+            <p className="text-[9px] text-muted-foreground mt-1 line-clamp-2">{bio}</p>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
