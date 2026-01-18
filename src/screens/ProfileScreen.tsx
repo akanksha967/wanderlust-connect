@@ -1,24 +1,24 @@
-import { useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useAppStore } from '@/store/useAppStore';
-import { ArrowLeft, Camera, Plus, X, Sparkles, User } from 'lucide-react';
-import PhotoSourceDialog from '@/components/PhotoSourceDialog';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
+import { useState, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useAppStore } from "@/store/useAppStore";
+import { ArrowLeft, Camera, Plus, X, Sparkles, User } from "lucide-react";
+import PhotoSourceDialog from "@/components/PhotoSourceDialog";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 const vibeOptions = [
-  { id: 'Adventure', icon: '🏔️', label: 'Adventure' },
-  { id: 'Relaxation', icon: '🌴', label: 'Relaxation' },
-  { id: 'Culture', icon: '🏛️', label: 'Culture' },
-  { id: 'Foodie', icon: '🍜', label: 'Foodie' },
-  { id: 'Nature', icon: '🌿', label: 'Nature' },
-  { id: 'Nightlife', icon: '🎶', label: 'Nightlife' },
-  { id: 'Photography', icon: '📸', label: 'Photography' },
-  { id: 'Budget', icon: '💰', label: 'Budget' },
-  { id: 'Luxury', icon: '✨', label: 'Luxury' },
-  { id: 'Solo', icon: '🧍', label: 'Solo' },
+  { id: "Adventure", icon: "🏔️", label: "Adventure" },
+  { id: "Relaxation", icon: "🌴", label: "Relaxation" },
+  { id: "Culture", icon: "🏛️", label: "Culture" },
+  { id: "Foodie", icon: "🍜", label: "Foodie" },
+  { id: "Nature", icon: "🌿", label: "Nature" },
+  { id: "Nightlife", icon: "🎶", label: "Nightlife" },
+  { id: "Photography", icon: "📸", label: "Photography" },
+  { id: "Budget", icon: "💰", label: "Budget" },
+  { id: "Luxury", icon: "✨", label: "Luxury" },
+  { id: "Solo", icon: "🧍", label: "Solo" },
 ];
 
 // Staggered animation variants
@@ -46,20 +46,20 @@ const ProfileScreen = () => {
   const { setScreen, setUserProfile } = useAppStore();
   const { toast } = useToast();
   const { signOut } = useAuth();
-  const [name, setName] = useState('');
-  const [age, setAge] = useState('');
-  const [bio, setBio] = useState('');
+  const [name, setName] = useState("");
+  const [age, setAge] = useState("");
+  const [bio, setBio] = useState("");
   const [photos, setPhotos] = useState<string[]>([]);
   const [selectedVibes, setSelectedVibes] = useState<string[]>([]);
   const [showPhotoSourceDialog, setShowPhotoSourceDialog] = useState(false);
-  
+
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const [activePhotoIndex, setActivePhotoIndex] = useState<number>(0);
 
   const handleBack = async () => {
     await signOut();
-    setScreen('login');
+    setScreen("login");
   };
 
   const handlePhotoClick = (index: number) => {
@@ -86,9 +86,9 @@ const ProfileScreen = () => {
         const isDuplicate = photos.some((p, i) => p === dataUrl && i !== activePhotoIndex);
         if (isDuplicate) {
           toast({
-            title: 'Duplicate photo',
-            description: 'That photo is already added. Please pick a different one.',
-            variant: 'destructive',
+            title: "Duplicate photo",
+            description: "That photo is already added. Please pick a different one.",
+            variant: "destructive",
           });
           return;
         }
@@ -103,8 +103,8 @@ const ProfileScreen = () => {
       };
       reader.readAsDataURL(file);
     }
-    if (cameraInputRef.current) cameraInputRef.current.value = '';
-    if (galleryInputRef.current) galleryInputRef.current.value = '';
+    if (cameraInputRef.current) cameraInputRef.current.value = "";
+    if (galleryInputRef.current) galleryInputRef.current.value = "";
   };
 
   const handleRemovePhoto = (index: number) => {
@@ -113,7 +113,7 @@ const ProfileScreen = () => {
 
   const toggleVibe = (vibeId: string) => {
     if (selectedVibes.includes(vibeId)) {
-      setSelectedVibes(selectedVibes.filter(v => v !== vibeId));
+      setSelectedVibes(selectedVibes.filter((v) => v !== vibeId));
     } else if (selectedVibes.length < 4) {
       setSelectedVibes([...selectedVibes, vibeId]);
     }
@@ -128,16 +128,16 @@ const ProfileScreen = () => {
       travelVibes: selectedVibes,
     });
     useAppStore.getState().setHasCompletedProfile(true);
-    setScreen('travel');
+    setScreen("travel");
   };
 
   const isValid = name && age && photos.length > 0 && selectedVibes.length > 0;
-  const previewBio = bio.length > 80 ? bio.substring(0, 80) + '...' : bio;
+  const previewBio = bio.length > 80 ? bio.substring(0, 80) + "..." : bio;
 
   return (
     <div className="min-h-[100dvh] w-full flex items-center justify-center relative overflow-hidden">
       {/* Background Image with Lavender Overlay */}
-      <div 
+      <div
         className="fixed inset-0 bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: `url('https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=1920&q=80')`,
@@ -146,40 +146,40 @@ const ProfileScreen = () => {
       {/* Soft lavender gradient overlay */}
       <div className="fixed inset-0 bg-gradient-to-br from-[hsl(270,40%,85%)]/80 via-[hsl(280,35%,80%)]/70 to-[hsl(260,45%,75%)]/80" />
       <div className="fixed inset-0 bg-gradient-to-t from-[hsl(270,30%,20%)]/40 via-transparent to-transparent" />
-      
+
       {/* Dreamy floating orbs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <motion.div
-          animate={{ 
+          animate={{
             y: [0, -30, 0],
             x: [0, 15, 0],
             scale: [1, 1.15, 1],
-            opacity: [0.3, 0.5, 0.3]
+            opacity: [0.3, 0.5, 0.3],
           }}
           transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
           className="absolute top-10 right-10 w-96 h-96 rounded-full bg-[hsl(270,60%,75%)]/30 blur-[80px]"
         />
         <motion.div
-          animate={{ 
+          animate={{
             y: [0, 25, 0],
             x: [0, -20, 0],
             scale: [1, 1.1, 1],
-            opacity: [0.25, 0.4, 0.25]
+            opacity: [0.25, 0.4, 0.25],
           }}
           transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 2 }}
           className="absolute bottom-20 left-5 w-80 h-80 rounded-full bg-[hsl(280,50%,70%)]/25 blur-[60px]"
         />
         <motion.div
-          animate={{ 
+          animate={{
             y: [0, -15, 0],
             scale: [1, 1.08, 1],
-            opacity: [0.2, 0.35, 0.2]
+            opacity: [0.2, 0.35, 0.2],
           }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
           className="absolute top-1/3 left-1/4 w-64 h-64 rounded-full bg-[hsl(265,55%,80%)]/20 blur-[50px]"
         />
       </div>
-      
+
       {/* Hidden file inputs */}
       <input
         type="file"
@@ -189,18 +189,12 @@ const ProfileScreen = () => {
         capture="user"
         className="hidden"
       />
-      <input
-        type="file"
-        ref={galleryInputRef}
-        onChange={handleFileChange}
-        accept="image/*"
-        className="hidden"
-      />
+      <input type="file" ref={galleryInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
 
       {/* Main Centered Card Container */}
       <div className="relative z-10 w-full max-w-md mx-4 my-8 max-h-[90dvh] flex flex-col">
         {/* Back Button - Floating outside card */}
-        <motion.button 
+        <motion.button
           onClick={handleBack}
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -223,7 +217,7 @@ const ProfileScreen = () => {
               0 25px 60px -15px hsl(270 40% 20% / 0.35),
               0 10px 25px -10px hsl(270 30% 15% / 0.2),
               inset 0 1px 1px hsl(0 0% 100% / 0.15)
-            `
+            `,
           }}
         >
           {/* Subtle inner glow at top */}
@@ -232,12 +226,7 @@ const ProfileScreen = () => {
 
           {/* Scrollable Content */}
           <div className="overflow-y-auto max-h-[calc(90dvh-80px)] overscroll-contain">
-            <motion.div 
-              className="p-6"
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-            >
+            <motion.div className="p-6" variants={containerVariants} initial="hidden" animate="visible">
               {/* Header inside card */}
               <motion.div variants={itemVariants} className="text-center mb-5">
                 <h1 className="text-xl font-display font-semibold text-white drop-shadow-sm">Create Profile</h1>
@@ -274,14 +263,10 @@ const ProfileScreen = () => {
                     >
                       {/* Inner glow */}
                       <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
-                      
+
                       {photos[index] ? (
                         <>
-                          <img
-                            src={photos[index]}
-                            alt={`Photo ${index + 1}`}
-                            className="w-full h-full object-cover"
-                          />
+                          <img src={photos[index]} alt={`Photo ${index + 1}`} className="w-full h-full object-cover" />
                           <button
                             onClick={() => handleRemovePhoto(index)}
                             className="absolute top-1.5 right-1.5 w-5 h-5 bg-black/60 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg border border-white/10 hover:bg-black/80 transition-colors"
@@ -324,7 +309,7 @@ const ProfileScreen = () => {
                   <Input
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Akanksha"
+                    placeholder="e.g. John"
                     className="h-11 rounded-2xl bg-white/80 backdrop-blur-md border-0 text-sm text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[hsl(270,50%,70%)]/50 focus:bg-white/90 transition-all duration-300 px-4"
                   />
                 </div>
@@ -355,7 +340,7 @@ const ProfileScreen = () => {
               </motion.div>
 
               {/* Travel vibes */}
-              <motion.div 
+              <motion.div
                 variants={itemVariants}
                 className="p-4 rounded-2xl bg-white/6 backdrop-blur-md border border-white/10"
               >
@@ -377,8 +362,8 @@ const ProfileScreen = () => {
                         whileTap={{ scale: 0.95 }}
                         className={`px-3 py-1.5 rounded-full text-[11px] font-medium transition-all duration-300 flex items-center gap-1.5 ${
                           isSelected
-                            ? 'bg-[hsl(270,50%,60%)] text-white shadow-lg shadow-[hsl(270,50%,50%)]/30 border border-white/20'
-                            : 'bg-white/8 text-white/70 border border-white/10 hover:bg-white/15 hover:text-white/90'
+                            ? "bg-[hsl(270,50%,60%)] text-white shadow-lg shadow-[hsl(270,50%,50%)]/30 border border-white/20"
+                            : "bg-white/8 text-white/70 border border-white/10 hover:bg-white/15 hover:text-white/90"
                         }`}
                       >
                         <span>{vibe.icon}</span>
@@ -391,13 +376,7 @@ const ProfileScreen = () => {
 
               {/* Profile Preview */}
               <motion.div variants={itemVariants} className="mt-5">
-                <ProfilePreviewCard
-                  photo={photos[0]}
-                  name={name}
-                  age={age}
-                  bio={previewBio}
-                  vibes={selectedVibes}
-                />
+                <ProfilePreviewCard photo={photos[0]} name={name} age={age} bio={previewBio} vibes={selectedVibes} />
               </motion.div>
 
               {/* Continue Button */}
@@ -405,17 +384,14 @@ const ProfileScreen = () => {
                 <p className="text-center text-[10px] text-white/70 mb-2.5 font-medium">
                   Step 1 of 2 • Takes less than a minute
                 </p>
-                <motion.div 
-                  whileHover={{ scale: isValid ? 1.02 : 1 }} 
-                  whileTap={{ scale: isValid ? 0.98 : 1 }}
-                >
+                <motion.div whileHover={{ scale: isValid ? 1.02 : 1 }} whileTap={{ scale: isValid ? 0.98 : 1 }}>
                   <Button
                     variant="default"
                     size="default"
                     className={`w-full h-12 text-sm font-semibold rounded-2xl transition-all duration-300 ${
-                      isValid 
-                        ? 'bg-gradient-to-r from-[hsl(270,50%,60%)] to-[hsl(280,55%,65%)] hover:from-[hsl(270,55%,65%)] hover:to-[hsl(280,60%,70%)] text-white shadow-lg shadow-[hsl(270,50%,50%)]/40 border border-white/20' 
-                        : 'bg-white/10 text-white/40 cursor-not-allowed'
+                      isValid
+                        ? "bg-gradient-to-r from-[hsl(270,50%,60%)] to-[hsl(280,55%,65%)] hover:from-[hsl(270,55%,65%)] hover:to-[hsl(280,60%,70%)] text-white shadow-lg shadow-[hsl(270,50%,50%)]/40 border border-white/20"
+                        : "bg-white/10 text-white/40 cursor-not-allowed"
                     }`}
                     disabled={!isValid}
                     onClick={handleContinue}
@@ -450,14 +426,12 @@ interface ProfilePreviewCardProps {
 
 const ProfilePreviewCard = ({ photo, name, age, bio, vibes }: ProfilePreviewCardProps) => {
   return (
-    <motion.div 
+    <motion.div
       className="p-4 rounded-2xl bg-white/6 backdrop-blur-md border border-white/10"
       whileHover={{ scale: 1.01 }}
       transition={{ duration: 0.3 }}
     >
-      <p className="text-[10px] text-white/50 font-semibold mb-3 uppercase tracking-wider">
-        Your profile preview
-      </p>
+      <p className="text-[10px] text-white/50 font-semibold mb-3 uppercase tracking-wider">Your profile preview</p>
       <div className="flex items-start gap-3">
         <div className="w-14 h-14 rounded-full overflow-hidden bg-white/10 border-2 border-white/20 shrink-0 flex items-center justify-center shadow-lg shadow-[hsl(270,30%,15%)]/20">
           {photo ? (
@@ -468,14 +442,15 @@ const ProfilePreviewCard = ({ photo, name, age, bio, vibes }: ProfilePreviewCard
         </div>
         <div className="flex-1 min-w-0">
           <h4 className="text-base font-display font-semibold text-white truncate drop-shadow-sm">
-            {name || 'Your name'}{age ? `, ${age}` : ''}
+            {name || "Your name"}
+            {age ? `, ${age}` : ""}
           </h4>
           {vibes.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-1.5">
               {vibes.slice(0, 3).map((vibeId) => {
-                const vibe = vibeOptions.find(v => v.id === vibeId);
+                const vibe = vibeOptions.find((v) => v.id === vibeId);
                 return (
-                  <span 
+                  <span
                     key={vibeId}
                     className="px-1.5 py-0.5 rounded-md bg-white/10 text-white/70 text-[9px] font-medium border border-white/10"
                   >
@@ -485,9 +460,7 @@ const ProfilePreviewCard = ({ photo, name, age, bio, vibes }: ProfilePreviewCard
               })}
             </div>
           )}
-          {bio && (
-            <p className="text-[10px] text-white/50 mt-1.5 line-clamp-2">{bio}</p>
-          )}
+          {bio && <p className="text-[10px] text-white/50 mt-1.5 line-clamp-2">{bio}</p>}
         </div>
       </div>
     </motion.div>
