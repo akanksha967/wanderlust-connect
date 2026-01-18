@@ -241,7 +241,7 @@ const ProfileScreen = () => {
               {/* Header inside card */}
               <motion.div variants={itemVariants} className="text-center mb-5">
                 <h1 className="text-xl font-display font-semibold text-white drop-shadow-sm">Create Profile</h1>
-                <p className="text-xs text-white/60 font-medium mt-0.5">Step 1 of 2</p>
+                <p className="text-xs text-white font-medium mt-0.5">Step 1 of 2</p>
               </motion.div>
 
               {/* Helper Card */}
@@ -253,7 +253,7 @@ const ProfileScreen = () => {
                   <div className="w-10 h-10 rounded-xl bg-[hsl(270,50%,70%)]/30 backdrop-blur-sm flex items-center justify-center shrink-0 border border-white/10">
                     <Sparkles className="w-4 h-4 text-white/90" />
                   </div>
-                  <p className="text-xs leading-relaxed text-white/70">
+                  <p className="text-xs leading-relaxed text-white/90">
                     Profiles with photos get <span className="font-semibold text-white">3× more matches</span>
                   </p>
                 </div>
@@ -261,8 +261,8 @@ const ProfileScreen = () => {
 
               {/* Photo upload */}
               <motion.div variants={itemVariants} className="mb-5">
-                <label className="text-xs font-medium text-white/90 mb-2.5 block">
-                  Add photos <span className="text-white/50 font-normal">(1-3)</span>
+                <label className="text-xs font-medium text-white mb-2.5 block">
+                  Add photos <span className="text-white/70 font-normal">(1-3)</span>
                 </label>
                 <div className="flex gap-3 justify-center">
                   {[0, 1, 2].map((index) => (
@@ -320,36 +320,36 @@ const ProfileScreen = () => {
               {/* Name & Age */}
               <motion.div variants={itemVariants} className="grid grid-cols-2 gap-3 mb-4">
                 <div>
-                  <label className="text-xs font-medium text-white/90 mb-1.5 block">First name</label>
+                  <label className="text-xs font-medium text-white mb-1.5 block">First name</label>
                   <Input
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="e.g. Akanksha"
-                    className="h-11 rounded-2xl bg-white/8 backdrop-blur-md border-0 text-sm text-white placeholder:text-white/35 focus:ring-2 focus:ring-[hsl(270,50%,70%)]/50 focus:bg-white/12 transition-all duration-300 px-4"
+                    className="h-11 rounded-2xl bg-white/80 backdrop-blur-md border-0 text-sm text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[hsl(270,50%,70%)]/50 focus:bg-white/90 transition-all duration-300 px-4"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-white/90 mb-1.5 block">Age</label>
+                  <label className="text-xs font-medium text-white mb-1.5 block">Age</label>
                   <Input
                     type="number"
                     value={age}
                     onChange={(e) => setAge(e.target.value)}
                     placeholder="Your age"
-                    className="h-11 rounded-2xl bg-white/8 backdrop-blur-md border-0 text-sm text-white placeholder:text-white/35 focus:ring-2 focus:ring-[hsl(270,50%,70%)]/50 focus:bg-white/12 transition-all duration-300 px-4"
+                    className="h-11 rounded-2xl bg-white/80 backdrop-blur-md border-0 text-sm text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[hsl(270,50%,70%)]/50 focus:bg-white/90 transition-all duration-300 px-4"
                   />
                 </div>
               </motion.div>
 
               {/* Bio */}
               <motion.div variants={itemVariants} className="mb-5">
-                <label className="text-xs font-medium text-white/90 mb-1.5 block">About you</label>
+                <label className="text-xs font-medium text-white mb-1.5 block">About you</label>
                 <textarea
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   placeholder="Solo traveler heading to Bali. Love photography & cafes."
-                  className="w-full h-[72px] p-3.5 rounded-2xl bg-white/8 backdrop-blur-md border-0 resize-none text-sm text-white placeholder:text-white/35 focus:outline-none focus:ring-2 focus:ring-[hsl(270,50%,70%)]/50 focus:bg-white/12 transition-all duration-300"
+                  className="w-full h-[72px] p-3.5 rounded-2xl bg-white/80 backdrop-blur-md border-0 resize-none text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[hsl(270,50%,70%)]/50 focus:bg-white/90 transition-all duration-300"
                 />
-                <p className="text-[10px] text-white/45 mt-1.5">
+                <p className="text-[10px] text-white/70 mt-1.5">
                   Keep it short — helps others feel comfortable reaching out.
                 </p>
               </motion.div>
@@ -360,8 +360,8 @@ const ProfileScreen = () => {
                 className="p-4 rounded-2xl bg-white/6 backdrop-blur-md border border-white/10"
               >
                 <div className="mb-3">
-                  <h3 className="text-xs font-medium text-white/90">How do you like to travel?</h3>
-                  <p className="text-[10px] text-white/50">Select up to 4</p>
+                  <h3 className="text-xs font-medium text-white">How do you like to travel?</h3>
+                  <p className="text-[10px] text-white/70">Select up to 4</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {vibeOptions.map((vibe, index) => {
@@ -402,7 +402,7 @@ const ProfileScreen = () => {
 
               {/* Continue Button */}
               <motion.div variants={itemVariants} className="mt-5">
-                <p className="text-center text-[10px] text-white/40 mb-2.5 font-medium">
+                <p className="text-center text-[10px] text-white/70 mb-2.5 font-medium">
                   Step 1 of 2 • Takes less than a minute
                 </p>
                 <motion.div 
