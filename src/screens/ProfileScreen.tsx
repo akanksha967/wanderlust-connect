@@ -203,7 +203,7 @@ const ProfileScreen = () => {
           whileTap={{ scale: 0.95 }}
           className="absolute -top-2 -left-2 w-11 h-11 flex items-center justify-center rounded-full bg-white/15 backdrop-blur-xl border border-white/20 shadow-lg shadow-[hsl(270,30%,20%)]/20 transition-all duration-300 hover:bg-white/25 z-20"
         >
-          <ArrowLeft className="w-4 h-4 text-white" />
+          <ArrowLeft className="w-4 h-4 text-white/80" />
         </motion.button>
 
         {/* Main Floating Glass Card */}
@@ -229,8 +229,8 @@ const ProfileScreen = () => {
             <motion.div className="p-6" variants={containerVariants} initial="hidden" animate="visible">
               {/* Header inside card */}
               <motion.div variants={itemVariants} className="text-center mb-5">
-                <h1 className="text-xl font-display font-semibold text-white drop-shadow-sm">Create Profile</h1>
-                <p className="text-xs text-white font-medium mt-0.5">Step 1 of 2</p>
+                <h1 className="text-xl font-display font-semibold text-white/80 drop-shadow-sm">Create Profile</h1>
+                <p className="text-xs text-white/70 font-medium mt-0.5">Step 1 of 2</p>
               </motion.div>
 
               {/* Helper Card */}
@@ -240,18 +240,18 @@ const ProfileScreen = () => {
               >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-[hsl(270,50%,70%)]/30 backdrop-blur-sm flex items-center justify-center shrink-0 border border-white/10">
-                    <Sparkles className="w-4 h-4 text-white/90" />
+                    <Sparkles className="w-4 h-4 text-white/70" />
                   </div>
-                  <p className="text-xs leading-relaxed text-white/90">
-                    Profiles with photos get <span className="font-semibold text-white">3× more matches</span>
+                  <p className="text-xs leading-relaxed text-white/70">
+                    Profiles with photos get <span className="font-semibold text-white/80">3× more matches</span>
                   </p>
                 </div>
               </motion.div>
 
               {/* Photo upload */}
               <motion.div variants={itemVariants} className="mb-5">
-                <label className="text-xs font-medium text-white mb-2.5 block">
-                  Add photos <span className="text-white/70 font-normal">(1-3)</span>
+                <label className="text-xs font-medium text-white/80 mb-2.5 block">
+                  Add photos <span className="text-white/60 font-normal">(1-3)</span>
                 </label>
                 <div className="flex gap-3 justify-center">
                   {[0, 1, 2].map((index) => (
@@ -271,7 +271,7 @@ const ProfileScreen = () => {
                             onClick={() => handleRemovePhoto(index)}
                             className="absolute top-1.5 right-1.5 w-5 h-5 bg-black/60 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg border border-white/10 hover:bg-black/80 transition-colors"
                           >
-                            <X className="w-2.5 h-2.5 text-white" />
+                            <X className="w-2.5 h-2.5 text-white/80" />
                           </button>
                         </>
                       ) : (
@@ -293,7 +293,7 @@ const ProfileScreen = () => {
                         </button>
                       )}
                       {index === 0 && photos[index] && (
-                        <div className="absolute bottom-1.5 left-1.5 px-2 py-0.5 bg-[hsl(270,50%,60%)]/90 backdrop-blur-sm text-white text-[8px] font-semibold rounded-md shadow-sm border border-white/20">
+                        <div className="absolute bottom-1.5 left-1.5 px-2 py-0.5 bg-[hsl(270,50%,60%)]/90 backdrop-blur-sm text-white/80 text-[8px] font-semibold rounded-md shadow-sm border border-white/20">
                           Main
                         </div>
                       )}
@@ -305,7 +305,7 @@ const ProfileScreen = () => {
               {/* Name & Age */}
               <motion.div variants={itemVariants} className="grid grid-cols-2 gap-3 mb-4">
                 <div>
-                  <label className="text-xs font-medium text-white mb-1.5 block">First name</label>
+                  <label className="text-xs font-medium text-white/80 mb-1.5 block">First name</label>
                   <Input
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -314,7 +314,7 @@ const ProfileScreen = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-white mb-1.5 block">Age</label>
+                  <label className="text-xs font-medium text-white/80 mb-1.5 block">Age</label>
                   <Input
                     type="number"
                     value={age}
@@ -327,14 +327,14 @@ const ProfileScreen = () => {
 
               {/* Bio */}
               <motion.div variants={itemVariants} className="mb-5">
-                <label className="text-xs font-medium text-white mb-1.5 block">About you</label>
+                <label className="text-xs font-medium text-white/80 mb-1.5 block">About you</label>
                 <textarea
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   placeholder="Solo traveler heading to Bali. Love photography & cafes."
                   className="w-full h-[72px] p-3.5 rounded-2xl bg-white/80 backdrop-blur-md border-0 resize-none text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[hsl(270,50%,70%)]/50 focus:bg-white/90 transition-all duration-300"
                 />
-                <p className="text-[10px] text-white/70 mt-1.5">
+                <p className="text-[10px] text-white/60 mt-1.5">
                   Keep it short — helps others feel comfortable reaching out.
                 </p>
               </motion.div>
@@ -345,8 +345,8 @@ const ProfileScreen = () => {
                 className="p-4 rounded-2xl bg-white/6 backdrop-blur-md border border-white/10"
               >
                 <div className="mb-3">
-                  <h3 className="text-xs font-medium text-white">How do you like to travel?</h3>
-                  <p className="text-[10px] text-white/70">Select up to 4</p>
+                  <h3 className="text-xs font-medium text-white/80">How do you like to travel?</h3>
+                  <p className="text-[10px] text-white/60">Select up to 4</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {vibeOptions.map((vibe, index) => {
@@ -362,8 +362,8 @@ const ProfileScreen = () => {
                         whileTap={{ scale: 0.95 }}
                         className={`px-3 py-1.5 rounded-full text-[11px] font-medium transition-all duration-300 flex items-center gap-1.5 ${
                           isSelected
-                            ? "bg-[hsl(270,50%,60%)] text-white shadow-lg shadow-[hsl(270,50%,50%)]/30 border border-white/20"
-                            : "bg-white/8 text-white/70 border border-white/10 hover:bg-white/15 hover:text-white/90"
+                            ? "bg-[hsl(270,50%,60%)] text-white/80 shadow-lg shadow-[hsl(270,50%,50%)]/30 border border-white/20"
+                            : "bg-white/8 text-white/60 border border-white/10 hover:bg-white/15 hover:text-white/70"
                         }`}
                       >
                         <span>{vibe.icon}</span>
@@ -381,7 +381,7 @@ const ProfileScreen = () => {
 
               {/* Continue Button */}
               <motion.div variants={itemVariants} className="mt-5">
-                <p className="text-center text-[10px] text-white/70 mb-2.5 font-medium">
+                <p className="text-center text-[10px] text-white/60 mb-2.5 font-medium">
                   Step 1 of 2 • Takes less than a minute
                 </p>
                 <motion.div whileHover={{ scale: isValid ? 1.02 : 1 }} whileTap={{ scale: isValid ? 0.98 : 1 }}>
@@ -390,8 +390,8 @@ const ProfileScreen = () => {
                     size="default"
                     className={`w-full h-12 text-sm font-semibold rounded-2xl transition-all duration-300 ${
                       isValid
-                        ? "bg-gradient-to-r from-[hsl(270,50%,60%)] to-[hsl(280,55%,65%)] hover:from-[hsl(270,55%,65%)] hover:to-[hsl(280,60%,70%)] text-white shadow-lg shadow-[hsl(270,50%,50%)]/40 border border-white/20"
-                        : "bg-white/10 text-white/40 cursor-not-allowed"
+                        ? "bg-gradient-to-r from-[hsl(270,50%,60%)] to-[hsl(280,55%,65%)] hover:from-[hsl(270,55%,65%)] hover:to-[hsl(280,60%,70%)] text-white/80 shadow-lg shadow-[hsl(270,50%,50%)]/40 border border-white/20"
+                        : "bg-white/10 text-white/30 cursor-not-allowed"
                     }`}
                     disabled={!isValid}
                     onClick={handleContinue}
@@ -431,7 +431,7 @@ const ProfilePreviewCard = ({ photo, name, age, bio, vibes }: ProfilePreviewCard
       whileHover={{ scale: 1.01 }}
       transition={{ duration: 0.3 }}
     >
-      <p className="text-[10px] text-white/50 font-semibold mb-3 uppercase tracking-wider">Your profile preview</p>
+      <p className="text-[10px] text-white/40 font-semibold mb-3 uppercase tracking-wider">Your profile preview</p>
       <div className="flex items-start gap-3">
         <div className="w-14 h-14 rounded-full overflow-hidden bg-white/10 border-2 border-white/20 shrink-0 flex items-center justify-center shadow-lg shadow-[hsl(270,30%,15%)]/20">
           {photo ? (
@@ -441,7 +441,7 @@ const ProfilePreviewCard = ({ photo, name, age, bio, vibes }: ProfilePreviewCard
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <h4 className="text-base font-display font-semibold text-white truncate drop-shadow-sm">
+          <h4 className="text-base font-display font-semibold text-white/80 truncate drop-shadow-sm">
             {name || "Your name"}
             {age ? `, ${age}` : ""}
           </h4>
@@ -452,7 +452,7 @@ const ProfilePreviewCard = ({ photo, name, age, bio, vibes }: ProfilePreviewCard
                 return (
                   <span
                     key={vibeId}
-                    className="px-1.5 py-0.5 rounded-md bg-white/10 text-white/70 text-[9px] font-medium border border-white/10"
+                    className="px-1.5 py-0.5 rounded-md bg-white/10 text-white/60 text-[9px] font-medium border border-white/10"
                   >
                     {vibe?.icon} {vibe?.label}
                   </span>
@@ -460,7 +460,7 @@ const ProfilePreviewCard = ({ photo, name, age, bio, vibes }: ProfilePreviewCard
               })}
             </div>
           )}
-          {bio && <p className="text-[10px] text-white/50 mt-1.5 line-clamp-2">{bio}</p>}
+          {bio && <p className="text-[10px] text-white/40 mt-1.5 line-clamp-2">{bio}</p>}
         </div>
       </div>
     </motion.div>
