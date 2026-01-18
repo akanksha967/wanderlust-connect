@@ -203,7 +203,7 @@ const ProfileScreen = () => {
           whileTap={{ scale: 0.95 }}
           className="absolute -top-2 -left-2 w-11 h-11 flex items-center justify-center rounded-full bg-white/15 backdrop-blur-xl border border-white/20 shadow-lg shadow-[hsl(270,30%,20%)]/20 transition-all duration-300 hover:bg-white/25 z-20"
         >
-          <ArrowLeft className="w-4 h-4 text-white/80" />
+          <ArrowLeft className="w-4 h-4 text-white/20" />
         </motion.button>
 
         {/* Main Floating Glass Card */}
