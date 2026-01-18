@@ -88,7 +88,7 @@ const ProfileScreen = () => {
   const isValid = name && age && photos.length > 0 && selectedVibes.length > 0;
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden">
+    <div className="min-h-[100dvh] w-full flex items-center justify-center relative overflow-hidden">
       {/* Background */}
       <div
         className="fixed inset-0 bg-cover bg-center"
@@ -96,33 +96,31 @@ const ProfileScreen = () => {
           backgroundImage: "url('https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=1920&q=80')",
         }}
       />
-      <div className="fixed inset-0 bg-white/30 backdrop-blur-xl" />
+      <div className="fixed inset-0 bg-gradient-to-br from-[hsl(270,40%,85%)]/80 via-[hsl(280,35%,80%)]/70 to-[hsl(260,45%,75%)]/80" />
+      <div className="fixed inset-0 bg-gradient-to-t from-[hsl(270,30%,20%)]/40 via-transparent to-transparent" />
 
       {/* Hidden inputs */}
       <input ref={cameraInputRef} type="file" accept="image/*" capture="user" onChange={handleFileChange} hidden />
       <input ref={galleryInputRef} type="file" accept="image/*" onChange={handleFileChange} hidden />
 
-      <div className="relative z-10 w-full max-w-md mx-4">
-        {/* Back */}
+      {/* Card */}
+      <div className="relative z-10 w-full max-w-md mx-4 my-8">
         <button
           onClick={handleBack}
-          className="absolute -top-4 -left-4 w-10 h-10 rounded-full bg-white/90 text-black flex items-center justify-center shadow-lg"
+          className="absolute -top-2 -left-2 w-11 h-11 rounded-full bg-white/15 backdrop-blur-xl border border-white/20 shadow-lg"
         >
-          <ArrowLeft size={18} />
+          <ArrowLeft className="w-4 h-4 text-white/90" />
         </button>
 
-        {/* Card */}
-        <div className="rounded-3xl bg-white/15 backdrop-blur-2xl border border-white/30 shadow-2xl p-6">
-          <h1 className="text-xl font-semibold text-white drop-shadow-[0_1px_6px_rgba(255,255,255,0.35)] text-center">
-            Create Profile
-          </h1>
-          <p className="text-xs text-white/90 text-center mb-6">Step 1 of 2</p>
+        <div className="rounded-[26px] bg-white/12 backdrop-blur-[16px] border border-white/20 shadow-2xl p-6">
+          <h1 className="text-xl font-display font-semibold text-white text-center">Create Profile</h1>
+          <p className="text-xs text-white/75 text-center mb-6">Step 1 of 2</p>
 
           {/* Helper */}
-          <div className="mb-5 p-3 rounded-2xl bg-white/70 text-zinc-900 flex items-center gap-2">
-            <Sparkles size={16} />
-            <p className="text-xs">
-              Profiles with photos get <strong>3× more matches</strong>
+          <div className="mb-5 p-3.5 rounded-2xl bg-white/8 border border-white/10 flex items-center gap-3">
+            <Sparkles className="w-4 h-4 text-white/90" />
+            <p className="text-xs text-white/80">
+              Profiles with photos get <span className="font-semibold text-white">3× more matches</span>
             </p>
           </div>
 
@@ -135,14 +133,14 @@ const ProfileScreen = () => {
                   setActivePhotoIndex(i);
                   setShowPhotoSourceDialog(true);
                 }}
-                className="w-20 h-20 rounded-2xl bg-white flex items-center justify-center overflow-hidden cursor-pointer shadow"
+                className="w-[76px] h-[76px] rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center overflow-hidden cursor-pointer"
               >
                 {photos[i] ? (
                   <img src={photos[i]} className="w-full h-full object-cover" />
                 ) : i === 0 ? (
-                  <Camera className="text-zinc-400" />
+                  <Camera className="text-white/90" />
                 ) : (
-                  <Plus className="text-zinc-400" />
+                  <Plus className="text-white/90" />
                 )}
               </div>
             ))}
@@ -153,15 +151,15 @@ const ProfileScreen = () => {
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Name"
-              className="bg-white text-zinc-900 placeholder:text-zinc-400"
+              placeholder="First name"
+              className="bg-white/80 text-gray-900 placeholder:text-gray-500"
             />
             <Input
               type="number"
               value={age}
               onChange={(e) => setAge(e.target.value)}
               placeholder="Age"
-              className="bg-white text-zinc-900 placeholder:text-zinc-400"
+              className="bg-white/80 text-gray-900 placeholder:text-gray-500"
             />
           </div>
 
@@ -169,7 +167,7 @@ const ProfileScreen = () => {
             value={bio}
             onChange={(e) => setBio(e.target.value)}
             placeholder="Solo traveler heading to Bali..."
-            className="w-full h-20 p-3 rounded-xl bg-white text-zinc-900 placeholder:text-zinc-400 mb-4"
+            className="w-full h-[72px] p-3.5 rounded-2xl bg-white/80 text-gray-900 placeholder:text-gray-500 mb-4"
           />
 
           {/* Vibes */}
@@ -178,8 +176,8 @@ const ProfileScreen = () => {
               <button
                 key={v.id}
                 onClick={() => toggleVibe(v.id)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium ${
-                  selectedVibes.includes(v.id) ? "bg-black text-white" : "bg-white text-zinc-700"
+                className={`px-3 py-1.5 rounded-full text-[11px] font-medium ${
+                  selectedVibes.includes(v.id) ? "bg-[hsl(270,50%,60%)] text-white" : "bg-white/10 text-white/80"
                 }`}
               >
                 {v.icon} {v.label}
@@ -190,7 +188,11 @@ const ProfileScreen = () => {
           <Button
             disabled={!isValid}
             onClick={handleContinue}
-            className="w-full h-12 rounded-xl bg-black text-white shadow-[0_8px_30px_rgba(255,255,255,0.25)]"
+            className={`w-full h-12 rounded-2xl font-semibold ${
+              isValid
+                ? "bg-gradient-to-r from-[hsl(270,50%,60%)] to-[hsl(280,55%,65%)] text-white"
+                : "bg-white/10 text-white/40"
+            }`}
           >
             Continue
           </Button>
