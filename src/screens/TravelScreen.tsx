@@ -41,14 +41,14 @@ const DestinationInput = ({
 
   return (
     <div className="relative">
-      <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60 z-10" />
+      <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 z-10" />
       <Input
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onFocus={() => setShowSuggestions(true)}
         onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
         placeholder="Search destination..."
-        className="h-14 pl-14 pr-14 rounded-full bg-white/15 backdrop-blur-[16px] border border-white/25 shadow-[0_8px_32px_-8px_rgba(139,92,246,0.3)] text-white placeholder:text-white/50 text-base focus:ring-2 focus:ring-white/30 focus:bg-white/20 focus:shadow-[0_0_40px_rgba(167,139,250,0.4)] transition-all duration-300"
+        className="h-14 pl-14 pr-14 rounded-full bg-white/80 backdrop-blur-[16px] border border-white/40 shadow-[0_8px_32px_-8px_rgba(139,92,246,0.3)] text-gray-900 placeholder:text-gray-500 text-base focus:ring-2 focus:ring-white/50 focus:bg-white/90 focus:shadow-[0_0_40px_rgba(167,139,250,0.4)] transition-all duration-300"
       />
       <motion.button
         whileHover={{ scale: 1.05 }}
@@ -92,7 +92,7 @@ const TravelScreen = () => {
   const [endDate, setEndDate] = useState('');
 
   const handleBack = () => {
-    setScreen(hasCompletedProfile ? 'account' : 'profile');
+    setScreen('profile');
   };
 
   const handleSelectDestination = (name: string) => {
@@ -200,7 +200,7 @@ const TravelScreen = () => {
         <div>
           <h1 className="text-xl font-display font-semibold text-white drop-shadow-lg">Where to?</h1>
           {!hasCompletedProfile && (
-            <p className="text-xs text-white/70 font-medium">Step 2 of 2</p>
+            <p className="text-xs text-white font-medium">Step 2 of 2</p>
           )}
         </div>
       </motion.div>
@@ -214,7 +214,7 @@ const TravelScreen = () => {
           transition={{ delay: 0.2, duration: 0.5, ease: "easeOut" }}
           className="mb-6 shrink-0"
         >
-          <label className="text-xs font-semibold text-white/90 mb-3 block tracking-wide uppercase drop-shadow">
+          <label className="text-xs font-semibold text-white mb-3 block tracking-wide uppercase drop-shadow">
             Destination
           </label>
           {mapsLoading ? (
@@ -247,7 +247,7 @@ const TravelScreen = () => {
           transition={{ delay: 0.3 }}
           className="mb-5 flex-1 min-h-0"
         >
-          <label className="text-xs font-semibold text-white/90 mb-4 block tracking-wide uppercase drop-shadow">
+          <label className="text-xs font-semibold text-white mb-4 block tracking-wide uppercase drop-shadow">
             Popular destinations
           </label>
           <motion.div 
@@ -331,13 +331,13 @@ const TravelScreen = () => {
           transition={{ delay: 0.5, duration: 0.5 }}
           className="shrink-0 p-4 rounded-2xl bg-white/12 backdrop-blur-[14px] border border-white/20 shadow-[0_8px_32px_-8px_rgba(139,92,246,0.25)]"
         >
-          <label className="text-xs font-semibold text-white/90 mb-3 block tracking-wide uppercase drop-shadow">
+          <label className="text-xs font-semibold text-white mb-3 block tracking-wide uppercase drop-shadow">
             Travel dates
           </label>
           
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col">
-              <label className="text-[11px] text-white/60 mb-2 block font-medium">From</label>
+              <label className="text-[11px] text-white/80 mb-2 block font-medium">From</label>
               <div className="relative h-11">
                 <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 pointer-events-none" />
                 <Input
@@ -349,7 +349,7 @@ const TravelScreen = () => {
               </div>
             </div>
             <div className="flex flex-col">
-              <label className="text-[11px] text-white/60 mb-2 block font-medium">To</label>
+              <label className="text-[11px] text-white/80 mb-2 block font-medium">To</label>
               <div className="relative h-11">
                 <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 pointer-events-none" />
                 <Input
