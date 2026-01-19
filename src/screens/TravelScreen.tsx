@@ -176,5 +176,3 @@ export default function TravelScreen() {
     </div>
   );
 }
-
-export default TravelScreen;
