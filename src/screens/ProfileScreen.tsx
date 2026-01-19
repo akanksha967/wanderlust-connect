@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,9 +35,19 @@ const ProfileScreen = () => {
   const [selectedVibes, setSelectedVibes] = useState<string[]>([]);
   const [showPhotoSourceDialog, setShowPhotoSourceDialog] = useState(false);
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
+  const [canGlow, setCanGlow] = useState(false);
 
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
+
+  const isValid = name.trim().length > 0 && Number(age) >= 18 && photos.length > 0 && selectedVibes.length > 0;
+
+  /* 🔵 Enable glow only AFTER form becomes valid */
+  useEffect(() => {
+    if (isValid) {
+      setCanGlow(true);
+    }
+  }, [isValid]);
 
   const handleBack = async () => {
     await signOut();
@@ -76,8 +86,6 @@ const ProfileScreen = () => {
     });
   };
 
-  const isValid = name.trim().length > 0 && Number(age) >= 18 && photos.length > 0 && selectedVibes.length > 0;
-
   const handleContinue = () => {
     if (!isValid) return;
 
@@ -93,16 +101,28 @@ const ProfileScreen = () => {
     setScreen("travel");
   };
 
+  /* 🌊 Ambient gradient motion */
+  const gradientMotion = {
+    animate: {
+      backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+    },
+    transition: {
+      duration: 20,
+      ease: "easeInOut",
+      repeat: Infinity,
+    },
+  };
+
+  /* ✨ Glow pulse animation */
+  const glowPulse = canGlow ? "animate-[pulseGlow_2.4s_ease-in-out_infinite]" : "";
+
   return (
     <div className="min-h-screen w-full relative overflow-hidden flex items-center justify-center">
-      {/* Background */}
-      <div
-        className="fixed inset-0 bg-cover bg-center"
-        style={{
-          backgroundImage: "url('https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=1920&q=80')",
-        }}
+      {/* 🌊 Animated Gradient Background */}
+      <motion.div
+        {...gradientMotion}
+        className="fixed inset-0 bg-[length:200%_200%] bg-gradient-to-br from-sky-400/40 via-indigo-400/30 to-violet-500/40"
       />
-      <div className="fixed inset-0 bg-gradient-to-br from-purple-500/40 via-purple-400/30 to-purple-600/40" />
       <div className="fixed inset-0 backdrop-blur-sm" />
 
       {/* Back Arrow */}
@@ -155,14 +175,14 @@ const ProfileScreen = () => {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="First name"
-              className="h-11 rounded-full bg-white/20 border-white/25 text-white placeholder:text-white/50"
+              className={`h-11 rounded-full bg-white/20 border-white/25 text-white placeholder:text-white/50 ${glowPulse}`}
             />
             <Input
               type="number"
               value={age}
               onChange={(e) => setAge(e.target.value)}
               placeholder="Age"
-              className="h-11 rounded-full bg-white/20 border-white/25 text-white placeholder:text-white/50 appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              className={`h-11 rounded-full bg-white/20 border-white/25 text-white placeholder:text-white/50 appearance-none [&::-webkit-inner-spin-button]:appearance-none ${glowPulse}`}
             />
           </div>
 
@@ -170,7 +190,7 @@ const ProfileScreen = () => {
             value={bio}
             onChange={(e) => setBio(e.target.value)}
             placeholder="Solo traveler heading to Bali..."
-            className="w-full h-20 p-4 rounded-2xl bg-white/20 border border-white/25 text-white placeholder:text-white/50 resize-none mb-4"
+            className={`w-full h-20 p-4 rounded-2xl bg-white/20 border border-white/25 text-white placeholder:text-white/50 resize-none mb-4 ${glowPulse}`}
           />
 
           {/* Vibes */}
@@ -182,9 +202,7 @@ const ProfileScreen = () => {
                   key={v.id}
                   onClick={() => toggleVibe(v.id)}
                   className={`px-3 py-1.5 rounded-full text-xs border ${
-                    active
-                      ? "bg-purple-500/60 border-purple-300 text-white"
-                      : "bg-white/15 border-white/20 text-white/80"
+                    active ? "bg-sky-400/60 border-sky-300 text-white" : "bg-white/15 border-white/20 text-white/80"
                   }`}
                 >
                   {v.icon} {v.label}
@@ -197,11 +215,13 @@ const ProfileScreen = () => {
           <Button
             disabled={!isValid}
             onClick={handleContinue}
-            className={`w-full h-12 rounded-full font-semibold ${
-              isValid ? "bg-gradient-to-r from-purple-500 to-purple-600 text-white" : "bg-white/20 text-white/40"
+            className={`w-full h-12 rounded-full font-semibold transition-all ${
+              isValid
+                ? "bg-gradient-to-r from-sky-400 via-indigo-400 to-violet-400 text-white shadow-[0_0_26px_-6px_rgba(147,197,253,0.9)] hover:shadow-[0_0_34px_-6px_rgba(147,197,253,1)]"
+                : "bg-white/20 text-white/40"
             }`}
           >
-            Continue
+            <span className="drop-shadow-[0_0_6px_rgba(186,230,253,0.9)]">Continue</span>
           </Button>
         </div>
       </motion.div>
