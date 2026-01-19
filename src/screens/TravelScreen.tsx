@@ -7,22 +7,17 @@ import { ArrowLeft, MapPin, Calendar, Search, Loader2, AlertCircle } from "lucid
 import { useGoogleMapsKey } from "@/hooks/useGoogleMapsKey";
 import GoogleMapsDestinationPicker from "@/components/GoogleMapsDestinationPicker";
 
-/* ---------------- DATA ---------------- */
+/* ---------------- DESTINATIONS ---------------- */
 
 const destinations = [
-  { name: "Bali", country: "Indonesia", h: 260, img: "https://images.unsplash.com/photo-1537996194471-e657df975ab4" },
-  { name: "Tokyo", country: "Japan", h: 220, img: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf" },
-  { name: "Paris", country: "France", h: 300, img: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34" },
-  { name: "Barcelona", country: "Spain", h: 240, img: "https://images.unsplash.com/photo-1583422409516-2895a77efded" },
-  { name: "Santorini", country: "Greece", h: 280, img: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff" },
-  { name: "New York", country: "USA", h: 230, img: "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9" },
-  { name: "Kyoto", country: "Japan", h: 260, img: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9" },
-  {
-    name: "Swiss Alps",
-    country: "Switzerland",
-    h: 300,
-    img: "https://images.unsplash.com/photo-1501785888041-af3ef285b470",
-  },
+  { name: "Bali", country: "Indonesia", img: "https://images.unsplash.com/photo-1537996194471-e657df975ab4" },
+  { name: "Tokyo", country: "Japan", img: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf" },
+  { name: "Paris", country: "France", img: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34" },
+  { name: "Barcelona", country: "Spain", img: "https://images.unsplash.com/photo-1583422409516-2895a77efded" },
+  { name: "Santorini", country: "Greece", img: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff" },
+  { name: "New York", country: "USA", img: "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9" },
+  { name: "Kyoto", country: "Japan", img: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9" },
+  { name: "Swiss Alps", country: "Switzerland", img: "https://images.unsplash.com/photo-1501785888041-af3ef285b470" },
 ];
 
 /* ---------------- COMPONENT ---------------- */
@@ -34,6 +29,7 @@ export default function TravelScreen() {
   const [destination, setDestination] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [showDates, setShowDates] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
 
   const valid = destination && startDate && endDate;
@@ -48,15 +44,13 @@ export default function TravelScreen() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden">
+    <div className="relative min-h-screen overflow-x-hidden text-[#1e1b4b]">
       {/* ---------- BACKGROUND ---------- */}
       <div className="fixed inset-0 -z-10">
-        {/* nature image */}
         <img
           src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee"
-          className="absolute inset-0 h-full w-full object-cover opacity-30"
+          className="absolute inset-0 h-full w-full object-cover opacity-35"
         />
-        {/* lavender-blue gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#e8e6ff]/90 via-[#dbeafe]/85 to-[#c7d2fe]/90" />
       </div>
 
@@ -68,45 +62,90 @@ export default function TravelScreen() {
         >
           <ArrowLeft className="h-5 w-5 text-indigo-600" />
         </button>
-
-        <span className="text-sm font-medium text-indigo-700/80">Where to next?</span>
       </header>
 
       {/* ---------- CONTENT ---------- */}
-      <main className="px-4 pt-4 pb-32">
-        {/* SEARCH */}
-        <div className="mb-6">
+      <main className="px-4 pt-6 pb-32">
+        {/* INSPIRATION TEXT */}
+        <p className="text-white text-sm mb-4 tracking-wide">Find your perfect travel companion</p>
+
+        {/* SEARCH BAR WITH CALENDAR */}
+        <div className="relative mb-4">
           {loading ? (
-            <div className="flex h-12 items-center gap-3 rounded-full bg-white/60 px-5">
+            <div className="flex h-12 items-center gap-3 rounded-full bg-white/70 px-5">
               <Loader2 className="animate-spin text-indigo-500" />
               <span className="text-sm text-indigo-400">Loading maps…</span>
             </div>
           ) : apiKey ? (
             <GoogleMapsDestinationPicker apiKey={apiKey} value={destination} onChange={setDestination} />
           ) : (
-            <div className="relative">
+            <>
               <Input
-                placeholder="Where do you want to go?"
+                placeholder="Where to next?"
                 value={destination}
                 onChange={(e) => setDestination(e.target.value)}
-                className="h-12 rounded-full bg-white/70 pl-5 pr-12"
+                className="h-12 rounded-full bg-white/75 backdrop-blur-lg pl-5 pr-20 text-sm"
               />
-              <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-indigo-500" />
-            </div>
+
+              <button
+                onClick={() => setShowDates((v) => !v)}
+                className="absolute right-10 top-1/2 -translate-y-1/2 text-indigo-600"
+              >
+                <Calendar size={18} />
+              </button>
+
+              <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-indigo-600" />
+            </>
           )}
         </div>
 
+        {/* DATE PICKER */}
+        {showDates && (
+          <div className="mb-6 rounded-2xl bg-white/60 backdrop-blur-xl p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Calendar size={16} className="text-indigo-600" />
+              <span className="text-sm font-medium text-indigo-700">Travel dates</span>
+              {showWarning && (
+                <span className="ml-auto text-xs text-red-500 flex items-center gap-1">
+                  <AlertCircle size={12} /> Required
+                </span>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                type="date"
+                value={startDate}
+                onChange={(e) => {
+                  setStartDate(e.target.value);
+                  setShowWarning(false);
+                }}
+              />
+              <Input
+                type="date"
+                value={endDate}
+                onChange={(e) => {
+                  setEndDate(e.target.value);
+                  setShowWarning(false);
+                }}
+              />
+            </div>
+          </div>
+        )}
+
         {/* MASONRY GRID */}
         <div className="columns-2 md:columns-3 gap-4 space-y-4">
-          {destinations.map((d) => (
+          {destinations.map((d, i) => (
             <motion.button
               key={d.name}
-              whileHover={{ y: -6 }}
               onClick={() => setDestination(d.name)}
-              className="relative w-full overflow-hidden rounded-2xl shadow-lg"
-              style={{ height: d.h }}
+              whileHover={{ y: -6 }}
+              className="relative w-full overflow-hidden rounded-2xl shadow-xl"
+              style={{
+                height: i % 3 === 0 ? 320 : i % 3 === 1 ? 240 : 280,
+              }}
             >
-              <img src={`${d.img}?w=600&q=80`} className="absolute inset-0 h-full w-full object-cover" />
+              <img src={`${d.img}?w=800&q=85`} className="absolute inset-0 h-full w-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
               <div className="absolute bottom-3 left-3 text-left">
                 <p className="text-white font-medium text-sm flex items-center gap-1">
@@ -117,33 +156,17 @@ export default function TravelScreen() {
             </motion.button>
           ))}
         </div>
-
-        {/* DATES */}
-        <div className="mt-8 rounded-2xl bg-white/60 p-4 backdrop-blur-xl">
-          <div className="flex items-center gap-2 mb-3">
-            <Calendar size={16} className="text-indigo-600" />
-            <span className="text-sm font-medium text-indigo-700">Travel dates</span>
-            {showWarning && (
-              <span className="ml-auto text-xs text-red-500 flex items-center gap-1">
-                <AlertCircle size={12} /> Required
-              </span>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-            <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
-          </div>
-        </div>
       </main>
 
-      {/* CTA */}
+      {/* ---------- CTA ---------- */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#e8e6ff] to-transparent">
         <Button
           onClick={handleContinue}
           disabled={!valid}
           className={`w-full h-12 rounded-full ${
-            valid ? "bg-gradient-to-r from-indigo-500 to-violet-500 text-white" : "bg-indigo-200 text-indigo-500"
+            valid
+              ? "bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow-lg"
+              : "bg-indigo-200 text-indigo-500"
           }`}
         >
           {valid ? "Find Travel Buddies ✨" : "Select destination & dates"}
