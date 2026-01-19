@@ -21,26 +21,19 @@ const containerVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.08,
-      delayChildren: 0.15,
+      staggerChildren: 0.06,
+      delayChildren: 0.1,
     },
   },
 };
 
 const cardVariants = {
-  hidden: { 
-    opacity: 0, 
-    y: 30,
-    scale: 0.95,
-  },
+  hidden: { opacity: 0, y: 20, scale: 0.96 },
   visible: { 
     opacity: 1, 
     y: 0,
     scale: 1,
-    transition: {
-      duration: 0.5,
-      ease: [0.25, 0.46, 0.45, 0.94] as const,
-    },
+    transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] as const },
   },
 };
 
@@ -67,253 +60,232 @@ const TravelScreen = () => {
   };
 
   return (
-    <div className="h-[100dvh] relative overflow-hidden">
-      {/* LIGHT PASTEL GRADIENT BACKGROUND */}
-      <div className="fixed inset-0 bg-gradient-to-br from-[#e6e1ff] via-[#d4d0f7] to-[#c7d2fe]" />
-      <div className="fixed inset-0 bg-gradient-to-tr from-[#bae6fd]/30 via-transparent to-[#e0e7ff]/40" />
-      
-      {/* Soft floating orbs */}
+    <div className="h-[100dvh] relative overflow-hidden bg-gradient-to-br from-[hsl(270,40%,95%)] via-[hsl(265,35%,92%)] to-[hsl(200,50%,92%)]">
+      {/* Subtle floating orbs */}
       <motion.div 
-        className="fixed top-16 right-8 w-40 h-40 rounded-full bg-[#c7d2fe]/50 blur-3xl"
-        animate={{ 
-          y: [0, -15, 0], 
-          opacity: [0.4, 0.6, 0.4],
-        }}
+        className="fixed top-20 right-10 w-32 h-32 rounded-full bg-primary/20 blur-3xl"
+        animate={{ y: [0, -10, 0], opacity: [0.3, 0.5, 0.3] }}
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
       />
       <motion.div 
-        className="fixed bottom-32 left-4 w-48 h-48 rounded-full bg-[#bae6fd]/40 blur-3xl"
-        animate={{ 
-          y: [0, 12, 0], 
-          opacity: [0.3, 0.5, 0.3],
-        }}
+        className="fixed bottom-40 left-6 w-40 h-40 rounded-full bg-accent/15 blur-3xl"
+        animate={{ y: [0, 8, 0], opacity: [0.2, 0.4, 0.2] }}
         transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
       />
-      <motion.div 
-        className="fixed top-1/3 left-1/3 w-32 h-32 rounded-full bg-[#e0e7ff]/50 blur-2xl"
-        animate={{ 
-          x: [0, 10, 0], 
-          opacity: [0.3, 0.5, 0.3],
-        }}
-        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-      />
 
-      {/* HEADER */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        className="relative z-10 px-4 pt-10 pb-4 flex items-center gap-3"
-      >
-        <motion.button
-          onClick={() => setScreen(hasCompletedProfile ? "account" : "profile")}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="w-11 h-11 rounded-full bg-white/40 backdrop-blur-xl border border-white/50 flex items-center justify-center shadow-[0_4px_20px_-4px_rgba(99,102,241,0.2)]"
+      {/* MAIN CONTAINER - Box-based layout */}
+      <div className="h-full flex flex-col px-4 py-6">
+        {/* HEADER */}
+        <motion.header 
+          initial={{ opacity: 0, y: -15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="flex items-center gap-3 mb-4 shrink-0"
         >
-          <ArrowLeft className="text-[#4f46e5] w-5 h-5" />
-        </motion.button>
+          <motion.button
+            onClick={() => setScreen(hasCompletedProfile ? "account" : "profile")}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="w-10 h-10 rounded-full glass-card shadow-card flex items-center justify-center"
+          >
+            <ArrowLeft className="text-primary w-5 h-5" />
+          </motion.button>
 
-        <div className="flex-1">
-          <h1 className="text-xl font-semibold text-[#3730a3] tracking-tight">Where to next?</h1>
-          {!hasCompletedProfile && (
-            <p className="text-sm text-[#6366f1]/70">Step 2 of 2</p>
-          )}
-        </div>
-      </motion.div>
+          <div className="flex-1">
+            <h1 className="font-display text-xl font-semibold text-foreground tracking-tight">
+              Where to next?
+            </h1>
+            {!hasCompletedProfile && (
+              <p className="font-outfit text-sm text-muted-foreground">Step 2 of 2</p>
+            )}
+          </div>
+        </motion.header>
 
-      {/* SCROLLABLE CONTENT */}
-      <div className="relative z-10 px-4 pb-32 pt-2 overflow-y-auto h-[calc(100%-90px)] scrollbar-hide">
-        
-        {/* GLASS SEARCH BAR */}
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-          className="mb-5"
-        >
-          {mapsLoading ? (
-            <div className="h-12 rounded-full bg-white/50 backdrop-blur-[16px] border border-white/60 flex items-center px-5 shadow-[0_4px_20px_-4px_rgba(99,102,241,0.15)]">
-              <Loader2 className="animate-spin text-[#6366f1]" size={18} />
-              <span className="ml-3 text-[#6366f1]/60 text-sm">Loading maps…</span>
-            </div>
-          ) : apiKey ? (
-            <GoogleMapsDestinationPicker apiKey={apiKey} value={destination} onChange={setDestination} />
-          ) : (
-            <motion.div 
-              className={`relative rounded-full transition-all duration-400 ${
-                isFocused 
-                  ? "shadow-[0_8px_30px_-8px_rgba(99,102,241,0.3)]" 
-                  : "shadow-[0_4px_20px_-4px_rgba(99,102,241,0.15)]"
-              }`}
-            >
-              <Input
-                placeholder="Where do you want to go?"
-                value={destination}
-                onChange={(e) => setDestination(e.target.value)}
-                onFocus={() => setIsFocused(true)}
-                onBlur={() => setIsFocused(false)}
-                className="h-12 rounded-full bg-white/50 backdrop-blur-[16px] border border-white/60 text-[#3730a3] placeholder:text-[#6366f1]/50 pl-5 pr-12 text-sm focus:border-[#a5b4fc] focus:ring-0 focus:ring-offset-0"
-              />
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-[#6366f1]/20 backdrop-blur-sm flex items-center justify-center border border-[#a5b4fc]/40"
-              >
-                <Search className="w-4 h-4 text-[#4f46e5]" />
-              </motion.button>
-            </motion.div>
-          )}
-        </motion.div>
-
-        {/* COMPACT DESTINATION CARDS - TWO COLUMN GRID */}
-        <motion.div 
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="grid grid-cols-2 gap-3 mb-5"
-        >
-          {popularDestinations.map((dest) => (
-            <motion.button
-              key={dest.name}
-              variants={cardVariants}
-              onClick={() => setDestination(dest.name)}
-              whileHover={{ 
-                y: -4, 
-                scale: 1.02,
-                transition: { duration: 0.3, ease: "easeOut" }
-              }}
-              whileTap={{ scale: 0.97 }}
-              className={`relative w-full rounded-[20px] overflow-hidden text-left transition-all duration-400
-                ${destination === dest.name
-                  ? "ring-2 ring-[#6366f1]/60 shadow-[0_12px_32px_-8px_rgba(99,102,241,0.4)]"
-                  : "shadow-[0_8px_24px_-8px_rgba(99,102,241,0.2)]"
-                }`}
-            >
-              {/* Glassmorphism card background */}
-              <div className="absolute inset-0 bg-white/[0.18] backdrop-blur-[16px] z-[1]" />
-              <div className="absolute inset-0 border border-white/30 rounded-[20px] z-[4] pointer-events-none" />
-              
-              {/* FIXED ASPECT RATIO IMAGE CONTAINER */}
-              <div className="relative aspect-[3/4] w-full overflow-hidden" style={{ maxHeight: '240px' }}>
-                <motion.img
-                  src={dest.image}
-                  alt={dest.name}
-                  className="absolute inset-0 w-full h-full object-cover object-center"
-                  whileHover={{ scale: 1.08 }}
-                  transition={{ duration: 0.6, ease: "easeOut" }}
-                />
-                
-                {/* Soft gradient overlay for text legibility */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#1e1b4b]/70 via-[#312e81]/20 to-transparent z-[2]" />
-              </div>
-
-              {/* CARD CONTENT */}
-              <div className="absolute bottom-0 left-0 right-0 p-3 z-[3]">
-                <div className="flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-white/80" />
-                  <p className="text-white font-medium text-sm">{dest.name}</p>
-                </div>
-                <p className="text-xs text-white/60 ml-5">{dest.country}</p>
-              </div>
-
-              {/* Selected indicator */}
-              {destination === dest.name && (
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="absolute inset-0 bg-[#6366f1]/10 z-[1] pointer-events-none"
-                />
-              )}
-            </motion.button>
-          ))}
-        </motion.div>
-
-        {/* FLOATING GLASS DATE PICKER SECTION */}
-        <motion.div 
+        {/* GLASSMORPHIC MAIN BOX */}
+        <motion.main 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className={`p-5 rounded-[24px] bg-white/40 backdrop-blur-[14px] border transition-all duration-300 ${
-            showDateWarning && !hasDates 
-              ? "border-red-300 shadow-[0_8px_30px_-8px_rgba(239,68,68,0.25)]" 
-              : "border-white/50 shadow-[0_8px_30px_-8px_rgba(99,102,241,0.15)]"
-          }`}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="flex-1 glass-card rounded-3xl shadow-glass-lg p-4 overflow-hidden flex flex-col"
         >
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-[#4f46e5]" />
-              <span className="text-[#3730a3] font-medium text-sm">Travel Dates</span>
-            </div>
-            {showDateWarning && !hasDates && (
+          {/* SEARCH BAR */}
+          <div className="shrink-0 mb-4">
+            {mapsLoading ? (
+              <div className="h-11 rounded-full glass flex items-center px-4 shadow-card">
+                <Loader2 className="animate-spin text-primary" size={16} />
+                <span className="ml-3 font-outfit text-muted-foreground text-sm">Loading maps…</span>
+              </div>
+            ) : apiKey ? (
+              <GoogleMapsDestinationPicker apiKey={apiKey} value={destination} onChange={setDestination} />
+            ) : (
               <motion.div 
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="flex items-center gap-1 text-red-500"
+                className={`relative rounded-full transition-smooth ${
+                  isFocused ? "shadow-glow" : "shadow-card"
+                }`}
               >
-                <AlertCircle size={14} />
-                <span className="text-xs font-medium">Required</span>
+                <Input
+                  placeholder="Search destination..."
+                  value={destination}
+                  onChange={(e) => setDestination(e.target.value)}
+                  onFocus={() => setIsFocused(true)}
+                  onBlur={() => setIsFocused(false)}
+                  className="h-11 rounded-full glass border-white/40 text-foreground placeholder:text-muted-foreground font-outfit text-sm pl-4 pr-11 focus:border-primary/50 focus:ring-0"
+                />
+                <button className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                  <Search className="w-4 h-4 text-primary" />
+                </button>
               </motion.div>
             )}
           </div>
-          
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs text-[#6366f1]/60 mb-1 block">From</label>
-              <Input
-                type="date"
-                value={startDate}
-                onChange={(e) => {
-                  setStartDate(e.target.value);
-                  setShowDateWarning(false);
-                }}
-                className="h-11 rounded-xl bg-white/50 backdrop-blur-sm border border-white/60 text-[#3730a3] text-sm focus:border-[#a5b4fc] focus:ring-0 [color-scheme:light]"
-              />
+
+          {/* DATE PICKER - TOP PRIORITY */}
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+            className={`shrink-0 mb-4 p-3 rounded-2xl transition-smooth ${
+              showDateWarning && !hasDates 
+                ? "bg-destructive/10 border border-destructive/30" 
+                : "glass border-white/30"
+            }`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-primary" />
+                <span className="font-outfit text-sm font-medium text-foreground">Travel Dates</span>
+              </div>
+              {showDateWarning && !hasDates && (
+                <motion.div 
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="flex items-center gap-1 text-destructive"
+                >
+                  <AlertCircle size={12} />
+                  <span className="text-xs font-medium font-outfit">Required</span>
+                </motion.div>
+              )}
             </div>
-            <div>
-              <label className="text-xs text-[#6366f1]/60 mb-1 block">To</label>
-              <Input
-                type="date"
-                value={endDate}
-                onChange={(e) => {
-                  setEndDate(e.target.value);
-                  setShowDateWarning(false);
-                }}
-                className="h-11 rounded-xl bg-white/50 backdrop-blur-sm border border-white/60 text-[#3730a3] text-sm focus:border-[#a5b4fc] focus:ring-0 [color-scheme:light]"
-              />
+            
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="font-outfit text-xs text-muted-foreground mb-1 block">From</label>
+                <Input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => {
+                    setStartDate(e.target.value);
+                    setShowDateWarning(false);
+                  }}
+                  className="h-10 rounded-xl glass border-white/40 text-foreground font-outfit text-sm focus:border-primary/50 focus:ring-0 [color-scheme:light]"
+                />
+              </div>
+              <div>
+                <label className="font-outfit text-xs text-muted-foreground mb-1 block">To</label>
+                <Input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => {
+                    setEndDate(e.target.value);
+                    setShowDateWarning(false);
+                  }}
+                  className="h-10 rounded-xl glass border-white/40 text-foreground font-outfit text-sm focus:border-primary/50 focus:ring-0 [color-scheme:light]"
+                />
+              </div>
             </div>
+          </motion.div>
+
+          {/* DESTINATION CARDS - Sharp, compact, 2-column grid */}
+          <div className="flex-1 overflow-y-auto scrollbar-hide -mx-1 px-1">
+            <p className="font-outfit text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wider">
+              Popular Destinations
+            </p>
+            <motion.div 
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-2 gap-3 pb-2"
+            >
+              {popularDestinations.map((dest) => (
+                <motion.button
+                  key={dest.name}
+                  variants={cardVariants}
+                  onClick={() => setDestination(dest.name)}
+                  whileHover={{ y: -3, transition: { duration: 0.25 } }}
+                  whileTap={{ scale: 0.97 }}
+                  className={`relative rounded-2xl overflow-hidden text-left transition-smooth group
+                    ${destination === dest.name
+                      ? "ring-2 ring-primary shadow-glow"
+                      : "shadow-card hover:shadow-glass"
+                    }`}
+                >
+                  {/* Fixed aspect ratio container - SHARP image */}
+                  <div className="relative aspect-[3/4] w-full">
+                    <img
+                      src={dest.image}
+                      alt={dest.name}
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                    
+                    {/* Subtle gradient for text - NOT blurry */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                    
+                    {/* Glassmorphism border overlay */}
+                    <div className="absolute inset-0 rounded-2xl border border-white/20 pointer-events-none" />
+                  </div>
+
+                  {/* Card content */}
+                  <div className="absolute bottom-0 left-0 right-0 p-3">
+                    <div className="flex items-center gap-1.5">
+                      <MapPin className="w-3 h-3 text-white/90" />
+                      <p className="font-outfit font-medium text-white text-sm">{dest.name}</p>
+                    </div>
+                    <p className="font-outfit text-xs text-white/70 ml-4.5">{dest.country}</p>
+                  </div>
+
+                  {/* Selected overlay */}
+                  {destination === dest.name && (
+                    <motion.div 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="absolute inset-0 bg-primary/15 pointer-events-none"
+                    />
+                  )}
+                </motion.button>
+              ))}
+            </motion.div>
           </div>
+        </motion.main>
+
+        {/* CTA BUTTON */}
+        <motion.div 
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+          className="shrink-0 pt-4"
+        >
+          <motion.div
+            whileHover={isValid ? { scale: 1.02 } : {}}
+            whileTap={isValid ? { scale: 0.98 } : {}}
+          >
+            <Button
+              onClick={handleContinue}
+              disabled={!destination}
+              className={`w-full h-12 rounded-full font-outfit text-base font-medium transition-smooth
+                ${isValid 
+                  ? "gradient-lavender-deep text-primary-foreground shadow-float hover:shadow-glow" 
+                  : "bg-muted text-muted-foreground"
+                }`}
+            >
+              {!destination 
+                ? "Select a destination" 
+                : !hasDates 
+                  ? "Add travel dates to continue" 
+                  : "Find Travel Buddies ✨"}
+            </Button>
+          </motion.div>
         </motion.div>
       </div>
-
-      {/* FLOATING CTA */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.5 }}
-        className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#e0e7ff] via-[#e0e7ff]/90 to-transparent z-10"
-      >
-        <motion.div
-          whileHover={isValid ? { scale: 1.02 } : {}}
-          whileTap={isValid ? { scale: 0.97 } : {}}
-        >
-          <Button
-            onClick={handleContinue}
-            disabled={!destination}
-            className={`w-full h-13 rounded-full text-base font-medium transition-all duration-400 border-0
-              ${isValid 
-                ? "bg-gradient-to-r from-[#6366f1] via-[#7c3aed] to-[#6366f1] text-white shadow-[0_10px_30px_-8px_rgba(99,102,241,0.5)] hover:shadow-[0_14px_40px_-8px_rgba(99,102,241,0.6)]" 
-                : "bg-[#a5b4fc]/50 text-[#4f46e5]/60"
-              }`}
-          >
-            {!destination 
-              ? "Select a destination" 
-              : !hasDates 
-                ? "Add travel dates to continue" 
-                : "Find Travel Buddies ✨"}
-          </Button>
-        </motion.div>
-      </motion.div>
     </div>
   );
 };
