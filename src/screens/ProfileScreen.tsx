@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAppStore } from "@/store/useAppStore";
-import { ArrowLeft, Camera, Plus, Sparkles } from "lucide-react";
+import { ArrowLeft, Camera, Plus } from "lucide-react";
 import PhotoSourceDialog from "@/components/PhotoSourceDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -34,8 +34,7 @@ const ProfileScreen = () => {
   const [photos, setPhotos] = useState<string[]>([]);
   const [selectedVibes, setSelectedVibes] = useState<string[]>([]);
   const [showPhotoSourceDialog, setShowPhotoSourceDialog] = useState(false);
-  const [activePhotoIndex, setActivePhotoIndex] = useState<number>(0);
-  const [focusedInput, setFocusedInput] = useState<string | null>(null);
+  const [activePhotoIndex, setActivePhotoIndex] = useState(0);
 
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
@@ -77,13 +76,14 @@ const ProfileScreen = () => {
     });
   };
 
+  const isValid = name.trim().length > 0 && Number(age) >= 18 && photos.length > 0 && selectedVibes.length > 0;
+
   const handleContinue = () => {
-    const parsedAge = Number(age);
-    if (!parsedAge || parsedAge < 18) return;
+    if (!isValid) return;
 
     setUserProfile({
       name: name.trim(),
-      age: parsedAge,
+      age: Number(age),
       bio: bio.trim(),
       photos,
       travelVibes: selectedVibes,
@@ -93,10 +93,8 @@ const ProfileScreen = () => {
     setScreen("travel");
   };
 
-  const isValid = name.trim().length > 0 && Number(age) >= 18 && photos.length > 0 && selectedVibes.length > 0;
-
   return (
-    <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden">
+    <div className="min-h-screen w-full relative overflow-hidden">
       {/* Background */}
       <div
         className="fixed inset-0 bg-cover bg-center"
@@ -107,115 +105,107 @@ const ProfileScreen = () => {
       <div className="fixed inset-0 bg-gradient-to-br from-purple-500/40 via-purple-400/30 to-purple-600/40" />
       <div className="fixed inset-0 backdrop-blur-sm" />
 
+      {/* Back Arrow — FIXED POSITION */}
+      <button
+        onClick={handleBack}
+        className="fixed top-6 left-6 z-20 w-11 h-11 rounded-full bg-white/20 backdrop-blur-lg border border-white/30 flex items-center justify-center text-white shadow-lg"
+      >
+        <ArrowLeft size={18} />
+      </button>
+
       {/* Hidden inputs */}
       <input ref={cameraInputRef} type="file" accept="image/*" capture="user" onChange={handleFileChange} hidden />
       <input ref={galleryInputRef} type="file" accept="image/*" onChange={handleFileChange} hidden />
 
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative z-10 w-full max-w-md px-4"
-      >
-        {/* Back */}
-        <button
-          onClick={handleBack}
-          className="absolute -top-4 -left-2 w-11 h-11 rounded-full bg-white/20 backdrop-blur-lg border border-white/20 flex items-center justify-center text-white"
-        >
-          <ArrowLeft size={18} />
-        </button>
+      {/* Centered Card Wrapper */}
+      <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-6">
+        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
+          {/* Card */}
+          <div className="rounded-[28px] bg-white/15 backdrop-blur-xl border border-white/20 shadow-2xl max-h-[calc(100vh-32px)] overflow-y-auto">
+            <div className="p-6 pb-8">
+              <h1 className="text-xl font-semibold text-white text-center">Create Profile</h1>
+              <p className="text-xs text-white/70 text-center mb-7">Step 1 of 2</p>
 
-        {/* Card */}
-        <div className="rounded-[28px] bg-white/15 backdrop-blur-xl border border-white/20 shadow-2xl p-6">
-          <h1 className="text-xl font-semibold text-white text-center">Create Profile</h1>
-          <p className="text-xs text-white/70 text-center mb-5">Step 1 of 2</p>
-
-          {/* Tip */}
-          <div className="flex items-center gap-2 px-4 py-3 rounded-full bg-white/15 border border-white/20 mb-6">
-            <Sparkles size={16} className="text-purple-200" />
-            <p className="text-sm text-white">
-              Profiles with photos get <b>3× more matches</b>
-            </p>
-          </div>
-
-          {/* Photos */}
-          <div className="flex justify-center gap-4 mb-6">
-            {[0, 1, 2].map((i) => (
-              <div
-                key={i}
-                onClick={() => {
-                  setActivePhotoIndex(i);
-                  setShowPhotoSourceDialog(true);
-                }}
-                className="w-[76px] h-[76px] rounded-2xl bg-white/20 border border-white/25 flex items-center justify-center cursor-pointer overflow-hidden"
-              >
-                {photos[i] ? (
-                  <img src={photos[i]} className="w-full h-full object-cover" alt="" />
-                ) : i === 0 ? (
-                  <Camera className="text-white/70" />
-                ) : (
-                  <Plus className="text-white/50" />
-                )}
+              {/* Photos */}
+              <div className="flex justify-center gap-4 mb-6">
+                {[0, 1, 2].map((i) => (
+                  <div
+                    key={i}
+                    onClick={() => {
+                      setActivePhotoIndex(i);
+                      setShowPhotoSourceDialog(true);
+                    }}
+                    className="w-[76px] h-[76px] rounded-2xl bg-white/20 border border-white/25 flex items-center justify-center cursor-pointer overflow-hidden"
+                  >
+                    {photos[i] ? (
+                      <img src={photos[i]} className="w-full h-full object-cover" alt="" />
+                    ) : i === 0 ? (
+                      <Camera className="text-white/70" />
+                    ) : (
+                      <Plus className="text-white/50" />
+                    )}
+                  </div>
+                ))}
               </div>
-            ))}
+
+              {/* Inputs */}
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="First name"
+                  className="h-12 rounded-full bg-white/20 border-white/25 text-white placeholder:text-white/50"
+                />
+                <Input
+                  type="number"
+                  value={age}
+                  onChange={(e) => setAge(e.target.value)}
+                  placeholder="Age"
+                  className="h-12 rounded-full bg-white/20 border-white/25 text-white placeholder:text-white/50 appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+              </div>
+
+              <textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Solo traveler heading to Bali..."
+                className="w-full h-24 p-4 rounded-2xl bg-white/20 border border-white/25 text-white placeholder:text-white/50 resize-none mb-6"
+              />
+
+              {/* Vibes */}
+              <div className="flex flex-wrap gap-2 mb-7">
+                {vibeOptions.map((v) => {
+                  const active = selectedVibes.includes(v.id);
+                  return (
+                    <button
+                      key={v.id}
+                      onClick={() => toggleVibe(v.id)}
+                      className={`px-4 py-2 rounded-full text-sm border ${
+                        active
+                          ? "bg-purple-500/60 border-purple-300 text-white"
+                          : "bg-white/15 border-white/20 text-white/80"
+                      }`}
+                    >
+                      {v.icon} {v.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* CTA */}
+              <Button
+                disabled={!isValid}
+                onClick={handleContinue}
+                className={`w-full h-14 rounded-full font-semibold ${
+                  isValid ? "bg-gradient-to-r from-purple-500 to-purple-600 text-white" : "bg-white/20 text-white/40"
+                }`}
+              >
+                Continue
+              </Button>
+            </div>
           </div>
-
-          {/* Inputs */}
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="First name"
-              className="h-12 rounded-full bg-white/20 border-white/25 text-white placeholder:text-white/50"
-            />
-            <Input
-              type="number"
-              inputMode="numeric"
-              value={age}
-              onChange={(e) => setAge(e.target.value)}
-              placeholder="Age"
-              className="h-12 rounded-full bg-white/20 border-white/25 text-white placeholder:text-white/50 appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            />
-          </div>
-
-          <textarea
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-            placeholder="Solo traveler heading to Bali..."
-            className="w-full h-24 p-4 rounded-2xl bg-white/20 border border-white/25 text-white placeholder:text-white/50 resize-none mb-5"
-          />
-
-          {/* Vibes */}
-          <div className="flex flex-wrap gap-2 mb-6">
-            {vibeOptions.map((v) => {
-              const active = selectedVibes.includes(v.id);
-              return (
-                <button
-                  key={v.id}
-                  onClick={() => toggleVibe(v.id)}
-                  className={`px-4 py-2 rounded-full text-sm border backdrop-blur ${
-                    active
-                      ? "bg-purple-500/60 border-purple-300 text-white"
-                      : "bg-white/15 border-white/20 text-white/80"
-                  }`}
-                >
-                  {v.icon} {v.label}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* CTA */}
-          <Button
-            disabled={!isValid}
-            onClick={handleContinue}
-            className={`w-full h-14 rounded-full font-semibold ${
-              isValid ? "bg-gradient-to-r from-purple-500 to-purple-600 text-white" : "bg-white/20 text-white/40"
-            }`}
-          >
-            Continue
-          </Button>
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
 
       <PhotoSourceDialog
         isOpen={showPhotoSourceDialog}
