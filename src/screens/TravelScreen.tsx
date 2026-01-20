@@ -48,10 +48,9 @@ export default function TravelScreen() {
   const [showDates, setShowDates] = useState(false);
   const [index, setIndex] = useState(0);
 
-  const active = DESTINATIONS[index] || DESTINATIONS[0];
+  const active = DESTINATIONS[index];
   const canProceed = destination && startDate && endDate;
 
-  /* ---- AUTO SLIDE DESTINATION ---- */
   useEffect(() => {
     const timer = setInterval(() => {
       setIndex((i) => (i + 1) % DESTINATIONS.length);
@@ -61,22 +60,28 @@ export default function TravelScreen() {
 
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden">
-      {/* ---------- FULLSCREEN NATURE BACKGROUND ---------- */}
+      {/* ---------- FULLSCREEN NATURE BACKGROUND (FIXED) ---------- */}
       <div className="fixed inset-0 -z-10">
+        {/* Actual nature image */}
         <img
-          src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1920&q=90"
-          alt="Nature"
-          className="h-full w-full object-cover"
+          src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1920&q=95"
+          alt="Nature background"
+          className="h-full w-full object-cover scale-105"
         />
+
+        {/* Soft blue–lavender tint (LOW opacity) */}
         <div
           className="absolute inset-0 bg-gradient-to-br 
-          from-[hsl(215,70%,90%)]/85 
-          via-[hsl(235,60%,85%)]/80 
-          to-[hsl(260,55%,88%)]/85"
+          from-[hsl(215,80%,92%)]/35 
+          via-[hsl(235,70%,88%)]/30 
+          to-[hsl(260,65%,90%)]/35"
         />
+
+        {/* Depth vignette */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
       </div>
 
-      {/* ---------- BACK BUTTON (FLOATING) ---------- */}
+      {/* ---------- BACK BUTTON ---------- */}
       <motion.button
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -99,7 +104,7 @@ export default function TravelScreen() {
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="w-full max-w-md 
             rounded-[32px] 
-            bg-white/35 
+            bg-white/30 
             backdrop-blur-2xl 
             border border-white/40 
             shadow-[0_30px_80px_rgba(0,0,0,0.25)]"
@@ -107,7 +112,7 @@ export default function TravelScreen() {
           <div className="p-6 space-y-5">
             {/* ---------- HEADER ---------- */}
             <div className="text-center space-y-1">
-              <h1 className="font-serif text-2xl tracking-tight">Where to next?</h1>
+              <h1 className="font-serif text-2xl">Where to next?</h1>
               <p className="text-sm text-muted-foreground">Let the destination surprise you</p>
             </div>
 
@@ -142,14 +147,13 @@ export default function TravelScreen() {
               </div>
             )}
 
-            {/* ---------- DATE PICKER (INSIDE GLASS) ---------- */}
+            {/* ---------- DATE PICKER ---------- */}
             <AnimatePresence>
               {showDates && (
                 <motion.div
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3 }}
                   className="grid grid-cols-2 gap-3 overflow-hidden"
                 >
                   <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
@@ -158,18 +162,18 @@ export default function TravelScreen() {
               )}
             </AnimatePresence>
 
-            {/* ---------- DESTINATION CARD (ANIMATION INSIDE BOX) ---------- */}
+            {/* ---------- DESTINATION CARD ---------- */}
             <AnimatePresence mode="wait">
               <motion.button
                 key={index}
                 initial={{ opacity: 0, x: 40 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -40 }}
-                transition={{ duration: 0.5, ease: "easeInOut" }}
+                transition={{ duration: 0.5 }}
                 onClick={() => setDestination(active.name)}
                 className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-xl"
               >
-                <img src={active.image} alt={active.name} className="absolute inset-0 h-full w-full object-cover" />
+                <img src={active.image} className="absolute inset-0 h-full w-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/25 to-transparent" />
                 <div className="absolute bottom-0 p-5 text-white">
                   <div className="flex items-center gap-2">
@@ -195,8 +199,7 @@ export default function TravelScreen() {
               className="w-full h-12 rounded-2xl 
                 bg-gradient-to-r from-indigo-400 via-blue-400 to-violet-400
                 hover:from-indigo-500 hover:via-blue-500 hover:to-violet-500
-                text-white font-medium tracking-wide
-                shadow-lg transition-all disabled:opacity-50"
+                text-white font-medium transition-all disabled:opacity-50"
             >
               {!showDates ? "Pick your travel dates" : canProceed ? "Continue your journey" : "Almost there…"}
             </Button>
