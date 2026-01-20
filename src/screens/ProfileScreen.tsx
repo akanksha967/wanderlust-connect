@@ -122,13 +122,16 @@ const ProfileScreen = () => {
 
       {/* Card */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, scale: 0.96, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
         className="relative z-10 w-full max-w-md px-4"
       >
-        <div className="rounded-[28px] bg-white/15 backdrop-blur-xl border border-white/20 shadow-2xl p-5">
-          <h1 className="text-lg font-semibold text-white text-center">Create Profile</h1>
-          <p className="text-xs text-white/70 text-center mb-5">Step 1 of 2</p>
+        <div className="rounded-[32px] bg-white/30 backdrop-blur-2xl border border-white/40 shadow-[0_30px_80px_rgba(0,0,0,0.25)] p-6">
+          <div className="text-center space-y-1 mb-5">
+            <h1 className="font-serif text-2xl">Create Profile</h1>
+            <p className="text-sm text-muted-foreground">Step 1 of 2</p>
+          </div>
 
           {/* Photos */}
           <div className="flex justify-center gap-3 mb-5">
