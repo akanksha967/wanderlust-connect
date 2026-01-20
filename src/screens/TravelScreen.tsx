@@ -48,7 +48,7 @@ export default function TravelScreen() {
   const [showDates, setShowDates] = useState(false);
   const [index, setIndex] = useState(0);
 
-  const active = DESTINATIONS[index];
+  const active = DESTINATIONS[index] || DESTINATIONS[0];
   const canProceed = destination && startDate && endDate;
 
   /* ---- AUTO SLIDE DESTINATION ---- */
