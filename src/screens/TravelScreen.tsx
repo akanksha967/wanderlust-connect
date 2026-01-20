@@ -61,25 +61,14 @@ export default function TravelScreen() {
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden">
       {/* ---------- FULLSCREEN NATURE BACKGROUND (FIXED) ---------- */}
-      <div className="fixed inset-0 -z-10">
-        {/* Actual nature image */}
-        <img
-          src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1920&q=95"
-          alt="Nature background"
-          className="h-full w-full object-cover scale-105"
-        />
-
-        {/* Soft blue–lavender tint (LOW opacity) */}
-        <div
-          className="absolute inset-0 bg-gradient-to-br 
-          from-[hsl(215,80%,92%)]/35 
-          via-[hsl(235,70%,88%)]/30 
-          to-[hsl(260,65%,90%)]/35"
-        />
-
-        {/* Depth vignette */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
-      </div>
+      <div
+        className="fixed inset-0 bg-cover bg-center"
+        style={{
+          backgroundImage: "url('https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=1920&q=80')",
+        }}
+      />
+      <div className="fixed inset-0 bg-gradient-to-br from-sky-400/40 via-indigo-400/30 to-violet-500/40" />
+      <div className="fixed inset-0 backdrop-blur-sm" />
 
       {/* ---------- BACK BUTTON ---------- */}
       <motion.button
