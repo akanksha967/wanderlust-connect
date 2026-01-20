@@ -163,7 +163,7 @@ const ProfileScreen = () => {
               onBlur={() => setFocused(null)}
               onChange={(e) => setName(e.target.value)}
               placeholder="First name"
-              className={`h-11 rounded-full bg-white/20 border-white/25 text-white placeholder:text-white/50 ${
+              className={`h-12 rounded-2xl bg-white/40 border-white/30 text-gray-900 placeholder:text-gray-500 ${
                 focused === "name" ? glow : ""
               }`}
             />
@@ -174,7 +174,7 @@ const ProfileScreen = () => {
               onBlur={() => setFocused(null)}
               onChange={(e) => setAge(e.target.value)}
               placeholder="Age"
-              className={`h-11 rounded-full bg-white/20 border-white/25 text-white placeholder:text-white/50 appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
+              className={`h-12 rounded-2xl bg-white/40 border-white/30 text-gray-900 placeholder:text-gray-500 appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
                 focused === "age" ? glow : ""
               }`}
             />
@@ -186,7 +186,7 @@ const ProfileScreen = () => {
             onBlur={() => setFocused(null)}
             onChange={(e) => setBio(e.target.value)}
             placeholder="Solo traveler heading to Bali..."
-            className={`w-full h-20 p-4 rounded-2xl bg-white/20 border border-white/25 text-white placeholder:text-white/50 resize-none mb-4 transition-shadow ${
+            className={`w-full h-20 p-4 rounded-2xl bg-white/40 border border-white/30 text-gray-900 placeholder:text-gray-500 resize-none mb-4 transition-shadow ${
               focused === "bio" ? glow : ""
             }`}
           />
@@ -213,13 +213,12 @@ const ProfileScreen = () => {
           <Button
             disabled={!isValid}
             onClick={handleContinue}
-            className={`w-full h-12 rounded-full font-semibold transition-all ${
-              isValid
-                ? "bg-gradient-to-r from-sky-400 via-indigo-400 to-violet-400 text-white shadow-[0_0_24px_-6px_rgba(147,197,253,0.8)] hover:shadow-[0_0_32px_-6px_rgba(147,197,253,1)]"
-                : "bg-white/20 text-white/40"
-            }`}
+            className="w-full h-12 rounded-2xl 
+              bg-gradient-to-r from-indigo-400 via-blue-400 to-violet-400
+              hover:from-indigo-500 hover:via-blue-500 hover:to-violet-500
+              text-white font-medium transition-all disabled:opacity-50"
           >
-            <span className="drop-shadow-[0_0_6px_rgba(186,230,253,0.9)]">Continue</span>
+            Continue
           </Button>
         </div>
       </motion.div>
