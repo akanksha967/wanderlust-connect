@@ -93,9 +93,9 @@ export default function TravelScreen() {
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="w-full max-w-md 
             rounded-[32px] 
-            bg-white/70 
+            bg-white/30 
             backdrop-blur-2xl 
-            border border-white/50 
+            border border-white/40 
             shadow-[0_30px_80px_rgba(0,0,0,0.25)]"
         >
           <div className="p-6 space-y-5">

@@ -127,7 +127,7 @@ const ProfileScreen = () => {
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="relative z-10 w-full max-w-md px-4"
       >
-        <div className="rounded-[32px] bg-white/70 backdrop-blur-2xl border border-white/50 shadow-[0_30px_80px_rgba(0,0,0,0.25)] p-6">
+        <div className="rounded-[32px] bg-white/30 backdrop-blur-2xl border border-white/40 shadow-[0_30px_80px_rgba(0,0,0,0.25)] p-6">
           <div className="text-center space-y-1 mb-5">
             <h1 className="font-serif text-2xl">Create Profile</h1>
             <p className="text-sm text-muted-foreground">Step 1 of 2</p>
