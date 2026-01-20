@@ -1,53 +1,86 @@
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, MapPin } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
+import { useGoogleMapsKey } from "@/hooks/useGoogleMapsKey";
+import GoogleMapsDestinationPicker from "@/components/GoogleMapsDestinationPicker";
 
-/* ---------- IMAGE POOL ---------- */
-const IMAGE_POOL = [
-  "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
-  "https://images.unsplash.com/photo-1501785888041-af3ef285b470",
-  "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
-  "https://images.unsplash.com/photo-1469474968028-56623f02e42e",
-  "https://images.unsplash.com/photo-1470770841072-f978cf4d019e",
-  "https://images.unsplash.com/photo-1491553895911-0055eca6402d",
-];
+/* ---------------- DESTINATIONS ---------------- */
 
 const DESTINATIONS = [
-  { name: "Bali", country: "Indonesia" },
-  { name: "Tokyo", country: "Japan" },
-  { name: "Paris", country: "France" },
-  { name: "Santorini", country: "Greece" },
-  { name: "New York", country: "USA" },
-  { name: "Swiss Alps", country: "Switzerland" },
+  {
+    name: "Bali",
+    country: "Indonesia",
+    images: [
+      "https://images.unsplash.com/photo-1537996194471-e657df975ab4",
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
+    ],
+  },
+  {
+    name: "Tokyo",
+    country: "Japan",
+    images: [
+      "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf",
+      "https://images.unsplash.com/photo-1491884662610-dfcd28f30cf1",
+    ],
+  },
+  {
+    name: "Paris",
+    country: "France",
+    images: [
+      "https://images.unsplash.com/photo-1502602898657-3e91760cbb34",
+      "https://images.unsplash.com/photo-1522098543979-ffc7f79d8f8a",
+    ],
+  },
+  {
+    name: "Swiss Alps",
+    country: "Switzerland",
+    images: [
+      "https://images.unsplash.com/photo-1501785888041-af3ef285b470",
+      "https://images.unsplash.com/photo-1470770841072-f978cf4d019e",
+    ],
+  },
 ];
 
-/* ---------- COMPONENT ---------- */
+/* ---------------- COMPONENT ---------------- */
+
 export default function TravelScreen() {
   const { setScreen, setTravelDetails } = useAppStore();
+  const { apiKey, loading } = useGoogleMapsKey();
 
   const [destination, setDestination] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [showDates, setShowDates] = useState(false);
 
-  // each card has its own image index
-  const [images, setImages] = useState(
-    DESTINATIONS.map(() => IMAGE_POOL[Math.floor(Math.random() * IMAGE_POOL.length)]),
-  );
+  const [index, setIndex] = useState(0);
+  const [imageIndex, setImageIndex] = useState(0);
 
-  /* ---------- AUTO IMAGE SWAP ---------- */
+  const active = DESTINATIONS[index];
+
+  /* ---- AUTO SWIPE DESTINATIONS ---- */
   useEffect(() => {
-    const interval = setInterval(() => {
-      setImages((prev) => prev.map(() => IMAGE_POOL[Math.floor(Math.random() * IMAGE_POOL.length)]));
-    }, 4500);
+    const slideTimer = setInterval(() => {
+      setIndex((i) => (i + 1) % DESTINATIONS.length);
+      setImageIndex(0);
+    }, 5000);
 
-    return () => clearInterval(interval);
+    return () => clearInterval(slideTimer);
   }, []);
 
+  /* ---- AUTO SWAP IMAGE IN CARD ---- */
+  useEffect(() => {
+    const imageTimer = setInterval(() => {
+      setImageIndex((i) => (i + 1) % active.images.length);
+    }, 2500);
+
+    return () => clearInterval(imageTimer);
+  }, [active]);
+
   return (
-    <div className="relative min-h-screen overflow-x-hidden">
+    <div className="relative min-h-screen">
       {/* ---------- BACKGROUND ---------- */}
       <div className="fixed inset-0 -z-10">
         <img
@@ -67,50 +100,76 @@ export default function TravelScreen() {
         </button>
       </header>
 
-      {/* ---------- TEXT (NOT OVER ARROW) ---------- */}
-      <div className="px-4 mb-4">
+      {/* ---------- TEXT ---------- */}
+      <div className="px-4 mb-3">
         <p className="text-black text-sm font-medium">Find your perfect travel companion</p>
       </div>
 
-      {/* ---------- SEARCH BAR ---------- */}
-      <div className="px-4 mb-6 relative">
-        <Input
-          placeholder="Where to next?"
-          value={destination}
-          onChange={(e) => setDestination(e.target.value)}
-          className="h-12 rounded-full bg-white/80 pl-5 pr-16 text-sm"
-        />
-        <Calendar className="absolute right-8 top-1/2 -translate-y-1/2 text-black" />
+      {/* ---------- SEARCH + CALENDAR ---------- */}
+      <div className="px-4 mb-4 relative z-20">
+        {loading ? (
+          <Input disabled placeholder="Loading…" />
+        ) : apiKey ? (
+          <GoogleMapsDestinationPicker apiKey={apiKey} value={destination} onChange={setDestination} />
+        ) : (
+          <div className="relative">
+            <Input
+              placeholder="Where to next?"
+              value={destination}
+              onChange={(e) => setDestination(e.target.value)}
+              className="h-12 rounded-full bg-white/80 pl-5 pr-16"
+            />
+            <button onClick={() => setShowDates((v) => !v)} className="absolute right-4 top-1/2 -translate-y-1/2">
+              <Calendar className="text-black" />
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* ---------- IMAGE GRID (3 IN LINE) ---------- */}
-      <div className="px-4 grid grid-cols-3 gap-4 pb-32">
-        {DESTINATIONS.map((d, i) => (
-          <motion.button
-            key={d.name}
-            onClick={() => setDestination(d.name)}
-            whileHover={{ y: -6 }}
-            className="relative h-[240px] rounded-2xl overflow-hidden shadow-xl"
+      {/* ---------- DATE PICKER ---------- */}
+      {showDates && (
+        <div className="px-4 mb-6">
+          <div className="bg-white/80 rounded-2xl p-4 grid grid-cols-2 gap-3">
+            <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+            <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+          </div>
+        </div>
+      )}
+
+      {/* ---------- ONE ROW AUTO-SWIPING CARD ---------- */}
+      <div className="px-4 overflow-hidden">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={index}
+            initial={{ x: 300, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: -300, opacity: 0 }}
+            transition={{ duration: 0.6, ease: "easeInOut" }}
+            className="relative h-[280px] rounded-3xl overflow-hidden shadow-2xl"
+            onClick={() => setDestination(active.name)}
           >
-            <motion.img
-              key={images[i]}
-              src={`${images[i]}?w=800&q=85`}
-              className="absolute inset-0 h-full w-full object-cover"
-              initial={{ opacity: 0.4 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6 }}
-            />
+            <AnimatePresence mode="wait">
+              <motion.img
+                key={imageIndex}
+                src={`${active.images[imageIndex]}?w=1200&q=85`}
+                className="absolute inset-0 h-full w-full object-cover"
+                initial={{ opacity: 0.4 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5 }}
+              />
+            </AnimatePresence>
 
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 
-            <div className="absolute bottom-3 left-3 text-left">
-              <p className="text-white text-sm font-semibold flex items-center gap-1">
-                <MapPin size={14} /> {d.name}
+            <div className="absolute bottom-4 left-4 text-white">
+              <p className="text-lg font-semibold flex items-center gap-1">
+                <MapPin size={16} /> {active.name}
               </p>
-              <p className="text-white/70 text-xs">{d.country}</p>
+              <p className="text-sm opacity-80">{active.country}</p>
             </div>
-          </motion.button>
-        ))}
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       {/* ---------- CTA ---------- */}
