@@ -180,6 +180,7 @@ export default function TravelScreen() {
               onClick={() => {
                 if (canProceed) {
                   setTravelDetails({ destination, startDate, endDate });
+                  setScreen("swipe");
                 } else if (!showDates) {
                   setShowDates(true);
                 }
