@@ -40,7 +40,7 @@ const DESTINATIONS = [
 /* ---------------- COMPONENT ---------------- */
 
 export default function TravelScreen() {
-  const { setScreen, setTravelDetails } = useAppStore();
+  const { setScreen, setTravelDetails, hasCompletedProfile } = useAppStore();
   const { apiKey, loading } = useGoogleMapsKey();
   const { saveTravelPlan, saving } = useProfileSave();
 
@@ -76,7 +76,7 @@ export default function TravelScreen() {
       <motion.button
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        onClick={() => setScreen("profile")}
+        onClick={() => setScreen(hasCompletedProfile ? "account" : "profile")}
         className="absolute top-6 left-6 z-50 
           h-11 w-11 rounded-full 
           bg-white/40 backdrop-blur-md 
@@ -84,7 +84,7 @@ export default function TravelScreen() {
           flex items-center justify-center
           shadow-lg"
       >
-        <ArrowLeft className="h-5 w-5" />
+        <ArrowLeft className="h-5 w-5 text-white" />
       </motion.button>
 
       {/* ---------- CENTERED GLASS BOX ---------- */}
