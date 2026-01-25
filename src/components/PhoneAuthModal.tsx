@@ -77,44 +77,44 @@ const PhoneAuthModal = ({ isOpen, onClose, onSuccess }: PhoneAuthModalProps) => 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/50 backdrop-blur-sm p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
           onClick={handleClose}
         >
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
+            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.95, opacity: 0, y: 20 }}
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-sm bg-background rounded-3xl p-6 shadow-elegant"
+            className="w-full max-w-sm bg-white/30 backdrop-blur-2xl rounded-[24px] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.2)] border border-white/40"
           >
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl gradient-accent flex items-center justify-center">
-                  <Phone className="w-5 h-5 text-accent-foreground" />
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-indigo-400 to-blue-400 flex items-center justify-center shadow-lg">
+                  <Phone className="w-5 h-5 text-white" />
                 </div>
-                <h2 className="text-lg font-display text-foreground">
+                <h2 className="text-lg font-serif text-foreground drop-shadow-sm">
                   {step === 'phone' ? 'Enter Phone' : 'Verify OTP'}
                 </h2>
               </div>
               <button
                 onClick={handleClose}
-                className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center"
+                className="w-8 h-8 rounded-full bg-white/40 backdrop-blur-md border border-white/30 flex items-center justify-center hover:bg-white/60 transition-all"
               >
-                <X className="w-4 h-4 text-muted-foreground" />
+                <X className="w-4 h-4 text-foreground/70" />
               </button>
             </div>
 
             {step === 'phone' ? (
               <div className="space-y-4">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-foreground/70">
                   We'll send you a verification code to confirm your number.
                 </p>
                 <div className="flex gap-2">
                   <Select value={countryCode} onValueChange={setCountryCode}>
-                    <SelectTrigger className="w-24 h-12 rounded-xl bg-secondary border-0">
+                    <SelectTrigger className="w-24 h-12 rounded-xl bg-white/40 border border-white/30 text-gray-900">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white/90 backdrop-blur-xl border border-white/40">
                       {countryCodes.map((c) => (
                         <SelectItem key={c.code} value={c.code}>
                           {c.code} {c.country}
@@ -127,13 +127,11 @@ const PhoneAuthModal = ({ isOpen, onClose, onSuccess }: PhoneAuthModalProps) => 
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="Phone number"
-                    className="h-12 rounded-xl bg-secondary border-0 flex-1"
+                    className="h-12 rounded-xl bg-white/40 border border-white/30 flex-1 text-gray-900 placeholder:text-foreground/40"
                   />
                 </div>
                 <Button
-                  variant="accent"
-                  size="lg"
-                  className="w-full"
+                  className="w-full h-12 rounded-2xl bg-gradient-to-r from-indigo-400 via-blue-400 to-sky-400 hover:from-indigo-500 hover:via-blue-500 hover:to-sky-500 text-white font-medium shadow-lg transition-all hover:scale-[1.02]"
                   onClick={handleSendOtp}
                   disabled={!phone || loading}
                 >
@@ -143,7 +141,7 @@ const PhoneAuthModal = ({ isOpen, onClose, onSuccess }: PhoneAuthModalProps) => 
               </div>
             ) : (
               <div className="space-y-4">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-foreground/70">
                   Enter the 6-digit code sent to {fullPhoneNumber}
                 </p>
                 <div className="flex justify-center">
@@ -152,20 +150,18 @@ const PhoneAuthModal = ({ isOpen, onClose, onSuccess }: PhoneAuthModalProps) => 
                     value={otp}
                     onChange={setOtp}
                   >
-                    <InputOTPGroup>
-                      <InputOTPSlot index={0} />
-                      <InputOTPSlot index={1} />
-                      <InputOTPSlot index={2} />
-                      <InputOTPSlot index={3} />
-                      <InputOTPSlot index={4} />
-                      <InputOTPSlot index={5} />
+                    <InputOTPGroup className="gap-2">
+                      <InputOTPSlot index={0} className="bg-white/40 border-white/30 text-gray-900 rounded-lg" />
+                      <InputOTPSlot index={1} className="bg-white/40 border-white/30 text-gray-900 rounded-lg" />
+                      <InputOTPSlot index={2} className="bg-white/40 border-white/30 text-gray-900 rounded-lg" />
+                      <InputOTPSlot index={3} className="bg-white/40 border-white/30 text-gray-900 rounded-lg" />
+                      <InputOTPSlot index={4} className="bg-white/40 border-white/30 text-gray-900 rounded-lg" />
+                      <InputOTPSlot index={5} className="bg-white/40 border-white/30 text-gray-900 rounded-lg" />
                     </InputOTPGroup>
                   </InputOTP>
                 </div>
                 <Button
-                  variant="accent"
-                  size="lg"
-                  className="w-full"
+                  className="w-full h-12 rounded-2xl bg-gradient-to-r from-indigo-400 via-blue-400 to-sky-400 hover:from-indigo-500 hover:via-blue-500 hover:to-sky-500 text-white font-medium shadow-lg transition-all hover:scale-[1.02]"
                   onClick={handleVerifyOtp}
                   disabled={otp.length !== 6 || loading}
                 >
@@ -173,7 +169,7 @@ const PhoneAuthModal = ({ isOpen, onClose, onSuccess }: PhoneAuthModalProps) => 
                 </Button>
                 <button
                   onClick={() => setStep('phone')}
-                  className="w-full text-sm text-accent hover:underline"
+                  className="w-full text-sm text-indigo-600 hover:underline"
                 >
                   Change phone number
                 </button>

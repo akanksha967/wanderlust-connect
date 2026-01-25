@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import PhoneAuthModal from "@/components/PhoneAuthModal";
 import EmailAuthModal from "@/components/EmailAuthModal";
 import PrivacyPolicyModal from "@/components/PrivacyPolicyModal";
-import { Shield, Phone, Mail, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
+import { Shield, Phone, Mail, MapPin } from "lucide-react";
 
 /* ---------------- DESTINATIONS ---------------- */
 const DESTINATIONS = [
@@ -50,29 +50,17 @@ const LoginScreen = () => {
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showPolicyModal, setShowPolicyModal] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [direction, setDirection] = useState(0);
 
   const handlePhoneSuccess = () => setScreen("profile");
   const handleEmailSuccess = () => setScreen("profile");
 
-  // Auto-cycle destinations
+  // Auto-cycle destinations (right to left, one direction)
   useEffect(() => {
     const timer = setInterval(() => {
-      setDirection(1);
       setActiveIndex((i) => (i + 1) % DESTINATIONS.length);
-    }, 5000);
+    }, 4000);
     return () => clearInterval(timer);
   }, []);
-
-  const goToPrev = () => {
-    setDirection(-1);
-    setActiveIndex((i) => (i - 1 + DESTINATIONS.length) % DESTINATIONS.length);
-  };
-
-  const goToNext = () => {
-    setDirection(1);
-    setActiveIndex((i) => (i + 1) % DESTINATIONS.length);
-  };
 
   const getCardIndex = (offset: number) => {
     return (activeIndex + offset + DESTINATIONS.length) % DESTINATIONS.length;
@@ -80,18 +68,18 @@ const LoginScreen = () => {
 
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden">
-      {/* ---------- DYNAMIC BACKGROUND (syncs with active card) ---------- */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={activeIndex}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.8 }}
-          className="fixed inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url('${DESTINATIONS[activeIndex].image}')` }}
+      {/* ---------- DYNAMIC BACKGROUND (instant, no delay) ---------- */}
+      {DESTINATIONS.map((dest, i) => (
+        <div
+          key={i}
+          className="fixed inset-0 bg-cover bg-center transition-opacity duration-700"
+          style={{ 
+            backgroundImage: `url('${dest.image}')`,
+            opacity: i === activeIndex ? 1 : 0,
+            zIndex: i === activeIndex ? 0 : -1
+          }}
         />
-      </AnimatePresence>
+      ))}
       <div className="fixed inset-0 bg-gradient-to-br from-sky-400/50 via-indigo-400/40 to-violet-500/50" />
       <div className="fixed inset-0 backdrop-blur-md" />
 
@@ -118,86 +106,67 @@ const LoginScreen = () => {
               className="text-center flex-shrink-0"
             >
               <h1 className="font-serif text-2xl text-foreground drop-shadow-md">RoamMate</h1>
-              <p className="text-xs text-foreground/70 mt-0.5">Travel is better with the right company</p>
+              <p className="text-xs text-foreground/70 mt-1">Travel is better with the right company</p>
             </motion.div>
 
-            {/* ---------- CAROUSEL SECTION ---------- */}
-            <div className="relative flex-1 min-h-0 flex items-center justify-center">
-              {/* Navigation Arrows */}
-              <button 
-                onClick={goToPrev}
-                className="absolute left-0 z-20 p-1.5 rounded-full bg-white/40 backdrop-blur-md border border-white/30 shadow-lg hover:bg-white/60 transition-all"
-              >
-                <ChevronLeft className="w-4 h-4 text-foreground" />
-              </button>
-              <button 
-                onClick={goToNext}
-                className="absolute right-0 z-20 p-1.5 rounded-full bg-white/40 backdrop-blur-md border border-white/30 shadow-lg hover:bg-white/60 transition-all"
-              >
-                <ChevronRight className="w-4 h-4 text-foreground" />
-              </button>
-
+            {/* ---------- CAROUSEL SECTION (smooth right-to-left) ---------- */}
+            <div className="relative flex-1 min-h-0 flex items-center justify-center overflow-hidden">
               {/* Cards Container */}
-              <div className="relative w-full h-full flex items-center justify-center overflow-hidden px-8">
+              <div className="relative w-full h-full flex items-center justify-center">
                 {/* Left Card (previous) */}
                 <motion.div
                   key={`left-${getCardIndex(-1)}`}
-                  initial={{ x: direction > 0 ? -100 : 0, opacity: 0.5, scale: 0.75 }}
-                  animate={{ x: 0, opacity: 0.5, scale: 0.75 }}
-                  transition={{ duration: 0.4 }}
-                  className="absolute left-2 w-[45%] aspect-[3/4] rounded-xl overflow-hidden shadow-lg blur-[1px]"
-                  style={{ zIndex: 1 }}
+                  animate={{ opacity: 0.4, scale: 0.7, x: "-55%" }}
+                  transition={{ duration: 0.6, ease: "easeInOut" }}
+                  className="absolute w-[50%] aspect-[4/5] rounded-xl overflow-hidden shadow-lg"
+                  style={{ zIndex: 1, filter: "blur(2px)" }}
                 >
                   <img 
                     src={DESTINATIONS[getCardIndex(-1)].image} 
                     alt={DESTINATIONS[getCardIndex(-1)].name}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-black/30" />
+                  <div className="absolute inset-0 bg-black/40" />
                 </motion.div>
 
                 {/* Center Card (active) */}
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={`center-${activeIndex}`}
-                    initial={{ x: direction * 80, opacity: 0, scale: 0.85 }}
-                    animate={{ x: 0, opacity: 1, scale: 1 }}
-                    exit={{ x: direction * -80, opacity: 0, scale: 0.85 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
-                    className="relative w-[70%] aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl z-10"
-                  >
-                    <img 
-                      src={DESTINATIONS[activeIndex].image} 
-                      alt={DESTINATIONS[activeIndex].name}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
-                      <div className="flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5" />
-                        <span className="font-serif text-base">{DESTINATIONS[activeIndex].name}</span>
-                      </div>
-                      <p className="text-xs opacity-80">{DESTINATIONS[activeIndex].country}</p>
-                      <p className="text-[10px] opacity-60 italic mt-0.5">{DESTINATIONS[activeIndex].tagline}</p>
+                <motion.div
+                  key={`center-${activeIndex}`}
+                  initial={{ x: "60%", opacity: 0.5, scale: 0.8 }}
+                  animate={{ x: 0, opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.6, ease: "easeInOut" }}
+                  className="relative w-[65%] aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl z-10"
+                >
+                  <img 
+                    src={DESTINATIONS[activeIndex].image} 
+                    alt={DESTINATIONS[activeIndex].name}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
+                    <div className="flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5" />
+                      <span className="font-serif text-base">{DESTINATIONS[activeIndex].name}</span>
                     </div>
-                  </motion.div>
-                </AnimatePresence>
+                    <p className="text-xs opacity-80">{DESTINATIONS[activeIndex].country}</p>
+                    <p className="text-[10px] opacity-60 italic mt-0.5">{DESTINATIONS[activeIndex].tagline}</p>
+                  </div>
+                </motion.div>
 
                 {/* Right Card (next) */}
                 <motion.div
                   key={`right-${getCardIndex(1)}`}
-                  initial={{ x: direction < 0 ? 100 : 0, opacity: 0.5, scale: 0.75 }}
-                  animate={{ x: 0, opacity: 0.5, scale: 0.75 }}
-                  transition={{ duration: 0.4 }}
-                  className="absolute right-2 w-[45%] aspect-[3/4] rounded-xl overflow-hidden shadow-lg blur-[1px]"
-                  style={{ zIndex: 1 }}
+                  animate={{ opacity: 0.4, scale: 0.7, x: "55%" }}
+                  transition={{ duration: 0.6, ease: "easeInOut" }}
+                  className="absolute w-[50%] aspect-[4/5] rounded-xl overflow-hidden shadow-lg"
+                  style={{ zIndex: 1, filter: "blur(2px)" }}
                 >
                   <img 
                     src={DESTINATIONS[getCardIndex(1)].image} 
                     alt={DESTINATIONS[getCardIndex(1)].name}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-black/30" />
+                  <div className="absolute inset-0 bg-black/40" />
                 </motion.div>
               </div>
             </div>
@@ -205,27 +174,21 @@ const LoginScreen = () => {
             {/* ---------- CAROUSEL DOTS ---------- */}
             <div className="flex justify-center gap-1.5 flex-shrink-0">
               {DESTINATIONS.map((_, i) => (
-                <button
+                <div
                   key={i}
-                  onClick={() => {
-                    setDirection(i > activeIndex ? 1 : -1);
-                    setActiveIndex(i);
-                  }}
-                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                  className={`h-1.5 rounded-full transition-all duration-500 ${
                     i === activeIndex 
                       ? "bg-white w-4" 
-                      : "bg-white/40 hover:bg-white/60"
+                      : "bg-white/40 w-1.5"
                   }`}
                 />
               ))}
             </div>
 
-            {/* ---------- TRUST BADGE ---------- */}
-            <div className="flex justify-center flex-shrink-0">
-              <div className="flex items-center gap-1.5 bg-white/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/40">
-                <Shield className="w-3.5 h-3.5 text-indigo-600" />
-                <span className="text-xs text-foreground/80 font-medium">Verified profiles</span>
-              </div>
+            {/* ---------- VERIFIED TEXT (simple) ---------- */}
+            <div className="flex justify-center items-center gap-1.5 flex-shrink-0">
+              <Shield className="w-3.5 h-3.5 text-indigo-500" />
+              <span className="text-xs text-foreground/70">Verified profiles only</span>
             </div>
 
             {/* ---------- AUTH BUTTONS ---------- */}
