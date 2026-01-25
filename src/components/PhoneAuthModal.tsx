@@ -92,7 +92,7 @@ const PhoneAuthModal = ({ isOpen, onClose, onSuccess }: PhoneAuthModalProps) => 
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-indigo-400 to-blue-400 flex items-center justify-center shadow-lg">
                   <Phone className="w-5 h-5 text-white" />
                 </div>
-                <h2 className="text-lg font-serif text-foreground drop-shadow-sm">
+                <h2 className="text-lg font-serif text-gray-900">
                   {step === 'phone' ? 'Enter Phone' : 'Verify OTP'}
                 </h2>
               </div>
@@ -106,7 +106,7 @@ const PhoneAuthModal = ({ isOpen, onClose, onSuccess }: PhoneAuthModalProps) => 
 
             {step === 'phone' ? (
               <div className="space-y-4">
-                <p className="text-sm text-foreground/70">
+                <p className="text-sm text-gray-700">
                   We'll send you a verification code to confirm your number.
                 </p>
                 <div className="flex gap-2">
@@ -141,7 +141,7 @@ const PhoneAuthModal = ({ isOpen, onClose, onSuccess }: PhoneAuthModalProps) => 
               </div>
             ) : (
               <div className="space-y-4">
-                <p className="text-sm text-foreground/70">
+                <p className="text-sm text-gray-700">
                   Enter the 6-digit code sent to {fullPhoneNumber}
                 </p>
                 <div className="flex justify-center">

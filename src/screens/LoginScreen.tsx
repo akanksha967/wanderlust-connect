@@ -135,7 +135,7 @@ const LoginScreen = () => {
                   initial={{ x: "60%", opacity: 0.5, scale: 0.8 }}
                   animate={{ x: 0, opacity: 1, scale: 1 }}
                   transition={{ duration: 0.6, ease: "easeInOut" }}
-                  className="relative w-[65%] aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl z-10"
+                  className="relative w-[65%] aspect-[4/5] rounded-[24px] overflow-hidden shadow-2xl z-10"
                 >
                   <img 
                     src={DESTINATIONS[activeIndex].image} 
@@ -169,20 +169,6 @@ const LoginScreen = () => {
                   <div className="absolute inset-0 bg-black/40" />
                 </motion.div>
               </div>
-            </div>
-
-            {/* ---------- CAROUSEL DOTS ---------- */}
-            <div className="flex justify-center gap-1.5 flex-shrink-0">
-              {DESTINATIONS.map((_, i) => (
-                <div
-                  key={i}
-                  className={`h-1.5 rounded-full transition-all duration-500 ${
-                    i === activeIndex 
-                      ? "bg-white w-4" 
-                      : "bg-white/40 w-1.5"
-                  }`}
-                />
-              ))}
             </div>
 
             {/* ---------- VERIFIED TEXT (simple) ---------- */}
