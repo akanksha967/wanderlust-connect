@@ -238,7 +238,7 @@ const SwipeScreen = () => {
           onClick={() => setScreen('account')}
           className="w-11 h-11 flex items-center justify-center rounded-full bg-white/40 backdrop-blur-md border border-white/30 shadow-lg transition-all hover:bg-white/50 active:scale-95"
         >
-          <User className="w-5 h-5 text-foreground" />
+          <User className="w-5 h-5 text-gray-800" />
         </button>
         
         <motion.div 
@@ -246,7 +246,7 @@ const SwipeScreen = () => {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <h1 className="text-xl font-display text-foreground">
+          <h1 className="text-xl font-display text-white drop-shadow-md">
             {destination || 'Discover'}
           </h1>
         </motion.div>
@@ -255,7 +255,7 @@ const SwipeScreen = () => {
           onClick={() => setScreen('matches')}
           className="w-11 h-11 flex items-center justify-center rounded-full bg-white/40 backdrop-blur-md border border-white/30 shadow-lg transition-all hover:bg-white/50 active:scale-95"
         >
-          <MessageCircle className="w-5 h-5 text-foreground" />
+          <MessageCircle className="w-5 h-5 text-gray-800" />
         </button>
       </div>
 
@@ -270,9 +270,9 @@ const SwipeScreen = () => {
                 className="flex flex-col items-center justify-center h-full"
               >
                 <div className="w-20 h-20 rounded-full bg-white/30 backdrop-blur-xl border border-white/40 flex items-center justify-center mb-4 shadow-lg">
-                  <Loader2 className="w-10 h-10 text-foreground animate-spin" />
+                  <Loader2 className="w-10 h-10 text-gray-800 animate-spin" />
                 </div>
-                <p className="text-sm text-muted-foreground">Finding travelers...</p>
+                <p className="text-sm text-white/80 drop-shadow">Finding travelers...</p>
               </motion.div>
             ) : remainingProfiles.length > 0 ? (
               remainingProfiles.slice(0, 2).reverse().map((profile, index) => (
@@ -294,10 +294,10 @@ const SwipeScreen = () => {
                 <div className="w-20 h-20 rounded-full bg-gradient-to-r from-indigo-400 via-blue-400 to-violet-400 flex items-center justify-center mb-4 shadow-lg">
                   <MapPin className="w-10 h-10 text-white" />
                 </div>
-                <h3 className="text-xl font-display text-foreground mb-2">
+                <h3 className="text-xl font-display text-white drop-shadow-md mb-2">
                   No more travelers
                 </h3>
-                <p className="text-sm text-muted-foreground max-w-xs">
+                <p className="text-sm text-white/80 max-w-xs drop-shadow">
                   Check back later or adjust your travel dates to find more companions
                 </p>
               </motion.div>
