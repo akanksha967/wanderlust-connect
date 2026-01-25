@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calendar, MapPin } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Loader2 } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
 import { useGoogleMapsKey } from "@/hooks/useGoogleMapsKey";
 import GoogleMapsDestinationPicker from "@/components/GoogleMapsDestinationPicker";
+import { useProfileSave } from "@/hooks/useProfileSave";
 
 /* ---------------- DESTINATIONS ---------------- */
 
@@ -41,6 +42,7 @@ const DESTINATIONS = [
 export default function TravelScreen() {
   const { setScreen, setTravelDetails } = useAppStore();
   const { apiKey, loading } = useGoogleMapsKey();
+  const { saveTravelPlan, saving } = useProfileSave();
 
   const [destination, setDestination] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -177,21 +179,24 @@ export default function TravelScreen() {
 
             {/* ---------- CTA ---------- */}
             <Button
-              onClick={() => {
-                if (canProceed) {
-                  setTravelDetails({ destination, startDate, endDate });
-                  setScreen("swipe");
+              onClick={async () => {
+                if (canProceed && !saving) {
+                  const success = await saveTravelPlan({ destination, startDate, endDate });
+                  if (success) {
+                    setTravelDetails({ destination, startDate, endDate });
+                    setScreen("swipe");
+                  }
                 } else if (!showDates) {
                   setShowDates(true);
                 }
               }}
-              disabled={showDates && !canProceed}
+              disabled={(showDates && !canProceed) || saving}
               className="w-full h-12 rounded-2xl 
                 bg-gradient-to-r from-indigo-400 via-blue-400 to-violet-400
                 hover:from-indigo-500 hover:via-blue-500 hover:to-violet-500
                 text-white font-medium transition-all disabled:opacity-50"
             >
-              {!showDates ? "Pick your travel dates" : canProceed ? "Continue your journey" : "Almost there…"}
+              {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : !showDates ? "Pick your travel dates" : canProceed ? "Continue your journey" : "Almost there…"}
             </Button>
           </div>
         </motion.div>
