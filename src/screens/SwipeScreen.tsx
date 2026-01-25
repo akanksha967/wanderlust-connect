@@ -229,7 +229,7 @@ const SwipeScreen = () => {
         className="absolute inset-0 bg-cover bg-center"
         style={{ backgroundImage: `url(${bgImage})` }}
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-sky-500/50 via-blue-500/40 to-indigo-600/50" />
+      <div className="absolute inset-0 bg-gradient-to-b from-sky-400/30 via-blue-400/25 to-indigo-500/30" />
       <div className="absolute inset-0 backdrop-blur-[2px]" />
 
       {/* Header */}

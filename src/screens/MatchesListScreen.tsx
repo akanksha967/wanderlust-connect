@@ -17,7 +17,7 @@ const MatchesListScreen = () => {
         className="fixed inset-0 bg-cover bg-center"
         style={{ backgroundImage: `url(https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&auto=format&fit=crop)` }}
       />
-      <div className="fixed inset-0 bg-gradient-to-b from-sky-500/50 via-blue-500/40 to-indigo-600/50" />
+      <div className="fixed inset-0 bg-gradient-to-b from-sky-400/30 via-blue-400/25 to-indigo-500/30" />
       <div className="fixed inset-0 backdrop-blur-[2px]" />
 
       {/* Header */}
