@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import PhoneAuthModal from "@/components/PhoneAuthModal";
 import EmailAuthModal from "@/components/EmailAuthModal";
 import PrivacyPolicyModal from "@/components/PrivacyPolicyModal";
-import { Shield, Phone, Mail, MapPin } from "lucide-react";
+import { Shield, Phone, Mail, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
 
 /* ---------------- DESTINATIONS ---------------- */
 const DESTINATIONS = [
@@ -34,6 +34,12 @@ const DESTINATIONS = [
     tagline: "Where tradition breathes",
     image: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=1200&q=90",
   },
+  {
+    name: "Santorini",
+    country: "Greece",
+    tagline: "Where blue meets white",
+    image: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=1200&q=90",
+  },
 ];
 
 const LoginScreen = () => {
@@ -43,9 +49,8 @@ const LoginScreen = () => {
   const [showPhoneModal, setShowPhoneModal] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showPolicyModal, setShowPolicyModal] = useState(false);
-  const [index, setIndex] = useState(0);
-
-  const active = DESTINATIONS[index];
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [direction, setDirection] = useState(0);
 
   const handlePhoneSuccess = () => setScreen("profile");
   const handleEmailSuccess = () => setScreen("profile");
@@ -53,101 +58,188 @@ const LoginScreen = () => {
   // Auto-cycle destinations
   useEffect(() => {
     const timer = setInterval(() => {
-      setIndex((i) => (i + 1) % DESTINATIONS.length);
-    }, 4000);
+      setDirection(1);
+      setActiveIndex((i) => (i + 1) % DESTINATIONS.length);
+    }, 5000);
     return () => clearInterval(timer);
   }, []);
 
+  const goToPrev = () => {
+    setDirection(-1);
+    setActiveIndex((i) => (i - 1 + DESTINATIONS.length) % DESTINATIONS.length);
+  };
+
+  const goToNext = () => {
+    setDirection(1);
+    setActiveIndex((i) => (i + 1) % DESTINATIONS.length);
+  };
+
+  const getCardIndex = (offset: number) => {
+    return (activeIndex + offset + DESTINATIONS.length) % DESTINATIONS.length;
+  };
+
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden">
-      {/* ---------- FULLSCREEN NATURE BACKGROUND ---------- */}
-      <div
-        className="fixed inset-0 bg-cover bg-center"
-        style={{
-          backgroundImage: "url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80')",
-        }}
-      />
-      <div className="fixed inset-0 bg-gradient-to-br from-sky-400/40 via-indigo-400/30 to-violet-500/40" />
-      <div className="fixed inset-0 backdrop-blur-sm" />
+      {/* ---------- DYNAMIC BACKGROUND (syncs with active card) ---------- */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeIndex}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.8 }}
+          className="fixed inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url('${DESTINATIONS[activeIndex].image}')` }}
+        />
+      </AnimatePresence>
+      <div className="fixed inset-0 bg-gradient-to-br from-sky-400/50 via-indigo-400/40 to-violet-500/50" />
+      <div className="fixed inset-0 backdrop-blur-md" />
 
-      {/* ---------- CENTERED GLASS BOX ---------- */}
-      <div className="flex items-center justify-center h-full px-6">
+      {/* ---------- CENTERED GLASS CONTAINER ---------- */}
+      <div className="flex items-center justify-center h-full px-4 py-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.96, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="w-full max-w-md 
-            rounded-[32px] 
-            bg-white/30 
+          className="w-full max-w-md max-h-[calc(100dvh-48px)]
+            rounded-[28px] 
+            bg-white/25 
             backdrop-blur-2xl 
             border border-white/40 
-            shadow-[0_30px_80px_rgba(0,0,0,0.25)]"
+            shadow-[0_20px_60px_rgba(0,0,0,0.2)]
+            flex flex-col overflow-hidden"
         >
-          <div className="p-6 space-y-5">
+          <div className="p-5 flex flex-col gap-4 flex-1 min-h-0">
             {/* ---------- HEADER ---------- */}
             <motion.div 
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-center space-y-1"
+              className="text-center flex-shrink-0"
             >
               <h1 className="font-serif text-2xl text-foreground drop-shadow-md">RoamMate</h1>
-              <p className="text-sm text-foreground/70">Travel is better with the right company</p>
+              <p className="text-xs text-foreground/70 mt-0.5">Travel is better with the right company</p>
             </motion.div>
 
-            {/* ---------- DESTINATION CARD ---------- */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, x: 40 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -40 }}
-                transition={{ duration: 0.5 }}
-                className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-xl"
+            {/* ---------- CAROUSEL SECTION ---------- */}
+            <div className="relative flex-1 min-h-0 flex items-center justify-center">
+              {/* Navigation Arrows */}
+              <button 
+                onClick={goToPrev}
+                className="absolute left-0 z-20 p-1.5 rounded-full bg-white/40 backdrop-blur-md border border-white/30 shadow-lg hover:bg-white/60 transition-all"
               >
-                <img src={active.image} alt={active.name} className="absolute inset-0 h-full w-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/25 to-transparent" />
-                <div className="absolute bottom-0 p-5 text-white">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    <span className="font-serif text-xl">{active.name}</span>
-                  </div>
-                  <p className="text-sm opacity-80">{active.country}</p>
-                  <p className="text-xs opacity-60 italic mt-1">{active.tagline}</p>
-                </div>
-              </motion.div>
-            </AnimatePresence>
+                <ChevronLeft className="w-4 h-4 text-foreground" />
+              </button>
+              <button 
+                onClick={goToNext}
+                className="absolute right-0 z-20 p-1.5 rounded-full bg-white/40 backdrop-blur-md border border-white/30 shadow-lg hover:bg-white/60 transition-all"
+              >
+                <ChevronRight className="w-4 h-4 text-foreground" />
+              </button>
+
+              {/* Cards Container */}
+              <div className="relative w-full h-full flex items-center justify-center overflow-hidden px-8">
+                {/* Left Card (previous) */}
+                <motion.div
+                  key={`left-${getCardIndex(-1)}`}
+                  initial={{ x: direction > 0 ? -100 : 0, opacity: 0.5, scale: 0.75 }}
+                  animate={{ x: 0, opacity: 0.5, scale: 0.75 }}
+                  transition={{ duration: 0.4 }}
+                  className="absolute left-2 w-[45%] aspect-[3/4] rounded-xl overflow-hidden shadow-lg blur-[1px]"
+                  style={{ zIndex: 1 }}
+                >
+                  <img 
+                    src={DESTINATIONS[getCardIndex(-1)].image} 
+                    alt={DESTINATIONS[getCardIndex(-1)].name}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/30" />
+                </motion.div>
+
+                {/* Center Card (active) */}
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={`center-${activeIndex}`}
+                    initial={{ x: direction * 80, opacity: 0, scale: 0.85 }}
+                    animate={{ x: 0, opacity: 1, scale: 1 }}
+                    exit={{ x: direction * -80, opacity: 0, scale: 0.85 }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    className="relative w-[70%] aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl z-10"
+                  >
+                    <img 
+                      src={DESTINATIONS[activeIndex].image} 
+                      alt={DESTINATIONS[activeIndex].name}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
+                      <div className="flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5" />
+                        <span className="font-serif text-base">{DESTINATIONS[activeIndex].name}</span>
+                      </div>
+                      <p className="text-xs opacity-80">{DESTINATIONS[activeIndex].country}</p>
+                      <p className="text-[10px] opacity-60 italic mt-0.5">{DESTINATIONS[activeIndex].tagline}</p>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+
+                {/* Right Card (next) */}
+                <motion.div
+                  key={`right-${getCardIndex(1)}`}
+                  initial={{ x: direction < 0 ? 100 : 0, opacity: 0.5, scale: 0.75 }}
+                  animate={{ x: 0, opacity: 0.5, scale: 0.75 }}
+                  transition={{ duration: 0.4 }}
+                  className="absolute right-2 w-[45%] aspect-[3/4] rounded-xl overflow-hidden shadow-lg blur-[1px]"
+                  style={{ zIndex: 1 }}
+                >
+                  <img 
+                    src={DESTINATIONS[getCardIndex(1)].image} 
+                    alt={DESTINATIONS[getCardIndex(1)].name}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/30" />
+                </motion.div>
+              </div>
+            </div>
+
+            {/* ---------- CAROUSEL DOTS ---------- */}
+            <div className="flex justify-center gap-1.5 flex-shrink-0">
+              {DESTINATIONS.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => {
+                    setDirection(i > activeIndex ? 1 : -1);
+                    setActiveIndex(i);
+                  }}
+                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                    i === activeIndex 
+                      ? "bg-white w-4" 
+                      : "bg-white/40 hover:bg-white/60"
+                  }`}
+                />
+              ))}
+            </div>
 
             {/* ---------- TRUST BADGE ---------- */}
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="flex justify-center"
-            >
-              <div className="flex items-center gap-2 bg-white/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/40 shadow-sm">
-                <Shield className="w-4 h-4 text-indigo-600" />
-                <span className="text-sm text-foreground/80 font-medium">Verified profiles</span>
+            <div className="flex justify-center flex-shrink-0">
+              <div className="flex items-center gap-1.5 bg-white/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/40">
+                <Shield className="w-3.5 h-3.5 text-indigo-600" />
+                <span className="text-xs text-foreground/80 font-medium">Verified profiles</span>
               </div>
-            </motion.div>
+            </div>
 
             {/* ---------- AUTH BUTTONS ---------- */}
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="space-y-3"
-            >
+            <div className="space-y-2 flex-shrink-0">
               <Button 
-                className="w-full h-12 rounded-2xl 
+                className="w-full h-10 rounded-2xl 
                   bg-white/50 hover:bg-white/70 
                   border border-white/50 
-                  text-foreground 
+                  text-foreground text-sm
                   shadow-sm backdrop-blur-sm 
                   transition-all duration-300 hover:scale-[1.02]" 
                 onClick={signInWithGoogle}
               >
-                <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                   <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22z" />
@@ -156,44 +248,46 @@ const LoginScreen = () => {
                 Continue with Google
               </Button>
 
-              <Button 
-                className="w-full h-12 rounded-2xl 
-                  bg-white/50 hover:bg-white/70 
-                  border border-white/50 
-                  text-foreground 
-                  shadow-sm backdrop-blur-sm 
-                  transition-all duration-300 hover:scale-[1.02]" 
-                onClick={() => setShowPhoneModal(true)}
-              >
-                <Phone className="w-5 h-5 mr-2 text-indigo-500" />
-                Continue with Phone
-              </Button>
+              <div className="grid grid-cols-2 gap-2">
+                <Button 
+                  className="h-10 rounded-2xl 
+                    bg-white/50 hover:bg-white/70 
+                    border border-white/50 
+                    text-foreground text-sm
+                    shadow-sm backdrop-blur-sm 
+                    transition-all duration-300 hover:scale-[1.02]" 
+                  onClick={() => setShowPhoneModal(true)}
+                >
+                  <Phone className="w-4 h-4 mr-1.5 text-indigo-500" />
+                  Phone
+                </Button>
 
-              <Button 
-                className="w-full h-12 rounded-2xl 
-                  bg-white/50 hover:bg-white/70 
-                  border border-white/50 
-                  text-foreground 
-                  shadow-sm backdrop-blur-sm 
-                  transition-all duration-300 hover:scale-[1.02]" 
-                onClick={() => setShowEmailModal(true)}
-              >
-                <Mail className="w-5 h-5 mr-2 text-indigo-500" />
-                Continue with Email
-              </Button>
+                <Button 
+                  className="h-10 rounded-2xl 
+                    bg-white/50 hover:bg-white/70 
+                    border border-white/50 
+                    text-foreground text-sm
+                    shadow-sm backdrop-blur-sm 
+                    transition-all duration-300 hover:scale-[1.02]" 
+                  onClick={() => setShowEmailModal(true)}
+                >
+                  <Mail className="w-4 h-4 mr-1.5 text-indigo-500" />
+                  Email
+                </Button>
+              </div>
 
               {/* Terms */}
-              <p className="text-center text-xs text-foreground/60 pt-1">
+              <p className="text-center text-[10px] text-foreground/60">
                 By continuing, you agree to our{" "}
                 <span className="text-indigo-600 cursor-pointer hover:underline font-medium" onClick={() => setShowPolicyModal(true)}>
                   Terms
                 </span>{" "}
-                and{" "}
+                &{" "}
                 <span className="text-indigo-600 cursor-pointer hover:underline font-medium" onClick={() => setShowPolicyModal(true)}>
-                  Privacy Policy
+                  Privacy
                 </span>
               </p>
-            </motion.div>
+            </div>
           </div>
         </motion.div>
       </div>
