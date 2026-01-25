@@ -92,7 +92,7 @@ const EmailAuthModal = ({ isOpen, onClose, onSuccess }: EmailAuthModalProps) => 
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-md"
           >
-            <div className="bg-white/30 backdrop-blur-2xl rounded-[24px] shadow-[0_20px_60px_rgba(0,0,0,0.2)] border border-white/40 overflow-hidden max-h-[calc(100dvh-2rem)] flex flex-col">
+            <div className="bg-white/90 backdrop-blur-2xl rounded-[24px] shadow-[0_20px_60px_rgba(0,0,0,0.2)] border border-white/60 overflow-hidden max-h-[calc(100dvh-2rem)] flex flex-col">
               <div className="flex items-center justify-between px-6 pt-6 pb-4">
                 <h2 className="text-xl font-serif text-gray-900">
                   {isSignUp ? "Create Account" : "Welcome Back"}
@@ -114,13 +114,13 @@ const EmailAuthModal = ({ isOpen, onClose, onSuccess }: EmailAuthModalProps) => 
                       Email
                     </label>
                     <div className="relative">
-                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/50" />
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                       <Input
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="your@email.com"
-                        className="h-12 pl-12 rounded-xl bg-white/40 border border-white/30 text-gray-900 placeholder:text-foreground/40"
+                        className="h-12 pl-12 rounded-xl bg-white/70 border border-gray-200 text-gray-900 placeholder:text-gray-400"
                       />
                     </div>
                   </div>
@@ -130,13 +130,13 @@ const EmailAuthModal = ({ isOpen, onClose, onSuccess }: EmailAuthModalProps) => 
                       Password
                     </label>
                     <div className="relative">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/50" />
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                       <Input
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="••••••••"
-                        className="h-12 pl-12 pr-12 rounded-xl bg-white/40 border border-white/30 text-gray-900 placeholder:text-foreground/40"
+                        className="h-12 pl-12 pr-12 rounded-xl bg-white/70 border border-gray-200 text-gray-900 placeholder:text-gray-400"
                       />
                       <button
                         type="button"
@@ -145,9 +145,9 @@ const EmailAuthModal = ({ isOpen, onClose, onSuccess }: EmailAuthModalProps) => 
                         aria-label={showPassword ? "Hide password" : "Show password"}
                       >
                         {showPassword ? (
-                          <EyeOff className="w-5 h-5 text-foreground/50" />
+                          <EyeOff className="w-5 h-5 text-gray-500" />
                         ) : (
-                          <Eye className="w-5 h-5 text-foreground/50" />
+                          <Eye className="w-5 h-5 text-gray-500" />
                         )}
                       </button>
                     </div>

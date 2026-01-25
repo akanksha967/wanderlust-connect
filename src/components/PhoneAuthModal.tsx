@@ -85,7 +85,7 @@ const PhoneAuthModal = ({ isOpen, onClose, onSuccess }: PhoneAuthModalProps) => 
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-sm bg-white/30 backdrop-blur-2xl rounded-[24px] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.2)] border border-white/40"
+            className="w-full max-w-sm bg-white/90 backdrop-blur-2xl rounded-[24px] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.2)] border border-white/60"
           >
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
@@ -111,10 +111,10 @@ const PhoneAuthModal = ({ isOpen, onClose, onSuccess }: PhoneAuthModalProps) => 
                 </p>
                 <div className="flex gap-2">
                   <Select value={countryCode} onValueChange={setCountryCode}>
-                    <SelectTrigger className="w-24 h-12 rounded-xl bg-white/40 border border-white/30 text-gray-900">
+                    <SelectTrigger className="w-24 h-12 rounded-xl bg-white/70 border border-gray-200 text-gray-900">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-white/90 backdrop-blur-xl border border-white/40">
+                    <SelectContent className="bg-white border border-gray-200">
                       {countryCodes.map((c) => (
                         <SelectItem key={c.code} value={c.code}>
                           {c.code} {c.country}
@@ -127,7 +127,7 @@ const PhoneAuthModal = ({ isOpen, onClose, onSuccess }: PhoneAuthModalProps) => 
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="Phone number"
-                    className="h-12 rounded-xl bg-white/40 border border-white/30 flex-1 text-gray-900 placeholder:text-foreground/40"
+                    className="h-12 rounded-xl bg-white/70 border border-gray-200 flex-1 text-gray-900 placeholder:text-gray-400"
                   />
                 </div>
                 <Button
@@ -151,12 +151,12 @@ const PhoneAuthModal = ({ isOpen, onClose, onSuccess }: PhoneAuthModalProps) => 
                     onChange={setOtp}
                   >
                     <InputOTPGroup className="gap-2">
-                      <InputOTPSlot index={0} className="bg-white/40 border-white/30 text-gray-900 rounded-lg" />
-                      <InputOTPSlot index={1} className="bg-white/40 border-white/30 text-gray-900 rounded-lg" />
-                      <InputOTPSlot index={2} className="bg-white/40 border-white/30 text-gray-900 rounded-lg" />
-                      <InputOTPSlot index={3} className="bg-white/40 border-white/30 text-gray-900 rounded-lg" />
-                      <InputOTPSlot index={4} className="bg-white/40 border-white/30 text-gray-900 rounded-lg" />
-                      <InputOTPSlot index={5} className="bg-white/40 border-white/30 text-gray-900 rounded-lg" />
+                      <InputOTPSlot index={0} className="bg-white/70 border-gray-200 text-gray-900 rounded-lg" />
+                      <InputOTPSlot index={1} className="bg-white/70 border-gray-200 text-gray-900 rounded-lg" />
+                      <InputOTPSlot index={2} className="bg-white/70 border-gray-200 text-gray-900 rounded-lg" />
+                      <InputOTPSlot index={3} className="bg-white/70 border-gray-200 text-gray-900 rounded-lg" />
+                      <InputOTPSlot index={4} className="bg-white/70 border-gray-200 text-gray-900 rounded-lg" />
+                      <InputOTPSlot index={5} className="bg-white/70 border-gray-200 text-gray-900 rounded-lg" />
                     </InputOTPGroup>
                   </InputOTP>
                 </div>
