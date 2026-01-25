@@ -12,12 +12,12 @@ const MatchesListScreen = () => {
 
   return (
     <div className="h-full flex flex-col relative overflow-hidden">
-      {/* Full-screen background */}
+      {/* Full-screen background - lighter lavender-blue */}
       <div 
         className="fixed inset-0 bg-cover bg-center"
         style={{ backgroundImage: `url(https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&auto=format&fit=crop)` }}
       />
-      <div className="fixed inset-0 bg-gradient-to-b from-sky-400/30 via-blue-400/25 to-indigo-500/30" />
+      <div className="fixed inset-0 bg-gradient-to-b from-sky-300/40 via-blue-200/35 to-indigo-300/40" />
       <div className="fixed inset-0 backdrop-blur-[2px]" />
 
       {/* Header */}
