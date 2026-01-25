@@ -137,13 +137,14 @@ const AccountScreen = () => {
   const isProfileValid = name && age && photos.length > 0 && selectedVibes.length > 0;
 
   return (
-    <div className="h-full flex flex-col relative overflow-hidden">
-      {/* Full-screen background like Apple homescreen */}
+    <div className="relative h-[100dvh] w-full overflow-hidden">
+      {/* Full-screen nature background */}
       <div 
         className="fixed inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&auto=format&fit=crop)` }}
+        style={{ backgroundImage: `url(https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80)` }}
       />
-      <div className="fixed inset-0 bg-gradient-to-b from-accent/30 via-background/70 to-background/80 backdrop-blur-[2px]" />
+      <div className="fixed inset-0 bg-gradient-to-br from-sky-400/40 via-indigo-400/30 to-violet-500/40" />
+      <div className="fixed inset-0 backdrop-blur-sm" />
       {/* Hidden file inputs */}
       <input
         type="file"
@@ -162,29 +163,33 @@ const AccountScreen = () => {
       />
 
       {/* Header */}
-      <div className="relative z-10 px-4 pt-12 pb-4 flex items-center gap-3">
+      <motion.div 
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="absolute top-6 left-6 right-6 z-50 flex items-center gap-3"
+      >
         <button 
           onClick={() => setScreen('swipe')}
-          className="w-10 h-10 flex items-center justify-center rounded-xl bg-secondary transition-all duration-300 hover:bg-secondary/70"
+          className="h-11 w-11 rounded-full bg-white/40 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-lg transition-all hover:bg-white/50"
         >
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
-        <h1 className="text-lg font-display text-foreground">My Account</h1>
-      </div>
+        <h1 className="text-lg font-serif text-foreground drop-shadow-sm">My Account</h1>
+      </motion.div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto px-4 pb-8 relative z-10">
+      <div className="flex-1 overflow-y-auto px-6 pb-8 pt-24 relative z-10">
         {/* Profile Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-4 rounded-2xl bg-card/80 backdrop-blur-sm shadow-soft mb-6"
+          className="p-5 rounded-[24px] bg-white/30 backdrop-blur-2xl border border-white/40 shadow-[0_20px_60px_rgba(0,0,0,0.15)] mb-6"
         >
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-foreground">Profile</h3>
+            <h3 className="text-sm font-medium text-foreground/90">Profile</h3>
             <button
               onClick={() => editingProfile ? handleCancelProfileEdit() : setEditingProfile(true)}
-              className="text-xs text-accent font-medium"
+              className="text-xs text-indigo-600 font-medium hover:text-indigo-700"
             >
               {editingProfile ? 'Cancel' : 'Edit'}
             </button>
@@ -201,7 +206,7 @@ const AccountScreen = () => {
                   {[0, 1, 2].map((index) => (
                     <div
                       key={index}
-                      className="relative w-20 h-20 rounded-2xl overflow-hidden bg-secondary shadow-soft"
+                      className="relative w-20 h-20 rounded-2xl overflow-hidden bg-white/40 border border-white/30 shadow-lg"
                     >
                       {photos[index] ? (
                         <>
@@ -226,7 +231,7 @@ const AccountScreen = () => {
                       ) : (
                         <button
                           onClick={() => handlePhotoClick(index)}
-                          className="w-full h-full flex flex-col items-center justify-center gap-1 transition-smooth hover:bg-secondary/70"
+                          className="w-full h-full flex flex-col items-center justify-center gap-1 transition-all hover:bg-white/50"
                         >
                           {index === 0 ? (
                             <Camera className="w-5 h-5 text-muted-foreground" />
@@ -249,7 +254,7 @@ const AccountScreen = () => {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Your name"
-                    className="h-10 rounded-xl bg-secondary border-0"
+                    className="h-10 rounded-xl bg-white/40 border border-white/30 text-foreground"
                   />
                 </div>
                 <div>
@@ -259,7 +264,7 @@ const AccountScreen = () => {
                     value={age}
                     onChange={(e) => setAge(e.target.value)}
                     placeholder="Age"
-                    className="h-10 rounded-xl bg-secondary border-0"
+                    className="h-10 rounded-xl bg-white/40 border border-white/30 text-foreground"
                   />
                 </div>
               </div>
@@ -271,7 +276,7 @@ const AccountScreen = () => {
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   placeholder="Tell fellow travelers about yourself..."
-                  className="w-full h-20 p-3 rounded-xl bg-secondary border-0 resize-none text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                  className="w-full h-20 p-3 rounded-xl bg-white/40 border border-white/30 resize-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-indigo-400/50"
                 />
               </div>
 
@@ -285,10 +290,10 @@ const AccountScreen = () => {
                     <button
                       key={vibe}
                       onClick={() => toggleVibe(vibe)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-smooth ${
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                         selectedVibes.includes(vibe)
-                          ? 'gradient-accent text-accent-foreground shadow-soft'
-                          : 'bg-secondary text-muted-foreground hover:text-foreground'
+                          ? 'bg-gradient-to-r from-indigo-400 via-blue-400 to-violet-400 text-white shadow-lg'
+                          : 'bg-white/40 border border-white/30 text-foreground/80 hover:bg-white/50'
                       }`}
                     >
                       {vibe}
@@ -298,9 +303,8 @@ const AccountScreen = () => {
               </div>
 
               <Button
-                variant="accent"
                 size="lg"
-                className="w-full"
+                className="w-full h-12 rounded-2xl bg-gradient-to-r from-indigo-400 via-blue-400 to-violet-400 hover:from-indigo-500 hover:via-blue-500 hover:to-violet-500 text-white font-medium transition-all disabled:opacity-50"
                 onClick={handleSaveProfile}
                 disabled={!isProfileValid}
               >
@@ -318,8 +322,8 @@ const AccountScreen = () => {
                       className="w-16 h-16 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center">
-                      <Camera className="w-6 h-6 text-muted-foreground" />
+                    <div className="w-16 h-16 rounded-full bg-white/40 border border-white/30 flex items-center justify-center">
+                      <Camera className="w-6 h-6 text-foreground/60" />
                     </div>
                   )}
                 </div>
@@ -337,19 +341,19 @@ const AccountScreen = () => {
               </div>
 
               {userProfile.bio && (
-                <p className="text-sm text-muted-foreground mt-3 pt-3 border-t border-border">
+                <p className="text-sm text-foreground/70 mt-3 pt-3 border-t border-white/20">
                   {userProfile.bio}
                 </p>
               )}
 
               {userProfile.travelVibes && userProfile.travelVibes.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-border">
-                  <p className="text-xs text-muted-foreground mb-2">Travel Vibes</p>
+                <div className="mt-3 pt-3 border-t border-white/20">
+                  <p className="text-xs text-foreground/60 mb-2">Travel Vibes</p>
                   <div className="flex flex-wrap gap-2">
                     {userProfile.travelVibes.map((vibe) => (
                       <span
                         key={vibe}
-                        className="px-3 py-1 rounded-full text-xs font-medium bg-accent/10 text-accent"
+                        className="px-3 py-1 rounded-full text-xs font-medium bg-indigo-400/20 text-indigo-700"
                       >
                         {vibe}
                       </span>
@@ -369,59 +373,58 @@ const AccountScreen = () => {
           className="mb-6"
         >
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-medium text-foreground">Current Trip</h3>
+            <h3 className="text-sm font-medium text-foreground/90">Current Trip</h3>
             <button
               onClick={() => setEditingTravel(!editingTravel)}
-              className="text-xs text-accent font-medium"
+              className="text-xs text-indigo-600 font-medium hover:text-indigo-700"
             >
               {editingTravel ? 'Cancel' : 'Edit'}
             </button>
           </div>
 
           {editingTravel ? (
-            <div className="p-4 rounded-2xl bg-card/80 backdrop-blur-sm shadow-soft space-y-4">
+            <div className="p-5 rounded-[24px] bg-white/30 backdrop-blur-2xl border border-white/40 shadow-[0_20px_60px_rgba(0,0,0,0.15)] space-y-4">
               <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Destination</label>
+                <label className="text-xs text-foreground/60 mb-1 block">Destination</label>
                 <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50" />
                   <Input
                     value={destination}
                     onChange={(e) => setDestination(e.target.value)}
                     placeholder="Where are you going?"
-                    className="h-12 pl-10 rounded-xl bg-secondary border-0"
+                    className="h-12 pl-10 rounded-xl bg-white/40 border border-white/30 text-foreground"
                   />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">From</label>
+                  <label className="text-xs text-foreground/60 mb-1 block">From</label>
                   <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50" />
                     <Input
                       type="date"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
-                      className="h-12 pl-10 rounded-xl bg-secondary border-0"
+                      className="h-12 pl-10 rounded-xl bg-white/40 border border-white/30 text-foreground"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">To</label>
+                  <label className="text-xs text-foreground/60 mb-1 block">To</label>
                   <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50" />
                     <Input
                       type="date"
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
-                      className="h-12 pl-10 rounded-xl bg-secondary border-0"
+                      className="h-12 pl-10 rounded-xl bg-white/40 border border-white/30 text-foreground"
                     />
                   </div>
                 </div>
               </div>
               <Button
-                variant="accent"
                 size="lg"
-                className="w-full"
+                className="w-full h-12 rounded-2xl bg-gradient-to-r from-indigo-400 via-blue-400 to-violet-400 hover:from-indigo-500 hover:via-blue-500 hover:to-violet-500 text-white font-medium transition-all disabled:opacity-50"
                 onClick={handleSaveTravel}
                 disabled={!destination || !startDate || !endDate}
               >
@@ -429,23 +432,23 @@ const AccountScreen = () => {
               </Button>
             </div>
           ) : (
-            <div className="p-4 rounded-2xl bg-card/80 backdrop-blur-sm shadow-soft">
+            <div className="p-5 rounded-[24px] bg-white/30 backdrop-blur-2xl border border-white/40 shadow-[0_20px_60px_rgba(0,0,0,0.15)]">
               {travelDetails ? (
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
-                      <MapPin className="w-5 h-5 text-accent" />
+                    <div className="w-10 h-10 rounded-xl bg-indigo-400/20 flex items-center justify-center">
+                      <MapPin className="w-5 h-5 text-indigo-600" />
                     </div>
                     <div>
                       <p className="font-medium text-foreground">{travelDetails.destination}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-foreground/60">
                         {travelDetails.startDate} → {travelDetails.endDate}
                       </p>
                     </div>
                   </div>
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground text-center py-4">
+                <p className="text-sm text-foreground/60 text-center py-4">
                   No trip planned yet
                 </p>
               )}
@@ -459,49 +462,49 @@ const AccountScreen = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <h3 className="text-sm font-medium text-foreground mb-3">Settings</h3>
-          <div className="rounded-2xl bg-card/80 backdrop-blur-sm shadow-soft overflow-hidden">
+          <h3 className="text-sm font-medium text-foreground/90 mb-3">Settings</h3>
+          <div className="rounded-[24px] bg-white/30 backdrop-blur-2xl border border-white/40 shadow-[0_20px_60px_rgba(0,0,0,0.15)] overflow-hidden">
             <button
               onClick={() => setScreen('travel')}
-              className="w-full flex items-center justify-between p-4 hover:bg-secondary/50 transition-smooth"
+              className="w-full flex items-center justify-between p-4 hover:bg-white/20 transition-all"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
-                  <MapPin className="w-5 h-5 text-accent" />
+                <div className="w-10 h-10 rounded-xl bg-indigo-400/20 flex items-center justify-center">
+                  <MapPin className="w-5 h-5 text-indigo-600" />
                 </div>
                 <span className="text-sm text-foreground">Plan New Trip</span>
               </div>
-              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+              <ChevronRight className="w-5 h-5 text-foreground/50" />
             </button>
 
-            <div className="h-px bg-border mx-4" />
+            <div className="h-px bg-white/20 mx-4" />
 
             <button
               onClick={handleSignOut}
-              className="w-full flex items-center justify-between p-4 hover:bg-secondary/50 transition-smooth"
+              className="w-full flex items-center justify-between p-4 hover:bg-white/20 transition-all"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
-                  <LogOut className="w-5 h-5 text-muted-foreground" />
+                <div className="w-10 h-10 rounded-xl bg-white/40 border border-white/30 flex items-center justify-center">
+                  <LogOut className="w-5 h-5 text-foreground/60" />
                 </div>
                 <span className="text-sm text-foreground">Sign Out</span>
               </div>
-              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+              <ChevronRight className="w-5 h-5 text-foreground/50" />
             </button>
 
-            <div className="h-px bg-border mx-4" />
+            <div className="h-px bg-white/20 mx-4" />
 
             <button
               onClick={() => setShowDeleteDialog(true)}
-              className="w-full flex items-center justify-between p-4 hover:bg-destructive/5 transition-smooth"
+              className="w-full flex items-center justify-between p-4 hover:bg-red-50/50 transition-all"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center">
-                  <Trash2 className="w-5 h-5 text-destructive" />
+                <div className="w-10 h-10 rounded-xl bg-red-100/50 flex items-center justify-center">
+                  <Trash2 className="w-5 h-5 text-red-500" />
                 </div>
-                <span className="text-sm text-destructive">Delete Account</span>
+                <span className="text-sm text-red-500">Delete Account</span>
               </div>
-              <ChevronRight className="w-5 h-5 text-destructive/50" />
+              <ChevronRight className="w-5 h-5 text-red-400" />
             </button>
           </div>
         </motion.div>
