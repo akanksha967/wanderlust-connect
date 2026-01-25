@@ -176,20 +176,21 @@ const ChatScreen = () => {
 
   return (
     <div className="fixed inset-0 flex flex-col">
-      {/* Full-screen background */}
+      {/* Full-screen background - matching theme */}
       <div 
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&auto=format&fit=crop)` }}
+        className="fixed inset-0 bg-cover bg-center"
+        style={{ backgroundImage: `url(https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80)` }}
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-accent/30 via-background/70 to-background/80 backdrop-blur-[2px]" />
+      <div className="fixed inset-0 bg-gradient-to-br from-sky-400/40 via-indigo-400/30 to-violet-500/40" />
+      <div className="fixed inset-0 backdrop-blur-sm" />
 
-      {/* Header */}
-      <div className="relative z-10 px-4 pt-12 pb-3 flex items-center gap-3 border-b border-border/50 shrink-0">
+      {/* Header - glassmorphism style */}
+      <div className="relative z-10 px-4 pt-12 pb-3 flex items-center gap-3 shrink-0">
         <button 
           onClick={() => setScreen('matches')}
-          className="w-10 h-10 flex items-center justify-center rounded-xl bg-secondary transition-all duration-300 hover:bg-secondary/70"
+          className="w-11 h-11 flex items-center justify-center rounded-full bg-white/40 backdrop-blur-md border border-white/30 shadow-lg transition-all hover:bg-white/50 active:scale-95"
         >
-          <ArrowLeft className="w-5 h-5 text-foreground" />
+          <ArrowLeft className="w-5 h-5 text-gray-800" />
         </button>
         
         <div className="flex items-center gap-3 flex-1">
@@ -197,46 +198,46 @@ const ChatScreen = () => {
             <img
               src={chatUser.photos[0]}
               alt={chatUser.name}
-              className="w-10 h-10 rounded-full object-cover"
+              className="w-11 h-11 rounded-full object-cover border-2 border-white/40 shadow-lg"
             />
-            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background" />
+            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 rounded-full border-2 border-white" />
           </div>
           <div>
-            <h2 className="font-display text-foreground text-lg">{chatUser.name}</h2>
-            <p className="text-xs text-green-500">Online</p>
+            <h2 className="font-display text-white text-lg drop-shadow-md">{chatUser.name}</h2>
+            <p className="text-xs text-green-300 drop-shadow">Online</p>
           </div>
         </div>
 
         <div className="flex gap-2">
-          <button className="w-10 h-10 flex items-center justify-center rounded-xl bg-secondary transition-smooth hover:bg-secondary/70">
-            <Phone className="w-5 h-5 text-foreground" />
+          <button className="w-11 h-11 flex items-center justify-center rounded-full bg-white/40 backdrop-blur-md border border-white/30 shadow-lg transition-all hover:bg-white/50 active:scale-95">
+            <Phone className="w-5 h-5 text-gray-800" />
           </button>
           <div className="relative">
             <button 
               onClick={() => setShowOptions(!showOptions)}
-              className="w-10 h-10 flex items-center justify-center rounded-xl bg-secondary transition-smooth hover:bg-secondary/70"
+              className="w-11 h-11 flex items-center justify-center rounded-full bg-white/40 backdrop-blur-md border border-white/30 shadow-lg transition-all hover:bg-white/50 active:scale-95"
             >
-              <MoreVertical className="w-5 h-5 text-foreground" />
+              <MoreVertical className="w-5 h-5 text-gray-800" />
             </button>
             {showOptions && (
-              <div className="absolute right-0 top-12 w-48 bg-card rounded-xl shadow-elegant border border-border overflow-hidden z-50">
+              <div className="absolute right-0 top-14 w-48 bg-white/90 backdrop-blur-xl rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.25)] border border-white/50 overflow-hidden z-50">
                 <button
                   onClick={handleDeleteChat}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-foreground hover:bg-secondary transition-smooth"
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-800 hover:bg-white/50 transition-all"
                 >
                   <Trash2 className="w-4 h-4" />
                   Delete Chat
                 </button>
                 <button
                   onClick={handleBlock}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-destructive hover:bg-destructive/10 transition-smooth"
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-50/50 transition-all"
                 >
                   <Ban className="w-4 h-4" />
                   Block User
                 </button>
                 <button
                   onClick={handleUnmatch}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-destructive hover:bg-destructive/10 transition-smooth"
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-50/50 transition-all"
                 >
                   <UserX className="w-4 h-4" />
                   Unmatch
@@ -247,66 +248,68 @@ const ChatScreen = () => {
         </div>
       </div>
 
-      {/* Messages area - takes remaining space minus input */}
-      <div className="relative z-10 flex-1 overflow-y-auto px-4 py-4 space-y-4" style={{ marginBottom: '80px' }}>
-        {/* Match notice */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center py-4"
-        >
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent/10 rounded-full">
-            <span className="text-xs text-accent font-medium">
-              ✨ You matched on Dec 20
-            </span>
-          </div>
-        </motion.div>
-
-        {/* Messages */}
-        {messages.map((message, index) => (
+      {/* Messages area - glass container */}
+      <div className="relative z-10 flex-1 overflow-hidden px-4 py-4" style={{ marginBottom: '90px' }}>
+        <div className="h-full overflow-y-auto space-y-4 pr-2">
+          {/* Match notice */}
           <motion.div
-            key={message.id}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className={`flex ${message.sender === 'me' ? 'justify-end' : 'justify-start'}`}
+            className="text-center py-4"
           >
-            <div
-              className={`max-w-[75%] px-4 py-3 rounded-2xl ${
-                message.sender === 'me'
-                  ? 'gradient-accent text-accent-foreground rounded-br-md'
-                  : 'bg-secondary text-foreground rounded-bl-md'
-              }`}
-            >
-              <p className="text-sm">{message.text}</p>
-              <p className={`text-[10px] mt-1 ${
-                message.sender === 'me' ? 'text-accent-foreground/70' : 'text-muted-foreground'
-              }`}>
-                {message.time}
-              </p>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/30 backdrop-blur-md rounded-full border border-white/30">
+              <span className="text-xs text-white font-medium drop-shadow">
+                ✨ You matched on Dec 20
+              </span>
             </div>
           </motion.div>
-        ))}
-        <div ref={messagesEndRef} />
+
+          {/* Messages */}
+          {messages.map((message, index) => (
+            <motion.div
+              key={message.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
+              className={`flex ${message.sender === 'me' ? 'justify-end' : 'justify-start'}`}
+            >
+              <div
+                className={`max-w-[75%] px-4 py-3 rounded-2xl shadow-lg ${
+                  message.sender === 'me'
+                    ? 'bg-gradient-to-r from-indigo-400 via-blue-400 to-violet-400 text-white rounded-br-md'
+                    : 'bg-white/80 backdrop-blur-md text-gray-800 rounded-bl-md border border-white/50'
+                }`}
+              >
+                <p className="text-sm">{message.text}</p>
+                <p className={`text-[10px] mt-1 ${
+                  message.sender === 'me' ? 'text-white/70' : 'text-gray-500'
+                }`}>
+                  {message.time}
+                </p>
+              </div>
+            </motion.div>
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
       </div>
 
-      {/* Input - Fixed at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 z-20 p-4 pb-6 border-t border-border/50 bg-background/95 backdrop-blur-sm">
-        <div className="flex gap-3">
-          <div className="flex-1 relative">
+      {/* Input - Fixed at bottom with glass styling */}
+      <div className="fixed bottom-0 left-0 right-0 z-20 p-4 pb-6">
+        <div className="bg-white/30 backdrop-blur-xl rounded-2xl border border-white/40 shadow-lg p-2">
+          <div className="flex gap-2">
             <Input
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder="Type a message..."
-              className="h-12 pr-12 rounded-2xl bg-secondary border-0 shadow-soft"
+              className="flex-1 h-12 rounded-xl bg-white/50 border-white/30 text-gray-900 placeholder:text-gray-500"
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
             />
             <button
               onClick={handleSend}
               disabled={!newMessage.trim()}
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full gradient-accent flex items-center justify-center disabled:opacity-50 transition-smooth"
+              className="w-12 h-12 rounded-xl bg-gradient-to-r from-indigo-400 via-blue-400 to-violet-400 flex items-center justify-center disabled:opacity-50 transition-all shadow-lg hover:shadow-xl active:scale-95"
             >
-              <Send className="w-4 h-4 text-accent-foreground" />
+              <Send className="w-5 h-5 text-white" />
             </button>
           </div>
         </div>
