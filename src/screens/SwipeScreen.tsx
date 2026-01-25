@@ -229,16 +229,16 @@ const SwipeScreen = () => {
         className="absolute inset-0 bg-cover bg-center"
         style={{ backgroundImage: `url(${bgImage})` }}
       />
-      <div className="absolute inset-0 bg-gradient-to-br from-sky-400/40 via-indigo-400/30 to-violet-500/40" />
-      <div className="absolute inset-0 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/50 via-violet-500/40 to-purple-600/50" />
+      <div className="absolute inset-0 backdrop-blur-[2px]" />
 
       {/* Header */}
       <div className="relative z-10 px-4 pt-12 pb-2 flex items-center justify-between shrink-0">
         <button 
           onClick={() => setScreen('account')}
-          className="w-11 h-11 flex items-center justify-center rounded-full bg-white/40 backdrop-blur-md border border-white/30 shadow-lg transition-all hover:bg-white/50 active:scale-95"
+          className="w-11 h-11 flex items-center justify-center rounded-full bg-white/30 backdrop-blur-xl border border-white/40 shadow-lg transition-all hover:bg-white/40 active:scale-95"
         >
-          <User className="w-5 h-5 text-gray-800" />
+          <User className="w-5 h-5 text-white" />
         </button>
         
         <motion.div 
@@ -246,16 +246,16 @@ const SwipeScreen = () => {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <h1 className="text-xl font-display text-white drop-shadow-md">
+          <h1 className="text-xl font-display text-white drop-shadow-lg">
             {destination || 'Discover'}
           </h1>
         </motion.div>
 
         <button 
           onClick={() => setScreen('matches')}
-          className="w-11 h-11 flex items-center justify-center rounded-full bg-white/40 backdrop-blur-md border border-white/30 shadow-lg transition-all hover:bg-white/50 active:scale-95"
+          className="w-11 h-11 flex items-center justify-center rounded-full bg-white/30 backdrop-blur-xl border border-white/40 shadow-lg transition-all hover:bg-white/40 active:scale-95"
         >
-          <MessageCircle className="w-5 h-5 text-gray-800" />
+          <MessageCircle className="w-5 h-5 text-white" />
         </button>
       </div>
 
@@ -270,9 +270,9 @@ const SwipeScreen = () => {
                 className="flex flex-col items-center justify-center h-full"
               >
                 <div className="w-20 h-20 rounded-full bg-white/30 backdrop-blur-xl border border-white/40 flex items-center justify-center mb-4 shadow-lg">
-                  <Loader2 className="w-10 h-10 text-gray-800 animate-spin" />
+                  <Loader2 className="w-10 h-10 text-white animate-spin" />
                 </div>
-                <p className="text-sm text-white/80 drop-shadow">Finding travelers...</p>
+                <p className="text-sm text-white drop-shadow-lg">Finding travelers...</p>
               </motion.div>
             ) : remainingProfiles.length > 0 ? (
               remainingProfiles.slice(0, 2).reverse().map((profile, index) => (
@@ -291,13 +291,13 @@ const SwipeScreen = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 className="flex flex-col items-center justify-center h-full text-center"
               >
-                <div className="w-20 h-20 rounded-full bg-gradient-to-r from-indigo-400 via-blue-400 to-violet-400 flex items-center justify-center mb-4 shadow-lg">
+                <div className="w-20 h-20 rounded-full bg-gradient-to-r from-violet-500 via-purple-500 to-indigo-500 flex items-center justify-center mb-4 shadow-lg">
                   <MapPin className="w-10 h-10 text-white" />
                 </div>
-                <h3 className="text-xl font-display text-white drop-shadow-md mb-2">
+                <h3 className="text-xl font-display text-white drop-shadow-lg mb-2">
                   No more travelers
                 </h3>
-                <p className="text-sm text-white/80 max-w-xs drop-shadow">
+                <p className="text-sm text-white/90 max-w-xs drop-shadow-lg">
                   Check back later or adjust your travel dates to find more companions
                 </p>
               </motion.div>
@@ -308,23 +308,23 @@ const SwipeScreen = () => {
 
       {/* Action buttons */}
       {!loading && remainingProfiles.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-20 px-4 pb-8 pt-4 flex justify-center items-center gap-8 bg-gradient-to-t from-background/80 to-transparent">
+        <div className="fixed bottom-0 left-0 right-0 z-20 px-4 pb-8 pt-4 flex justify-center items-center gap-8 bg-gradient-to-t from-violet-900/60 to-transparent">
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => handleButtonSwipe('left')}
-            className="w-16 h-16 flex items-center justify-center transition-all"
+            className="w-16 h-16 flex items-center justify-center rounded-full bg-white/20 backdrop-blur-xl border border-white/30 shadow-lg transition-all"
           >
-            <X className="w-10 h-10 text-white drop-shadow-lg" strokeWidth={2.5} />
+            <X className="w-8 h-8 text-white" strokeWidth={2.5} />
           </motion.button>
           
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => handleButtonSwipe('right')}
-            className="w-16 h-16 flex items-center justify-center transition-all"
+            className="w-16 h-16 flex items-center justify-center rounded-full bg-gradient-to-r from-violet-500 via-purple-500 to-indigo-500 border border-white/30 shadow-lg transition-all"
           >
-            <Heart className="w-10 h-10 text-white drop-shadow-lg" strokeWidth={2.5} />
+            <Heart className="w-8 h-8 text-white" strokeWidth={2.5} />
           </motion.button>
         </div>
       )}
