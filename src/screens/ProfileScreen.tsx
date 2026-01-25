@@ -3,10 +3,11 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAppStore } from "@/store/useAppStore";
-import { ArrowLeft, Camera, Plus } from "lucide-react";
+import { ArrowLeft, Camera, Plus, Loader2 } from "lucide-react";
 import PhotoSourceDialog from "@/components/PhotoSourceDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfileSave } from "@/hooks/useProfileSave";
 
 const vibeOptions = [
   { id: "Adventure", icon: "🏔️", label: "Adventure" },
@@ -27,6 +28,7 @@ const ProfileScreen = () => {
   const { setScreen, setUserProfile } = useAppStore();
   const { toast } = useToast();
   const { signOut } = useAuth();
+  const { saveProfile, saving } = useProfileSave();
 
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
@@ -79,19 +81,25 @@ const ProfileScreen = () => {
 
   const isValid = name.trim().length > 0 && Number(age) >= 18 && photos.length > 0 && selectedVibes.length > 0;
 
-  const handleContinue = () => {
-    if (!isValid) return;
+  const handleContinue = async () => {
+    if (!isValid || saving) return;
 
-    setUserProfile({
+    const profileData = {
       name: name.trim(),
       age: Number(age),
       bio: bio.trim(),
       photos,
       travelVibes: selectedVibes,
-    });
+    };
 
-    useAppStore.getState().setHasCompletedProfile(true);
-    setScreen("travel");
+    // Save to database
+    const success = await saveProfile(profileData);
+    
+    if (success) {
+      setUserProfile(profileData);
+      useAppStore.getState().setHasCompletedProfile(true);
+      setScreen("travel");
+    }
   };
 
   const glow = "shadow-[0_0_18px_-4px_rgba(147,197,253,0.55),0_0_0_1px_rgba(186,230,253,0.35)]";
@@ -211,14 +219,14 @@ const ProfileScreen = () => {
 
           {/* CTA */}
           <Button
-            disabled={!isValid}
+            disabled={!isValid || saving}
             onClick={handleContinue}
             className="w-full h-12 rounded-2xl 
               bg-gradient-to-r from-indigo-400 via-blue-400 to-violet-400
               hover:from-indigo-500 hover:via-blue-500 hover:to-violet-500
               text-white font-medium transition-all disabled:opacity-50"
           >
-            Continue
+            {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : "Continue"}
           </Button>
         </div>
       </motion.div>
