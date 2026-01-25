@@ -137,7 +137,7 @@ const AccountScreen = () => {
   const isProfileValid = name && age && photos.length > 0 && selectedVibes.length > 0;
 
   return (
-    <div className="relative h-[100dvh] w-full overflow-hidden">
+    <div className="relative h-[100dvh] w-full overflow-hidden flex flex-col">
       {/* Full-screen nature background */}
       <div 
         className="fixed inset-0 bg-cover bg-center"
@@ -178,7 +178,7 @@ const AccountScreen = () => {
       </motion.div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto px-6 pb-8 pt-24 relative z-10">
+      <div className="flex-1 overflow-y-auto px-6 pb-8 pt-24 relative z-10 h-full">
         {/* Profile Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
