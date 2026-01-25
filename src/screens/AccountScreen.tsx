@@ -172,9 +172,9 @@ const AccountScreen = () => {
           onClick={() => setScreen('swipe')}
           className="h-11 w-11 rounded-full bg-white/40 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-lg transition-all hover:bg-white/50"
         >
-          <ArrowLeft className="w-5 h-5 text-foreground" />
+          <ArrowLeft className="w-5 h-5 text-white" />
         </button>
-        <h1 className="text-lg font-serif text-foreground drop-shadow-sm">My Account</h1>
+        <h1 className="text-lg font-serif text-white drop-shadow-lg">My Account</h1>
       </motion.div>
 
       {/* Content */}
@@ -186,10 +186,10 @@ const AccountScreen = () => {
           className="p-5 rounded-[24px] bg-white/30 backdrop-blur-2xl border border-white/40 shadow-[0_20px_60px_rgba(0,0,0,0.15)] mb-6"
         >
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-foreground/90">Profile</h3>
+            <h3 className="text-sm font-medium text-white drop-shadow">Profile</h3>
             <button
               onClick={() => editingProfile ? handleCancelProfileEdit() : setEditingProfile(true)}
-              className="text-xs text-indigo-600 font-medium hover:text-indigo-700"
+              className="text-xs text-white/90 font-medium hover:text-white drop-shadow"
             >
               {editingProfile ? 'Cancel' : 'Edit'}
             </button>
@@ -197,9 +197,8 @@ const AccountScreen = () => {
 
           {editingProfile ? (
             <div className="space-y-4">
-              {/* Photo upload */}
               <div>
-                <label className="text-xs text-muted-foreground mb-2 block">
+                <label className="text-xs text-white/80 mb-2 block drop-shadow">
                   Photos (1-3) - Tap to add from camera or gallery
                 </label>
                 <div className="flex gap-3">
@@ -238,7 +237,7 @@ const AccountScreen = () => {
                           ) : (
                             <Plus className="w-5 h-5 text-muted-foreground" />
                           )}
-                          <span className="text-[10px] text-muted-foreground">Add</span>
+                          <span className="text-[10px] text-white/70">Add</span>
                         </button>
                       )}
                     </div>
@@ -249,40 +248,40 @@ const AccountScreen = () => {
               {/* Name & Age */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Name</label>
+                  <label className="text-xs text-white/80 mb-1 block drop-shadow">Name</label>
                   <Input
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Your name"
-                    className="h-10 rounded-xl bg-white/40 border border-white/30 text-foreground"
+                    className="h-10 rounded-xl bg-white/80 border border-white/50 text-gray-900 placeholder:text-gray-400"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">Age</label>
+                  <label className="text-xs text-white/80 mb-1 block drop-shadow">Age</label>
                   <Input
                     type="number"
                     value={age}
                     onChange={(e) => setAge(e.target.value)}
                     placeholder="Age"
-                    className="h-10 rounded-xl bg-white/40 border border-white/30 text-foreground"
+                    className="h-10 rounded-xl bg-white/80 border border-white/50 text-gray-900 placeholder:text-gray-400"
                   />
                 </div>
               </div>
 
               {/* Bio */}
               <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Bio</label>
+                <label className="text-xs text-white/80 mb-1 block drop-shadow">Bio</label>
                 <textarea
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   placeholder="Tell fellow travelers about yourself..."
-                  className="w-full h-20 p-3 rounded-xl bg-white/40 border border-white/30 resize-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-indigo-400/50"
+                  className="w-full h-20 p-3 rounded-xl bg-white/80 border border-white/50 resize-none text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-400/50"
                 />
               </div>
 
               {/* Travel vibes */}
               <div>
-                <label className="text-xs text-muted-foreground mb-2 block">
+                <label className="text-xs text-white/80 mb-2 block drop-shadow">
                   Travel vibes (select up to 4)
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -292,8 +291,8 @@ const AccountScreen = () => {
                       onClick={() => toggleVibe(vibe)}
                       className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                         selectedVibes.includes(vibe)
-                          ? 'bg-gradient-to-r from-indigo-400 via-blue-400 to-violet-400 text-white shadow-lg'
-                          : 'bg-white/40 border border-white/30 text-foreground/80 hover:bg-white/50'
+                          ? 'bg-gradient-to-r from-sky-400 via-blue-400 to-indigo-400 text-white shadow-lg'
+                          : 'bg-white/50 border border-white/40 text-gray-700 hover:bg-white/60'
                       }`}
                     >
                       {vibe}
@@ -304,7 +303,7 @@ const AccountScreen = () => {
 
               <Button
                 size="lg"
-                className="w-full h-12 rounded-2xl bg-gradient-to-r from-indigo-400 via-blue-400 to-violet-400 hover:from-indigo-500 hover:via-blue-500 hover:to-violet-500 text-white font-medium transition-all disabled:opacity-50"
+                className="w-full h-12 rounded-2xl bg-gradient-to-r from-sky-400 via-blue-400 to-indigo-400 hover:from-sky-500 hover:via-blue-500 hover:to-indigo-500 text-white font-medium transition-all disabled:opacity-50"
                 onClick={handleSaveProfile}
                 disabled={!isProfileValid}
               >
@@ -323,37 +322,37 @@ const AccountScreen = () => {
                     />
                   ) : (
                     <div className="w-16 h-16 rounded-full bg-white/40 border border-white/30 flex items-center justify-center">
-                      <Camera className="w-6 h-6 text-foreground/60" />
+                      <Camera className="w-6 h-6 text-white/70" />
                     </div>
                   )}
                 </div>
                 <div className="flex-1">
-                  <h2 className="font-display text-lg text-foreground">
+                  <h2 className="font-display text-lg text-white drop-shadow">
                     {userProfile.name || 'Traveler'}
                   </h2>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-white/80 drop-shadow">
                     {user?.phone || user?.email || 'No contact info'}
                   </p>
                   {userProfile.age && (
-                    <p className="text-xs text-muted-foreground mt-1">{userProfile.age} years old</p>
+                    <p className="text-xs text-white/70 mt-1 drop-shadow">{userProfile.age} years old</p>
                   )}
                 </div>
               </div>
 
               {userProfile.bio && (
-                <p className="text-sm text-foreground/70 mt-3 pt-3 border-t border-white/20">
+                <p className="text-sm text-white/80 mt-3 pt-3 border-t border-white/20 drop-shadow">
                   {userProfile.bio}
                 </p>
               )}
 
               {userProfile.travelVibes && userProfile.travelVibes.length > 0 && (
                 <div className="mt-3 pt-3 border-t border-white/20">
-                  <p className="text-xs text-foreground/60 mb-2">Travel Vibes</p>
+                  <p className="text-xs text-white/70 mb-2 drop-shadow">Travel Vibes</p>
                   <div className="flex flex-wrap gap-2">
                     {userProfile.travelVibes.map((vibe) => (
                       <span
                         key={vibe}
-                        className="px-3 py-1 rounded-full text-xs font-medium bg-indigo-400/20 text-indigo-700"
+                        className="px-3 py-1 rounded-full text-xs font-medium bg-white/30 text-white border border-white/30"
                       >
                         {vibe}
                       </span>
@@ -373,10 +372,10 @@ const AccountScreen = () => {
           className="mb-6"
         >
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-medium text-foreground/90">Current Trip</h3>
+            <h3 className="text-sm font-medium text-white drop-shadow">Current Trip</h3>
             <button
               onClick={() => setEditingTravel(!editingTravel)}
-              className="text-xs text-indigo-600 font-medium hover:text-indigo-700"
+              className="text-xs text-white/90 font-medium hover:text-white drop-shadow"
             >
               {editingTravel ? 'Cancel' : 'Edit'}
             </button>
@@ -385,46 +384,46 @@ const AccountScreen = () => {
           {editingTravel ? (
             <div className="p-5 rounded-[24px] bg-white/30 backdrop-blur-2xl border border-white/40 shadow-[0_20px_60px_rgba(0,0,0,0.15)] space-y-4">
               <div>
-                <label className="text-xs text-foreground/60 mb-1 block">Destination</label>
+                <label className="text-xs text-white/80 mb-1 block drop-shadow">Destination</label>
                 <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50" />
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                   <Input
                     value={destination}
                     onChange={(e) => setDestination(e.target.value)}
                     placeholder="Where are you going?"
-                    className="h-12 pl-10 rounded-xl bg-white/40 border border-white/30 text-foreground"
+                    className="h-12 pl-10 rounded-xl bg-white/80 border border-white/50 text-gray-900 placeholder:text-gray-400"
                   />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-foreground/60 mb-1 block">From</label>
+                  <label className="text-xs text-white/80 mb-1 block drop-shadow">From</label>
                   <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50" />
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                     <Input
                       type="date"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
-                      className="h-12 pl-10 rounded-xl bg-white/40 border border-white/30 text-foreground"
+                      className="h-12 pl-10 rounded-xl bg-white/80 border border-white/50 text-gray-900"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs text-foreground/60 mb-1 block">To</label>
+                  <label className="text-xs text-white/80 mb-1 block drop-shadow">To</label>
                   <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/50" />
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                     <Input
                       type="date"
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
-                      className="h-12 pl-10 rounded-xl bg-white/40 border border-white/30 text-foreground"
+                      className="h-12 pl-10 rounded-xl bg-white/80 border border-white/50 text-gray-900"
                     />
                   </div>
                 </div>
               </div>
               <Button
                 size="lg"
-                className="w-full h-12 rounded-2xl bg-gradient-to-r from-indigo-400 via-blue-400 to-violet-400 hover:from-indigo-500 hover:via-blue-500 hover:to-violet-500 text-white font-medium transition-all disabled:opacity-50"
+                className="w-full h-12 rounded-2xl bg-gradient-to-r from-sky-400 via-blue-400 to-indigo-400 hover:from-sky-500 hover:via-blue-500 hover:to-indigo-500 text-white font-medium transition-all disabled:opacity-50"
                 onClick={handleSaveTravel}
                 disabled={!destination || !startDate || !endDate}
               >
@@ -436,19 +435,19 @@ const AccountScreen = () => {
               {travelDetails ? (
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-indigo-400/20 flex items-center justify-center">
-                      <MapPin className="w-5 h-5 text-indigo-600" />
+                    <div className="w-10 h-10 rounded-xl bg-white/30 border border-white/30 flex items-center justify-center">
+                      <MapPin className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <p className="font-medium text-foreground">{travelDetails.destination}</p>
-                      <p className="text-xs text-foreground/60">
+                      <p className="font-medium text-white drop-shadow">{travelDetails.destination}</p>
+                      <p className="text-xs text-white/80 drop-shadow">
                         {travelDetails.startDate} → {travelDetails.endDate}
                       </p>
                     </div>
                   </div>
                 </div>
               ) : (
-                <p className="text-sm text-foreground/60 text-center py-4">
+                <p className="text-sm text-white/70 text-center py-4 drop-shadow">
                   No trip planned yet
                 </p>
               )}
@@ -462,19 +461,19 @@ const AccountScreen = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <h3 className="text-sm font-medium text-foreground/90 mb-3">Settings</h3>
+          <h3 className="text-sm font-medium text-white drop-shadow mb-3">Settings</h3>
           <div className="rounded-[24px] bg-white/30 backdrop-blur-2xl border border-white/40 shadow-[0_20px_60px_rgba(0,0,0,0.15)] overflow-hidden">
             <button
               onClick={() => setScreen('travel')}
               className="w-full flex items-center justify-between p-4 hover:bg-white/20 transition-all"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-indigo-400/20 flex items-center justify-center">
-                  <MapPin className="w-5 h-5 text-indigo-600" />
+                <div className="w-10 h-10 rounded-xl bg-white/30 border border-white/30 flex items-center justify-center">
+                  <MapPin className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-sm text-foreground">Plan New Trip</span>
+                <span className="text-sm text-white drop-shadow">Plan New Trip</span>
               </div>
-              <ChevronRight className="w-5 h-5 text-foreground/50" />
+              <ChevronRight className="w-5 h-5 text-white/60" />
             </button>
 
             <div className="h-px bg-white/20 mx-4" />
@@ -484,12 +483,12 @@ const AccountScreen = () => {
               className="w-full flex items-center justify-between p-4 hover:bg-white/20 transition-all"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-white/40 border border-white/30 flex items-center justify-center">
-                  <LogOut className="w-5 h-5 text-foreground/60" />
+                <div className="w-10 h-10 rounded-xl bg-white/30 border border-white/30 flex items-center justify-center">
+                  <LogOut className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-sm text-foreground">Sign Out</span>
+                <span className="text-sm text-white drop-shadow">Sign Out</span>
               </div>
-              <ChevronRight className="w-5 h-5 text-foreground/50" />
+              <ChevronRight className="w-5 h-5 text-white/60" />
             </button>
 
             <div className="h-px bg-white/20 mx-4" />
