@@ -224,12 +224,12 @@ const SwipeScreen = () => {
 
   return (
     <div className="fixed inset-0 flex flex-col">
-      {/* Full-screen background */}
+      {/* Full-screen background - lighter lavender-blue */}
       <div 
         className="absolute inset-0 bg-cover bg-center"
         style={{ backgroundImage: `url(${bgImage})` }}
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-sky-400/30 via-blue-400/25 to-indigo-500/30" />
+      <div className="absolute inset-0 bg-gradient-to-b from-sky-300/40 via-blue-200/35 to-indigo-300/40" />
       <div className="absolute inset-0 backdrop-blur-[2px]" />
 
       {/* Header */}
@@ -308,7 +308,7 @@ const SwipeScreen = () => {
 
       {/* Action buttons */}
       {!loading && remainingProfiles.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-20 px-4 pb-8 pt-4 flex justify-center items-center gap-8 bg-gradient-to-t from-indigo-900/60 to-transparent">
+        <div className="fixed bottom-0 left-0 right-0 z-20 px-4 pb-8 pt-4 flex justify-center items-center gap-8 bg-gradient-to-t from-indigo-400/50 to-transparent">
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
