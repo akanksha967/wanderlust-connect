@@ -35,26 +35,43 @@ export const useProfileSave = () => {
     setSaving(true);
 
     try {
-      // Update the profile
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          name: profileData.name,
-          age: profileData.age,
-          bio: profileData.bio || null,
-        })
-        .eq('user_id', user.id);
-
-      if (profileError) throw profileError;
-
-      // Get the profile ID
-      const { data: profile, error: profileIdError } = await supabase
+      // First check if profile exists, if not create it
+      let { data: profile, error: profileFetchError } = await supabase
         .from('profiles')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (profileIdError || !profile) throw profileIdError || new Error('Profile not found');
+      // If profile doesn't exist, create it
+      if (!profile) {
+        const { data: newProfile, error: createError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: user.id,
+            name: profileData.name,
+            age: profileData.age,
+            bio: profileData.bio || null,
+          })
+          .select('id')
+          .single();
+
+        if (createError) throw createError;
+        profile = newProfile;
+      } else {
+        // Update existing profile
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            name: profileData.name,
+            age: profileData.age,
+            bio: profileData.bio || null,
+          })
+          .eq('user_id', user.id);
+
+        if (profileError) throw profileError;
+      }
+
+      if (!profile) throw new Error('Failed to create or find profile');
 
       // Delete existing photos and add new ones
       await supabase.from('photos').delete().eq('profile_id', profile.id);
@@ -116,14 +133,15 @@ export const useProfileSave = () => {
     setSaving(true);
 
     try {
-      // Get the profile ID
+      // Get the profile ID using maybeSingle to avoid error if not found
       const { data: profile, error: profileIdError } = await supabase
         .from('profiles')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (profileIdError || !profile) throw profileIdError || new Error('Profile not found');
+      if (profileIdError) throw profileIdError;
+      if (!profile) throw new Error('Profile not found. Please complete your profile first.');
 
       // Deactivate any existing travel plans
       await supabase
