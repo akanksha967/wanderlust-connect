@@ -17,7 +17,7 @@ const MatchesListScreen = () => {
         className="fixed inset-0 bg-cover bg-center"
         style={{ backgroundImage: `url(https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&auto=format&fit=crop)` }}
       />
-      <div className="fixed inset-0 bg-gradient-to-b from-indigo-500/50 via-violet-500/40 to-purple-600/50" />
+      <div className="fixed inset-0 bg-gradient-to-b from-sky-500/50 via-blue-500/40 to-indigo-600/50" />
       <div className="fixed inset-0 backdrop-blur-[2px]" />
 
       {/* Header */}
@@ -52,7 +52,7 @@ const MatchesListScreen = () => {
                     alt={match.name}
                     className="w-16 h-16 rounded-xl object-cover border border-white/30"
                   />
-                  <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 border-2 border-white/50" />
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-gradient-to-r from-sky-500 to-blue-500 border-2 border-white/50" />
                 </div>
                 
                 <div className="flex-1 text-left">
@@ -74,7 +74,7 @@ const MatchesListScreen = () => {
                   </div>
                 </div>
 
-                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-violet-500 via-purple-500 to-indigo-500 flex items-center justify-center shadow-lg border border-white/30">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 flex items-center justify-center shadow-lg border border-white/30">
                   <MessageCircle className="w-5 h-5 text-white" />
                 </div>
               </motion.button>
@@ -86,7 +86,7 @@ const MatchesListScreen = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="flex flex-col items-center justify-center h-full text-center px-8"
           >
-            <div className="w-24 h-24 rounded-full bg-gradient-to-r from-violet-500 via-purple-500 to-indigo-500 flex items-center justify-center mb-6 shadow-lg animate-float">
+            <div className="w-24 h-24 rounded-full bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 flex items-center justify-center mb-6 shadow-lg animate-float">
               <Heart className="w-12 h-12 text-white" />
             </div>
             <h3 className="text-xl font-display text-white drop-shadow-lg mb-2">
@@ -97,7 +97,7 @@ const MatchesListScreen = () => {
             </p>
             <button
               onClick={() => setScreen('swipe')}
-              className="px-6 py-3 rounded-full bg-gradient-to-r from-violet-500 via-purple-500 to-indigo-500 text-white font-medium shadow-lg border border-white/30 transition-smooth hover:shadow-xl hover:scale-105"
+              className="px-6 py-3 rounded-full bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 text-white font-medium shadow-lg border border-white/30 transition-smooth hover:shadow-xl hover:scale-105"
             >
               Start Swiping
             </button>

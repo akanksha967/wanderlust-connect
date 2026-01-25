@@ -229,7 +229,7 @@ const SwipeScreen = () => {
         className="absolute inset-0 bg-cover bg-center"
         style={{ backgroundImage: `url(${bgImage})` }}
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/50 via-violet-500/40 to-purple-600/50" />
+      <div className="absolute inset-0 bg-gradient-to-b from-sky-500/50 via-blue-500/40 to-indigo-600/50" />
       <div className="absolute inset-0 backdrop-blur-[2px]" />
 
       {/* Header */}
@@ -291,7 +291,7 @@ const SwipeScreen = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 className="flex flex-col items-center justify-center h-full text-center"
               >
-                <div className="w-20 h-20 rounded-full bg-gradient-to-r from-violet-500 via-purple-500 to-indigo-500 flex items-center justify-center mb-4 shadow-lg">
+                <div className="w-20 h-20 rounded-full bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 flex items-center justify-center mb-4 shadow-lg">
                   <MapPin className="w-10 h-10 text-white" />
                 </div>
                 <h3 className="text-xl font-display text-white drop-shadow-lg mb-2">
@@ -308,7 +308,7 @@ const SwipeScreen = () => {
 
       {/* Action buttons */}
       {!loading && remainingProfiles.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-20 px-4 pb-8 pt-4 flex justify-center items-center gap-8 bg-gradient-to-t from-violet-900/60 to-transparent">
+        <div className="fixed bottom-0 left-0 right-0 z-20 px-4 pb-8 pt-4 flex justify-center items-center gap-8 bg-gradient-to-t from-indigo-900/60 to-transparent">
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
@@ -322,7 +322,7 @@ const SwipeScreen = () => {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => handleButtonSwipe('right')}
-            className="w-16 h-16 flex items-center justify-center rounded-full bg-gradient-to-r from-violet-500 via-purple-500 to-indigo-500 border border-white/30 shadow-lg transition-all"
+            className="w-16 h-16 flex items-center justify-center rounded-full bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 border border-white/30 shadow-lg transition-all"
           >
             <Heart className="w-8 h-8 text-white" strokeWidth={2.5} />
           </motion.button>
