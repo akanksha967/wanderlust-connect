@@ -94,7 +94,7 @@ const EmailAuthModal = ({ isOpen, onClose, onSuccess }: EmailAuthModalProps) => 
           >
             <div className="bg-white/30 backdrop-blur-2xl rounded-[24px] shadow-[0_20px_60px_rgba(0,0,0,0.2)] border border-white/40 overflow-hidden max-h-[calc(100dvh-2rem)] flex flex-col">
               <div className="flex items-center justify-between px-6 pt-6 pb-4">
-                <h2 className="text-xl font-serif text-foreground drop-shadow-sm">
+                <h2 className="text-xl font-serif text-gray-900">
                   {isSignUp ? "Create Account" : "Welcome Back"}
                 </h2>
                 <button
@@ -110,7 +110,7 @@ const EmailAuthModal = ({ isOpen, onClose, onSuccess }: EmailAuthModalProps) => 
               <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
                 <div className="px-6 pb-4 space-y-4 flex-1 min-h-0 overflow-y-auto">
                   <div>
-                    <label className="text-sm font-medium text-foreground/80 mb-2 block">
+                    <label className="text-sm font-medium text-gray-800 mb-2 block">
                       Email
                     </label>
                     <div className="relative">
@@ -126,7 +126,7 @@ const EmailAuthModal = ({ isOpen, onClose, onSuccess }: EmailAuthModalProps) => 
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium text-foreground/80 mb-2 block">
+                    <label className="text-sm font-medium text-gray-800 mb-2 block">
                       Password
                     </label>
                     <div className="relative">
@@ -152,7 +152,7 @@ const EmailAuthModal = ({ isOpen, onClose, onSuccess }: EmailAuthModalProps) => 
                       </button>
                     </div>
                     {!isSignUp && (
-                      <p className="text-xs text-foreground/60 mt-1">
+                      <p className="text-xs text-gray-600 mt-1">
                         Minimum 6 characters
                       </p>
                     )}
@@ -176,7 +176,7 @@ const EmailAuthModal = ({ isOpen, onClose, onSuccess }: EmailAuthModalProps) => 
                         : "Sign In"}
                   </Button>
 
-                  <p className="text-center text-sm text-foreground/70">
+                  <p className="text-center text-sm text-gray-700">
                     {isSignUp
                       ? "Already have an account?"
                       : "Don't have an account?"}{" "}
