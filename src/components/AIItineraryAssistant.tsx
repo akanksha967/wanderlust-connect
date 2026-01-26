@@ -287,7 +287,28 @@ export const AIItineraryAssistant = ({ destination }: AIItineraryAssistantProps)
                     You've used your free itinerary generation. Subscribe to unlock unlimited AI-powered travel planning!
                   </p>
                   <Button
-                    onClick={() => toast({ title: 'Coming Soon', description: 'Subscription feature is under development' })}
+                    onClick={async () => {
+                      try {
+                        const { data: { user } } = await supabase.auth.getUser();
+                        if (user) {
+                          const { data: profile } = await supabase
+                            .from('profiles')
+                            .select('id')
+                            .eq('user_id', user.id)
+                            .single();
+                          
+                          if (profile) {
+                            await supabase
+                              .from('subscription_interest')
+                              .insert({ profile_id: profile.id })
+                              .select();
+                          }
+                        }
+                      } catch (error) {
+                        console.error('Error recording subscription interest:', error);
+                      }
+                      toast({ title: 'Coming Soon', description: 'Subscription feature is under development' });
+                    }}
                     className="w-full bg-gradient-to-r from-indigo-400 to-purple-500 hover:from-indigo-500 hover:to-purple-600 text-white border-0"
                   >
                     Subscribe Now
