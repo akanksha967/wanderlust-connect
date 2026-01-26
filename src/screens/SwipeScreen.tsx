@@ -5,6 +5,7 @@ import { X, MapPin, MessageCircle, User, Heart, Shield, MoreVertical, Loader2 } 
 import ReportBlockDialog from '@/components/ReportBlockDialog';
 import { useSwipeProfiles, SwipeProfile } from '@/hooks/useSwipeProfiles';
 import { useAuth } from '@/hooks/useAuth';
+import { AIItineraryAssistant } from '@/components/AIItineraryAssistant';
 
 const destinationImages: Record<string, string> = {
   'Bali': 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=1200&auto=format&fit=crop',
@@ -337,6 +338,9 @@ const SwipeScreen = () => {
         onReport={handleReport}
         userName={selectedProfile?.name || ''}
       />
+
+      {/* AI Itinerary Assistant */}
+      <AIItineraryAssistant destination={destination} />
     </div>
   );
 };
