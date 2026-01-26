@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, X, Loader2, MapPin, DollarSign, Calendar, Lock, Download } from 'lucide-react';
+import { Sparkles, X, Loader2, MapPin, Calendar, Lock, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
@@ -340,16 +340,16 @@ export const AIItineraryAssistant = ({ destination }: AIItineraryAssistantProps)
                     </div>
                     
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="relative">
-                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                      <div className="relative flex items-center">
+                        <span className="absolute left-3 text-gray-500 text-sm font-medium">₹</span>
                         <Input
-                          placeholder="Budget (e.g., $2000)"
+                          placeholder="Budget (e.g., ₹50000)"
                           value={budget}
                           onChange={(e) => setBudget(e.target.value)}
-                          className="pl-9 rounded-xl bg-white/80 backdrop-blur-xl border-white/30 text-gray-900 placeholder:text-gray-500"
+                          className="pl-8 rounded-xl bg-white/80 backdrop-blur-xl border-white/30 text-gray-900 placeholder:text-gray-500 h-10"
                         />
                       </div>
-                      <div className="relative">
+                      <div className="relative flex items-center">
                         <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                         <Input
                           type="number"
@@ -358,7 +358,7 @@ export const AIItineraryAssistant = ({ destination }: AIItineraryAssistantProps)
                           onChange={(e) => setDays(e.target.value)}
                           min="1"
                           max="30"
-                          className="pl-9 rounded-xl bg-white/80 backdrop-blur-xl border-white/30 text-gray-900 placeholder:text-gray-500"
+                          className="pl-9 rounded-xl bg-white/80 backdrop-blur-xl border-white/30 text-gray-900 placeholder:text-gray-500 h-10"
                         />
                       </div>
                     </div>
