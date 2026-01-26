@@ -51,12 +51,22 @@ export const AIItineraryAssistant = ({ destination }: AIItineraryAssistantProps)
 
   const claimAccess = async () => {
     try {
-      const { data: profile } = await supabase
+      // Get the current user's session first
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({ title: 'Error', description: 'Please log in first', variant: 'destructive' });
+        return;
+      }
+
+      // Get profile using user_id
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('id')
+        .eq('user_id', user.id)
         .single();
 
-      if (!profile) {
+      if (profileError || !profile) {
         toast({ title: 'Error', description: 'Please complete your profile first', variant: 'destructive' });
         return;
       }
