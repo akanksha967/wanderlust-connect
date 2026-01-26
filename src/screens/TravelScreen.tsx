@@ -145,26 +145,20 @@ export default function TravelScreen() {
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  className="flex flex-col sm:grid sm:grid-cols-2 gap-3 overflow-hidden"
+                  className="grid grid-cols-2 gap-2 overflow-hidden"
                 >
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs text-white/70 font-medium">Start Date</label>
-                    <Input 
-                      type="date" 
-                      value={startDate} 
-                      onChange={(e) => setStartDate(e.target.value)} 
-                      className="h-11 rounded-xl bg-white/80 text-gray-900 border-white/30"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs text-white/70 font-medium">End Date</label>
-                    <Input 
-                      type="date" 
-                      value={endDate} 
-                      onChange={(e) => setEndDate(e.target.value)} 
-                      className="h-11 rounded-xl bg-white/80 text-gray-900 border-white/30"
-                    />
-                  </div>
+                  <Input 
+                    type="date" 
+                    value={startDate} 
+                    onChange={(e) => setStartDate(e.target.value)} 
+                    className="h-9 text-sm rounded-xl bg-white/80 text-gray-900 border-white/30"
+                  />
+                  <Input 
+                    type="date" 
+                    value={endDate} 
+                    onChange={(e) => setEndDate(e.target.value)} 
+                    className="h-9 text-sm rounded-xl bg-white/80 text-gray-900 border-white/30"
+                  />
                 </motion.div>
               )}
             </AnimatePresence>
