@@ -19,16 +19,19 @@ export type Database = {
           created_at: string
           id: string
           profile_id: string
+          usage_count: number
         }
         Insert: {
           created_at?: string
           id?: string
           profile_id: string
+          usage_count?: number
         }
         Update: {
           created_at?: string
           id?: string
           profile_id?: string
+          usage_count?: number
         }
         Relationships: [
           {
@@ -397,6 +400,7 @@ export type Database = {
     }
     Functions: {
       check_ai_access: { Args: never; Returns: Json }
+      check_and_increment_ai_usage: { Args: never; Returns: Json }
       get_my_profile_id: { Args: never; Returns: string }
       has_role: {
         Args: {

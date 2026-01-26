@@ -14,9 +14,10 @@ interface AIItineraryAssistantProps {
 export const AIItineraryAssistant = ({ destination }: AIItineraryAssistantProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
-  const [spotsRemaining, setSpotsRemaining] = useState(50);
+  const [needsSubscription, setNeedsSubscription] = useState(false);
   const [isCheckingAccess, setIsCheckingAccess] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isComplete, setIsComplete] = useState(false);
   const [itinerary, setItinerary] = useState('');
   const [budget, setBudget] = useState('');
   const [days, setDays] = useState('5');
@@ -41,7 +42,30 @@ export const AIItineraryAssistant = ({ destination }: AIItineraryAssistantProps)
       
       const result = data as { has_access: boolean; spots_remaining: number };
       setHasAccess(result.has_access);
-      setSpotsRemaining(result.spots_remaining);
+      
+      // Check if user has already used their free generation
+      if (result.has_access) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('user_id', user.id)
+            .single();
+          
+          if (profile) {
+            const { data: aiUser } = await supabase
+              .from('ai_itinerary_users')
+              .select('usage_count')
+              .eq('profile_id', profile.id)
+              .single();
+            
+            if (aiUser && aiUser.usage_count >= 1) {
+              setNeedsSubscription(true);
+            }
+          }
+        }
+      }
     } catch (error) {
       console.error('Error checking AI access:', error);
     } finally {
@@ -86,7 +110,6 @@ export const AIItineraryAssistant = ({ destination }: AIItineraryAssistantProps)
       }
 
       setHasAccess(true);
-      setSpotsRemaining(prev => prev - 1);
       toast({ title: 'Access granted!', description: 'You can now use the AI itinerary assistant' });
     } catch (error: any) {
       console.error('Error claiming access:', error);
@@ -100,7 +123,30 @@ export const AIItineraryAssistant = ({ destination }: AIItineraryAssistantProps)
       return;
     }
 
+    // Check usage limit before generating
+    try {
+      const { data: usageCheck, error: usageError } = await supabase.rpc('check_and_increment_ai_usage');
+      if (usageError) throw usageError;
+      
+      const result = usageCheck as { can_generate: boolean; needs_subscription?: boolean; needs_registration?: boolean };
+      
+      if (result.needs_registration) {
+        toast({ title: 'Access required', description: 'Please claim your spot first', variant: 'destructive' });
+        return;
+      }
+      
+      if (result.needs_subscription || !result.can_generate) {
+        setNeedsSubscription(true);
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking usage:', error);
+      toast({ title: 'Error', description: 'Failed to verify access', variant: 'destructive' });
+      return;
+    }
+
     setIsGenerating(true);
+    setIsComplete(false);
     setItinerary('');
 
     try {
@@ -167,6 +213,7 @@ export const AIItineraryAssistant = ({ destination }: AIItineraryAssistantProps)
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } finally {
       setIsGenerating(false);
+      setIsComplete(true);
     }
   };
 
@@ -230,25 +277,36 @@ export const AIItineraryAssistant = ({ destination }: AIItineraryAssistantProps)
               </div>
 
               {/* Content */}
-              {!hasAccess ? (
+              {needsSubscription ? (
+                <div className="p-6 flex flex-col items-center text-center">
+                  <div className="w-16 h-16 rounded-full bg-white/30 backdrop-blur-xl flex items-center justify-center mb-4 border border-white/30">
+                    <Lock className="w-8 h-8 text-white/80" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white/90 mb-2">Free Trial Used</h3>
+                  <p className="text-white/70 mb-4">
+                    You've used your free itinerary generation. Subscribe to unlock unlimited AI-powered travel planning!
+                  </p>
+                  <Button
+                    onClick={() => toast({ title: 'Coming Soon', description: 'Subscription feature is under development' })}
+                    className="w-full bg-gradient-to-r from-indigo-400 to-purple-500 hover:from-indigo-500 hover:to-purple-600 text-white border-0"
+                  >
+                    Subscribe Now
+                  </Button>
+                </div>
+              ) : !hasAccess ? (
                 <div className="p-6 flex flex-col items-center text-center">
                   <div className="w-16 h-16 rounded-full bg-white/30 backdrop-blur-xl flex items-center justify-center mb-4 border border-white/30">
                     <Lock className="w-8 h-8 text-white/80" />
                   </div>
                   <h3 className="text-xl font-bold text-white/90 mb-2">Early Access Feature</h3>
                   <p className="text-white/70 mb-4">
-                    Get AI-powered travel itineraries for free! Limited to first 50 users.
+                    Get one free AI-powered travel itinerary! Claim your spot now.
                   </p>
-                  <div className="bg-white/20 backdrop-blur-xl rounded-xl p-4 mb-6 w-full border border-white/30">
-                    <div className="text-3xl font-bold text-white">{spotsRemaining}</div>
-                    <div className="text-sm text-white/70">spots remaining</div>
-                  </div>
                   <Button
                     onClick={claimAccess}
-                    disabled={spotsRemaining === 0}
                     className="w-full bg-gradient-to-r from-indigo-400 to-purple-500 hover:from-indigo-500 hover:to-purple-600 text-white border-0"
                   >
-                    {spotsRemaining > 0 ? 'Claim Your Spot' : 'No Spots Available'}
+                    Claim Your Free Itinerary
                   </Button>
                 </div>
               ) : (
@@ -319,10 +377,11 @@ export const AIItineraryAssistant = ({ destination }: AIItineraryAssistantProps)
                         </div>
                         <Button
                           onClick={downloadItinerary}
-                          className="w-full bg-white/20 hover:bg-white/30 backdrop-blur-xl rounded-xl text-white border border-white/30"
+                          disabled={!isComplete || isGenerating}
+                          className="w-full bg-white/20 hover:bg-white/30 backdrop-blur-xl rounded-xl text-white border border-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <Download className="w-4 h-4 mr-2" />
-                          Download Itinerary
+                          {isGenerating ? 'Generating...' : 'Download Itinerary'}
                         </Button>
                       </div>
                     ) : (
