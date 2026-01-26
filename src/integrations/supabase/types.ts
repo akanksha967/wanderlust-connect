@@ -14,6 +14,32 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_itinerary_users: {
+        Row: {
+          created_at: string
+          id: string
+          profile_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          profile_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_itinerary_users_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blocks: {
         Row: {
           blocked_id: string
@@ -370,6 +396,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_ai_access: { Args: never; Returns: Json }
       get_my_profile_id: { Args: never; Returns: string }
       has_role: {
         Args: {
