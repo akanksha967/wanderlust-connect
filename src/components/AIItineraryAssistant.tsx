@@ -343,7 +343,7 @@ export const AIItineraryAssistant = ({ destination }: AIItineraryAssistantProps)
                       <div className="relative flex items-center">
                         <span className="absolute left-3 text-gray-500 text-sm font-medium">₹</span>
                         <Input
-                          placeholder="Budget (e.g., ₹50000)"
+                          placeholder="e.g. 50,000"
                           value={budget}
                           onChange={(e) => setBudget(e.target.value)}
                           className="pl-8 rounded-xl bg-white/80 backdrop-blur-xl border-white/30 text-gray-900 placeholder:text-gray-500 h-10"
