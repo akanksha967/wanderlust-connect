@@ -16,7 +16,7 @@ const Index = () => {
   const hasCompletedProfile = useAppStore((state) => state.hasCompletedProfile);
   const { user, loading, hasExistingProfile } = useAuth();
 
-  // Redirect authenticated users away from login screen
+  // Only redirect when explicitly on login screen and user is authenticated
   useEffect(() => {
     if (!loading && user && currentScreen === 'login') {
       if (hasCompletedProfile || hasExistingProfile) {
@@ -29,7 +29,8 @@ const Index = () => {
     }
   }, [user, loading, currentScreen, hasCompletedProfile, hasExistingProfile, setScreen]);
 
-  // Redirect unauthenticated users to login
+  // Only redirect to login if user is not authenticated
+  // Don't redirect if we're still loading or if user exists
   useEffect(() => {
     if (!loading && !user && currentScreen !== 'login') {
       setScreen('login');

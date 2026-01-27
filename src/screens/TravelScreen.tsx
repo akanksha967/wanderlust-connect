@@ -145,20 +145,22 @@ export default function TravelScreen() {
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  className="grid grid-cols-2 gap-2 overflow-hidden"
+                  className="overflow-hidden"
                 >
-                  <Input 
-                    type="date" 
-                    value={startDate} 
-                    onChange={(e) => setStartDate(e.target.value)} 
-                    className="h-9 text-xs rounded-xl bg-white/80 text-gray-900 border-white/30 w-full min-w-0 px-2"
-                  />
-                  <Input 
-                    type="date" 
-                    value={endDate} 
-                    onChange={(e) => setEndDate(e.target.value)} 
-                    className="h-9 text-xs rounded-xl bg-white/80 text-gray-900 border-white/30 w-full min-w-0 px-2"
-                  />
+                  <div className="grid grid-cols-2 gap-3">
+                    <Input 
+                      type="date" 
+                      value={startDate} 
+                      onChange={(e) => setStartDate(e.target.value)} 
+                      className="h-10 text-xs rounded-xl bg-white/80 text-gray-900 border border-white/40 w-full min-w-0 px-3"
+                    />
+                    <Input 
+                      type="date" 
+                      value={endDate} 
+                      onChange={(e) => setEndDate(e.target.value)} 
+                      className="h-10 text-xs rounded-xl bg-white/80 text-gray-900 border border-white/40 w-full min-w-0 px-3"
+                    />
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
