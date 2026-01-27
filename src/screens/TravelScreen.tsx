@@ -188,26 +188,39 @@ export default function TravelScreen() {
             </AnimatePresence>
 
             {/* ---------- CTA ---------- */}
-            <Button
-              onClick={async () => {
-                if (canProceed && !saving) {
-                  const success = await saveTravelPlan({ destination, startDate, endDate });
-                  if (success) {
-                    setTravelDetails({ destination, startDate, endDate });
-                    setScreen("swipe");
+            <div className="space-y-3">
+              <Button
+                onClick={async () => {
+                  if (canProceed && !saving) {
+                    const success = await saveTravelPlan({ destination, startDate, endDate });
+                    if (success) {
+                      setTravelDetails({ destination, startDate, endDate });
+                      setScreen("swipe");
+                    }
+                  } else if (!showDates) {
+                    setShowDates(true);
                   }
-                } else if (!showDates) {
-                  setShowDates(true);
-                }
-              }}
-              disabled={(showDates && !canProceed) || saving}
-              className="w-full h-12 rounded-2xl 
-                bg-gradient-to-r from-indigo-400 via-blue-400 to-violet-400
-                hover:from-indigo-500 hover:via-blue-500 hover:to-violet-500
-                text-white font-medium transition-all disabled:opacity-50"
-            >
-              {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : !showDates ? "Pick your travel dates" : canProceed ? "Continue your journey" : "Almost there…"}
-            </Button>
+                }}
+                disabled={(showDates && !canProceed) || saving}
+                className="w-full h-12 rounded-2xl 
+                  bg-gradient-to-r from-indigo-400 via-blue-400 to-violet-400
+                  hover:from-indigo-500 hover:via-blue-500 hover:to-violet-500
+                  text-white font-medium transition-all disabled:opacity-50"
+              >
+                {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : !showDates ? "Pick your travel dates" : canProceed ? "Continue your journey" : "Almost there…"}
+              </Button>
+              
+              {/* Skip button for returning users */}
+              {hasCompletedProfile && (
+                <Button
+                  variant="ghost"
+                  onClick={() => setScreen("swipe")}
+                  className="w-full h-10 text-white/70 hover:text-white hover:bg-white/10"
+                >
+                  Skip for now
+                </Button>
+              )}
+            </div>
           </div>
         </motion.div>
       </div>
