@@ -100,7 +100,7 @@ export default function TravelScreen() {
             border border-white/40 
             shadow-[0_30px_80px_rgba(0,0,0,0.25)]"
         >
-          <div className="p-6 space-y-5">
+          <div className="p-5 sm:p-6 space-y-5">
             {/* ---------- HEADER ---------- */}
             <div className="text-center space-y-1">
               <h1 className="font-serif text-2xl">Where to next?</h1>
@@ -147,18 +147,18 @@ export default function TravelScreen() {
                   exit={{ height: 0, opacity: 0 }}
                   className="overflow-hidden"
                 >
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-2 sm:gap-3">
                     <Input 
                       type="date" 
                       value={startDate} 
                       onChange={(e) => setStartDate(e.target.value)} 
-                      className="h-10 text-xs rounded-xl bg-white/80 text-gray-900 border border-white/40 w-full min-w-0 px-3"
+                      className="h-10 rounded-xl bg-white/80 text-gray-900 border border-white/40 w-full min-w-0 max-w-full px-3 appearance-none text-[16px] sm:text-sm"
                     />
                     <Input 
                       type="date" 
                       value={endDate} 
                       onChange={(e) => setEndDate(e.target.value)} 
-                      className="h-10 text-xs rounded-xl bg-white/80 text-gray-900 border border-white/40 w-full min-w-0 px-3"
+                      className="h-10 rounded-xl bg-white/80 text-gray-900 border border-white/40 w-full min-w-0 max-w-full px-3 appearance-none text-[16px] sm:text-sm"
                     />
                   </div>
                 </motion.div>
