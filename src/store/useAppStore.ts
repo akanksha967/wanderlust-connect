@@ -33,15 +33,31 @@ interface AppState {
   setHasCompletedProfile: (completed: boolean) => void;
 }
 
+// Persist screen to sessionStorage to survive refresh
+const getInitialScreen = (): AppState['currentScreen'] => {
+  if (typeof window !== 'undefined') {
+    const saved = sessionStorage.getItem('currentScreen');
+    if (saved && ['login', 'profile', 'travel', 'swipe', 'chat', 'account', 'matches'].includes(saved)) {
+      return saved as AppState['currentScreen'];
+    }
+  }
+  return 'login';
+};
+
 export const useAppStore = create<AppState>((set) => ({
-  currentScreen: 'login',
+  currentScreen: getInitialScreen(),
   userProfile: {},
   travelDetails: null,
   matchedUser: null,
   matches: [],
   showMatch: false,
   hasCompletedProfile: false,
-  setScreen: (screen) => set({ currentScreen: screen }),
+  setScreen: (screen) => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('currentScreen', screen);
+    }
+    set({ currentScreen: screen });
+  },
   setUserProfile: (profile) => set((state) => ({ 
     userProfile: { ...state.userProfile, ...profile } 
   })),
