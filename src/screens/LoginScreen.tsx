@@ -51,8 +51,14 @@ const LoginScreen = () => {
   const [showPolicyModal, setShowPolicyModal] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const handlePhoneSuccess = () => setScreen("profile");
-  const handleEmailSuccess = () => setScreen("profile");
+  // Don't force navigation here. Let Index.tsx decide whether to go to profile setup or travel
+  // based on whether a profile already exists.
+  const handlePhoneSuccess = () => {
+    setShowPhoneModal(false);
+  };
+  const handleEmailSuccess = () => {
+    setShowEmailModal(false);
+  };
 
   // Auto-cycle destinations (right to left, one direction)
   useEffect(() => {

@@ -29,6 +29,14 @@ const Index = () => {
     }
   }, [user, loading, currentScreen, hasCompletedProfile, hasExistingProfile, setScreen]);
 
+  // If a returning user somehow lands on the profile setup screen (e.g. refresh/persisted state),
+  // send them to Travel instead.
+  useEffect(() => {
+    if (!loading && user && currentScreen === 'profile' && (hasCompletedProfile || hasExistingProfile)) {
+      setScreen('travel');
+    }
+  }, [user, loading, currentScreen, hasCompletedProfile, hasExistingProfile, setScreen]);
+
   // Only redirect to login if user is not authenticated
   // Don't redirect if we're still loading or if user exists
   useEffect(() => {
