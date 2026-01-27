@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useAppStore } from '@/store/useAppStore';
-import { ArrowLeft, Send, Phone, MoreVertical, Trash2, UserX, Ban } from 'lucide-react';
+import { ArrowLeft, Send, Phone, MoreVertical, UserX, Ban, Flag } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import ReportBlockDialog from '@/components/ReportBlockDialog';
 
 interface Message {
   id: string;
@@ -19,6 +20,7 @@ const ChatScreen = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [showOptions, setShowOptions] = useState(false);
+  const [showReportDialog, setShowReportDialog] = useState(false);
   const [matchId, setMatchId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -110,9 +112,20 @@ const ChatScreen = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleDeleteChat = () => {
-    setMessages([]);
-    setShowOptions(false);
+  const handleReport = async (reason: string, description?: string) => {
+    if (matchedUser && profileId) {
+      try {
+        await supabase.from('reports').insert({
+          reporter_id: profileId,
+          reported_id: matchedUser.id,
+          reason,
+          description: description || null,
+        });
+        // Optionally show success toast
+      } catch (error) {
+        console.error('Error reporting user:', error);
+      }
+    }
   };
 
   const handleBlock = async () => {
@@ -222,11 +235,14 @@ const ChatScreen = () => {
             {showOptions && (
               <div className="absolute right-0 top-14 w-48 bg-white/90 backdrop-blur-xl rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.25)] border border-white/50 overflow-hidden z-50">
                 <button
-                  onClick={handleDeleteChat}
+                  onClick={() => {
+                    setShowOptions(false);
+                    setShowReportDialog(true);
+                  }}
                   className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-800 hover:bg-white/50 transition-all"
                 >
-                  <Trash2 className="w-4 h-4" />
-                  Delete Chat
+                  <Flag className="w-4 h-4" />
+                  Report User
                 </button>
                 <button
                   onClick={handleBlock}
@@ -314,6 +330,15 @@ const ChatScreen = () => {
           </div>
         </div>
       </div>
+
+      {/* Report/Block Dialog */}
+      <ReportBlockDialog
+        isOpen={showReportDialog}
+        onClose={() => setShowReportDialog(false)}
+        onBlock={handleBlock}
+        onReport={handleReport}
+        userName={chatUser.name}
+      />
     </div>
   );
 };

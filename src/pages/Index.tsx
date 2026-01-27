@@ -14,15 +14,20 @@ const Index = () => {
   const currentScreen = useAppStore((state) => state.currentScreen);
   const setScreen = useAppStore((state) => state.setScreen);
   const hasCompletedProfile = useAppStore((state) => state.hasCompletedProfile);
-  const { user, loading } = useAuth();
+  const { user, loading, hasExistingProfile } = useAuth();
 
   // Redirect authenticated users away from login screen
   useEffect(() => {
     if (!loading && user && currentScreen === 'login') {
-      // If profile is complete, go to swipe; otherwise go to profile setup
-      setScreen(hasCompletedProfile ? 'swipe' : 'profile');
+      if (hasCompletedProfile || hasExistingProfile) {
+        // Returning user - go to travel screen to set up new trip (they can skip)
+        setScreen('travel');
+      } else {
+        // New user - go to profile setup
+        setScreen('profile');
+      }
     }
-  }, [user, loading, currentScreen, hasCompletedProfile, setScreen]);
+  }, [user, loading, currentScreen, hasCompletedProfile, hasExistingProfile, setScreen]);
 
   // Redirect unauthenticated users to login
   useEffect(() => {
