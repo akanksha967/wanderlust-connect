@@ -151,13 +151,13 @@ export default function TravelScreen() {
                     type="date" 
                     value={startDate} 
                     onChange={(e) => setStartDate(e.target.value)} 
-                    className="h-9 text-sm rounded-xl bg-white/80 text-gray-900 border-white/30"
+                    className="h-9 text-xs rounded-xl bg-white/80 text-gray-900 border-white/30 w-full min-w-0 px-2"
                   />
                   <Input 
                     type="date" 
                     value={endDate} 
                     onChange={(e) => setEndDate(e.target.value)} 
-                    className="h-9 text-sm rounded-xl bg-white/80 text-gray-900 border-white/30"
+                    className="h-9 text-xs rounded-xl bg-white/80 text-gray-900 border-white/30 w-full min-w-0 px-2"
                   />
                 </motion.div>
               )}
