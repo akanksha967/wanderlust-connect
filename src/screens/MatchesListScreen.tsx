@@ -1,9 +1,11 @@
 import { motion } from 'framer-motion';
 import { useAppStore, UserProfile } from '@/store/useAppStore';
 import { ArrowLeft, MessageCircle, Heart } from 'lucide-react';
+import { useMatches } from '@/hooks/useMatches';
 
 const MatchesListScreen = () => {
   const { setScreen, matches, setMatchedUser } = useAppStore();
+  const { loading } = useMatches();
 
   const handleOpenChat = (user: UserProfile) => {
     setMatchedUser(user);
@@ -80,6 +82,18 @@ const MatchesListScreen = () => {
               </motion.button>
             ))}
           </div>
+        ) : loading ? (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex flex-col items-center justify-center h-full text-center px-8"
+          >
+            <div className="w-20 h-20 rounded-full bg-white/25 backdrop-blur-xl border border-white/40 flex items-center justify-center mb-6 shadow-lg">
+              <div className="w-8 h-8 border-4 border-white/60 border-t-transparent rounded-full animate-spin" />
+            </div>
+            <h3 className="text-xl font-display text-white drop-shadow-lg mb-2">Loading matches…</h3>
+            <p className="text-sm text-white/80 drop-shadow">Fetching your chats from the backend</p>
+          </motion.div>
         ) : (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
