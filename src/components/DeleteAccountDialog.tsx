@@ -16,10 +16,12 @@ const DeleteAccountDialog = ({ isOpen, onClose, onDeleted }: DeleteAccountDialog
 
   const handleDelete = async () => {
     setLoading(true);
-    await deleteAccount();
+    const success = await deleteAccount();
     setLoading(false);
-    onDeleted();
-    onClose();
+    if (success) {
+      onDeleted();
+      onClose();
+    }
   };
 
   return (
