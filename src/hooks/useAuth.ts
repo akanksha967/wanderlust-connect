@@ -49,17 +49,31 @@ export const useAuth = () => {
         // Check if profile exists with required fields
         const { data: profileData } = await supabase
           .from('profiles')
-          .select('id, name, age, bio')
+          .select('id, name, age')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
         if (profileData) {
           setProfileId(profileData.id);
           
-          // Check if profile has essential info (name at minimum)
-          const hasCompleteProfile = !!(profileData.name && profileData.name.trim());
-          setHasExistingProfile(hasCompleteProfile);
-          setHasCompletedProfile(hasCompleteProfile);
+          // Check if profile has essential info: name (not default "Traveler"), age >= 18
+          // The handle_new_user trigger creates profiles with name = 'Traveler' by default
+          const hasRealName = profileData.name && profileData.name.trim() && profileData.name.trim() !== 'Traveler';
+          const hasValidAge = profileData.age && profileData.age >= 18;
+          const hasCompleteProfile = !!(hasRealName && hasValidAge);
+          
+          // Also check if they have at least one photo
+          const { data: photos } = await supabase
+            .from('photos')
+            .select('id')
+            .eq('profile_id', profileData.id)
+            .limit(1);
+          
+          const hasPhoto = photos && photos.length > 0;
+          const isProfileComplete = hasCompleteProfile && hasPhoto;
+          
+          setHasExistingProfile(isProfileComplete);
+          setHasCompletedProfile(isProfileComplete);
         } else {
           setHasExistingProfile(false);
           setHasCompletedProfile(false);
