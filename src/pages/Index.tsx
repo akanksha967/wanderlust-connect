@@ -115,12 +115,12 @@ const Index = () => {
           ? localStorage.getItem('lastScreen') 
           : null;
         
-        // If they have a valid last screen, go there; otherwise default to swipe
+        // If they have a valid last screen, go there; otherwise stay on current screen
         const validScreens = ['swipe', 'chat', 'account', 'matches', 'travel'];
         if (lastScreen && validScreens.includes(lastScreen)) {
           setScreen(lastScreen as any);
-        } else {
-          // Default to swipe for returning users (not travel)
+        } else if (currentScreen === 'login') {
+          // Only redirect to swipe if we're actually on login (not when refreshing on another screen)
           setScreen('swipe');
         }
       } else {

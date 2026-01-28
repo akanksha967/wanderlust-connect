@@ -2,9 +2,49 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '@/store/useAppStore';
 import { Heart, MessageCircle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 const MatchPopup = () => {
   const { matchedUser, showMatch, setShowMatch, setScreen, userProfile } = useAppStore();
+  const { user } = useAuth();
+  const [myPhoto, setMyPhoto] = useState<string>('');
+
+  // Fetch current user's photo from database
+  useEffect(() => {
+    const fetchMyPhoto = async () => {
+      if (!user || !showMatch) return;
+      
+      // First check if we have it in store
+      if (userProfile.photos && userProfile.photos.length > 0) {
+        setMyPhoto(userProfile.photos[0]);
+        return;
+      }
+
+      // Otherwise fetch from DB
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (profile) {
+        const { data: photos } = await supabase
+          .from('photos')
+          .select('url')
+          .eq('profile_id', profile.id)
+          .order('is_primary', { ascending: false })
+          .limit(1);
+
+        if (photos && photos.length > 0) {
+          setMyPhoto(photos[0].url);
+        }
+      }
+    };
+
+    fetchMyPhoto();
+  }, [user, showMatch, userProfile.photos]);
 
   if (!matchedUser || !showMatch) return null;
 
@@ -16,9 +56,6 @@ const MatchPopup = () => {
   const handleKeepSwiping = () => {
     setShowMatch(false);
   };
-
-  // Get user's photo or fallback
-  const myPhoto = userProfile.photos?.[0] || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop';
 
   return (
     <AnimatePresence>
@@ -107,19 +144,35 @@ const MatchPopup = () => {
               transition={{ delay: 0.5 }}
               className="flex justify-center -space-x-4 mb-8"
             >
-              <div className="w-24 h-24 rounded-full border-4 border-card overflow-hidden shadow-card bg-secondary">
-                <img
-                  src={myPhoto}
-                  alt="You"
-                  className="w-full h-full object-cover"
-                />
+              <div className="w-24 h-24 rounded-full border-4 border-card overflow-hidden shadow-card bg-secondary flex items-center justify-center">
+                {myPhoto ? (
+                  <img
+                    src={myPhoto}
+                    alt="You"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-sky-400 to-indigo-500 flex items-center justify-center">
+                    <span className="text-2xl text-white font-display">
+                      {userProfile.name?.charAt(0)?.toUpperCase() || '?'}
+                    </span>
+                  </div>
+                )}
               </div>
-              <div className="w-24 h-24 rounded-full border-4 border-card overflow-hidden shadow-card bg-secondary">
-                <img
-                  src={matchedUser.photos[0]}
-                  alt={matchedUser.name}
-                  className="w-full h-full object-cover"
-                />
+              <div className="w-24 h-24 rounded-full border-4 border-card overflow-hidden shadow-card bg-secondary flex items-center justify-center">
+                {matchedUser.photos?.[0] ? (
+                  <img
+                    src={matchedUser.photos[0]}
+                    alt={matchedUser.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center">
+                    <span className="text-2xl text-white font-display">
+                      {matchedUser.name?.charAt(0)?.toUpperCase() || '?'}
+                    </span>
+                  </div>
+                )}
               </div>
             </motion.div>
 
