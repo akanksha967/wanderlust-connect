@@ -27,6 +27,14 @@ const Index = () => {
     let cancelled = false;
 
     const run = async () => {
+      // Only run the onboarding check on screens where onboarding routing is relevant.
+      // This also ensures we re-check right after Profile -> Travel.
+      const shouldCheck = currentScreen === 'login' || currentScreen === 'profile' || currentScreen === 'travel';
+      if (!shouldCheck) {
+        setProfileChecked(true);
+        return;
+      }
+
       if (!userId) {
         setDbProfileComplete(false);
         setProfileChecked(true);
@@ -86,7 +94,7 @@ const Index = () => {
     return () => {
       cancelled = true;
     };
-  }, [userId, setHasCompletedProfile]);
+  }, [userId, currentScreen, setHasCompletedProfile]);
 
   const isProfileComplete = useMemo(() => {
     // If the DB check isn't ready yet, fall back to existing client flags.
