@@ -289,19 +289,6 @@ const ChatScreen = () => {
       {/* Messages area - glass container */}
       <div className="relative z-10 flex-1 overflow-hidden px-4 py-4" style={{ marginBottom: '90px' }}>
         <div className="h-full overflow-y-auto space-y-4 pr-2">
-          {/* Match notice */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center py-4"
-          >
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/30 backdrop-blur-md rounded-full border border-white/30">
-              <span className="text-xs text-white font-medium drop-shadow">
-                ✨ You matched on Dec 20
-              </span>
-            </div>
-          </motion.div>
-
           {/* Messages */}
           {messages.map((message, index) => (
             <motion.div
