@@ -145,12 +145,30 @@ const ChatScreen = () => {
     setShowOptions(false);
   };
 
-  const handleUnmatch = () => {
-    if (matchedUser) {
-      removeMatch(matchedUser.id);
+  const handleUnmatch = async () => {
+    if (!matchedUser || !matchId) {
+      // Fallback for demo mode
+      if (matchedUser) removeMatch(matchedUser.id);
+      setMatchedUser(null);
+      setScreen('matches');
+      return;
     }
-    setMatchedUser(null);
-    setScreen('matches');
+
+    try {
+      // Delete messages first (they reference the match)
+      await supabase.from('messages').delete().eq('match_id', matchId);
+      
+      // Delete the match from database - this removes it for both users
+      await supabase.from('matches').delete().eq('id', matchId);
+      
+      // Update local state
+      removeMatch(matchedUser.id);
+      setMatchedUser(null);
+      setScreen('matches');
+    } catch (error) {
+      console.error('Error unmatching:', error);
+    }
+    setShowOptions(false);
   };
 
   const handleSend = async () => {
