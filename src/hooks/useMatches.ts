@@ -14,14 +14,20 @@ export const useMatches = () => {
   const { profileId } = useAuth();
   const setMatches = useAppStore((s) => s.setMatches);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (isManualRefresh = false) => {
     if (!profileId) {
       setMatches([]);
       return;
     }
 
-    setLoading(true);
+    if (isManualRefresh) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
+
     try {
       const { data: matchRows, error: matchesError } = await supabase
         .from("matches")
@@ -121,12 +127,55 @@ export const useMatches = () => {
       setMatches(hydrated);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [profileId, setMatches]);
 
+  // Initial load
   useEffect(() => {
-    refresh();
+    refresh(false);
   }, [refresh]);
 
-  return { loading, refresh };
+  // Realtime subscription for new matches
+  useEffect(() => {
+    if (!profileId) return;
+
+    const channel = supabase
+      .channel(`matches-realtime-${profileId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "matches",
+        },
+        (payload) => {
+          const row = payload.new as MatchRow;
+          // Check if this match involves our profile
+          if (row.profile1_id === profileId || row.profile2_id === profileId) {
+            // Refresh to get full profile data
+            refresh(false);
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "matches",
+        },
+        () => {
+          // Refresh when any match is deleted (could be ours)
+          refresh(false);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [profileId, refresh]);
+
+  return { loading, refreshing, refresh };
 };

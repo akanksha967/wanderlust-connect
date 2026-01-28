@@ -108,9 +108,21 @@ const Index = () => {
     if (!loading && user && currentScreen === 'login') {
       // Wait until we've verified onboarding state
       if (!profileChecked) return;
+      
       if (isProfileComplete) {
-        // Returning user - go to travel screen to set up new trip (they can skip)
-        setScreen('travel');
+        // Returning user - check if there's a last screen they were on
+        const lastScreen = typeof window !== 'undefined' 
+          ? localStorage.getItem('lastScreen') 
+          : null;
+        
+        // If they have a valid last screen, go there; otherwise default to swipe
+        const validScreens = ['swipe', 'chat', 'account', 'matches', 'travel'];
+        if (lastScreen && validScreens.includes(lastScreen)) {
+          setScreen(lastScreen as any);
+        } else {
+          // Default to swipe for returning users (not travel)
+          setScreen('swipe');
+        }
       } else {
         // New user - go to profile setup
         setScreen('profile');

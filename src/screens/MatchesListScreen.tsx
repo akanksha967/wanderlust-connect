@@ -1,15 +1,57 @@
+import { useState, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useAppStore, UserProfile } from '@/store/useAppStore';
-import { ArrowLeft, MessageCircle, Heart } from 'lucide-react';
+import { ArrowLeft, MessageCircle, Heart, RefreshCw } from 'lucide-react';
 import { useMatches } from '@/hooks/useMatches';
 
 const MatchesListScreen = () => {
   const { setScreen, matches, setMatchedUser } = useAppStore();
-  const { loading } = useMatches();
+  const { loading, refreshing, refresh } = useMatches();
+  
+  // Pull-to-refresh state
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isPulling, setIsPulling] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const startYRef = useRef(0);
+  const PULL_THRESHOLD = 80;
 
   const handleOpenChat = (user: UserProfile) => {
     setMatchedUser(user);
     setScreen('chat');
+  };
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (scrollRef.current && scrollRef.current.scrollTop === 0) {
+      startYRef.current = e.touches[0].clientY;
+      setIsPulling(true);
+    }
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!isPulling || refreshing) return;
+    
+    const currentY = e.touches[0].clientY;
+    const diff = currentY - startYRef.current;
+    
+    if (diff > 0 && scrollRef.current?.scrollTop === 0) {
+      // Apply resistance to pull
+      const resistance = 0.4;
+      setPullDistance(Math.min(diff * resistance, PULL_THRESHOLD * 1.5));
+    }
+  }, [isPulling, refreshing]);
+
+  const handleTouchEnd = useCallback(() => {
+    if (pullDistance >= PULL_THRESHOLD && !refreshing) {
+      refresh(true);
+    }
+    setPullDistance(0);
+    setIsPulling(false);
+  }, [pullDistance, refreshing, refresh]);
+
+  const handleManualRefresh = () => {
+    if (!refreshing) {
+      refresh(true);
+    }
   };
 
   return (
@@ -33,10 +75,43 @@ const MatchesListScreen = () => {
         <div className="flex-1">
           <h1 className="text-xl font-display text-white drop-shadow-lg">Your Matches</h1>
         </div>
+        <button 
+          onClick={handleManualRefresh}
+          disabled={refreshing}
+          className="w-10 h-10 flex items-center justify-center rounded-full bg-white/30 backdrop-blur-xl border border-white/40 shadow-lg transition-all hover:bg-white/40 disabled:opacity-50"
+        >
+          <RefreshCw className={`w-5 h-5 text-white ${refreshing ? 'animate-spin' : ''}`} />
+        </button>
       </div>
 
+      {/* Pull-to-refresh indicator */}
+      {pullDistance > 0 && (
+        <div 
+          className="absolute left-0 right-0 flex justify-center z-20 transition-transform"
+          style={{ 
+            top: 120,
+            transform: `translateY(${pullDistance - 40}px)`,
+            opacity: Math.min(pullDistance / PULL_THRESHOLD, 1)
+          }}
+        >
+          <div className="w-10 h-10 rounded-full bg-white/40 backdrop-blur-xl border border-white/40 flex items-center justify-center shadow-lg">
+            <RefreshCw 
+              className={`w-5 h-5 text-white transition-transform ${pullDistance >= PULL_THRESHOLD ? 'rotate-180' : ''}`}
+              style={{ transform: `rotate(${(pullDistance / PULL_THRESHOLD) * 180}deg)` }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Matches List */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 relative z-10">
+      <div 
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto px-4 py-4 relative z-10"
+        style={{ transform: pullDistance > 0 ? `translateY(${pullDistance}px)` : undefined }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         {matches.length > 0 ? (
           <div className="space-y-3">
             {matches.map((match, index) => (
