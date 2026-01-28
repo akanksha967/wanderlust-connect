@@ -12,21 +12,26 @@ type MatchRow = {
 
 export const useMatches = () => {
   const { profileId } = useAuth();
+  const matches = useAppStore((s) => s.matches);
   const setMatches = useAppStore((s) => s.setMatches);
-  const [loading, setLoading] = useState(false);
+  // Only show loading on first load when no matches exist
+  const [loading, setLoading] = useState(matches.length === 0);
   const [refreshing, setRefreshing] = useState(false);
 
   const refresh = useCallback(async (isManualRefresh = false) => {
     if (!profileId) {
       setMatches([]);
+      setLoading(false);
       return;
     }
 
+    // Only show loading spinner if we have no cached matches
     if (isManualRefresh) {
       setRefreshing(true);
-    } else {
+    } else if (matches.length === 0) {
       setLoading(true);
     }
+    // Don't clear existing matches - keep them visible during refresh
 
     try {
       const { data: matchRows, error: matchesError } = await supabase
@@ -36,14 +41,14 @@ export const useMatches = () => {
         .order("created_at", { ascending: false });
 
       if (matchesError) throw matchesError;
-      const matches = (matchRows ?? []) as MatchRow[];
-      if (matches.length === 0) {
+      const matchList = (matchRows ?? []) as MatchRow[];
+      if (matchList.length === 0) {
         setMatches([]);
         return;
       }
 
       // Determine the "other" profile for each match, keeping ordering.
-      const otherIdsInOrder = matches
+      const otherIdsInOrder = matchList
         .map((m) => (m.profile1_id === profileId ? m.profile2_id : m.profile1_id))
         .filter(Boolean);
 
