@@ -1,13 +1,14 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAppStore } from '@/store/useAppStore';
-import { ArrowLeft, Camera, MapPin, Calendar, LogOut, Trash2, ChevronRight, Edit2, X, Plus } from 'lucide-react';
+import { ArrowLeft, Camera, MapPin, Calendar, LogOut, Trash2, ChevronRight, Edit2, X, Plus, Loader2 } from 'lucide-react';
 import DeleteAccountDialog from '@/components/DeleteAccountDialog';
 import PhotoSourceDialog from '@/components/PhotoSourceDialog';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const vibeOptions = [
   'Adventure', 'Relaxation', 'Culture', 'Foodie', 'Nature',
@@ -18,6 +19,7 @@ const AccountScreen = () => {
   const { setScreen, userProfile, travelDetails, setTravelDetails, setUserProfile } = useAppStore();
   const { signOut, user } = useAuth();
   const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showPhotoSourceDialog, setShowPhotoSourceDialog] = useState(false);
   const [editingTravel, setEditingTravel] = useState(false);
@@ -36,6 +38,87 @@ const AccountScreen = () => {
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
+
+  // Fetch profile data from database on mount
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        // Get profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id, name, age, bio')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (profile) {
+          // Get photos
+          const { data: photosData } = await supabase
+            .from('photos')
+            .select('url')
+            .eq('profile_id', profile.id)
+            .order('is_primary', { ascending: false });
+
+          // Get vibes
+          const { data: vibesData } = await supabase
+            .from('travel_vibes')
+            .select('vibe')
+            .eq('profile_id', profile.id);
+
+          // Get active travel plan
+          const { data: travelPlan } = await supabase
+            .from('travel_plans')
+            .select('destination, start_date, end_date')
+            .eq('profile_id', profile.id)
+            .eq('is_active', true)
+            .maybeSingle();
+
+          const photoUrls = photosData?.map(p => p.url) || [];
+          const vibes = vibesData?.map(v => v.vibe) || [];
+
+          // Update local state
+          setName(profile.name || '');
+          setAge(profile.age?.toString() || '');
+          setBio(profile.bio || '');
+          setPhotos(photoUrls);
+          setSelectedVibes(vibes);
+
+          // Update global store
+          setUserProfile({
+            id: profile.id,
+            name: profile.name,
+            age: profile.age || undefined,
+            bio: profile.bio || '',
+            photos: photoUrls,
+            travelVibes: vibes,
+          });
+
+          // Update travel details
+          if (travelPlan) {
+            const travelInfo = {
+              destination: travelPlan.destination,
+              startDate: travelPlan.start_date,
+              endDate: travelPlan.end_date,
+            };
+            setDestination(travelPlan.destination);
+            setStartDate(travelPlan.start_date);
+            setEndDate(travelPlan.end_date);
+            setTravelDetails(travelInfo);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching profile data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfileData();
+  }, [user, setUserProfile, setTravelDetails]);
 
   const handleAccountDeleted = () => {
     setScreen('login');
@@ -135,6 +218,14 @@ const AccountScreen = () => {
   };
 
   const isProfileValid = name && age && photos.length > 0 && selectedVibes.length > 0;
+
+  if (loading) {
+    return (
+      <div className="h-[100dvh] overflow-hidden bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-sky-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden flex flex-col">
