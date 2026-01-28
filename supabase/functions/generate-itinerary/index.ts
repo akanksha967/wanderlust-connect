@@ -1,3 +1,26 @@
+/**
+ * Generate Itinerary Edge Function
+ * 
+ * SECURITY NOTE: JWT Verification Configuration
+ * ==============================================
+ * This function uses `verify_jwt = false` in config.toml with manual JWT validation.
+ * This is the REQUIRED approach for Lovable Cloud's signing-keys system.
+ * 
+ * The default `verify_jwt = true` is a deprecated approach that doesn't work
+ * with the signing-keys authentication system. Instead, we validate JWTs
+ * manually using `supabase.auth.getClaims()` which:
+ * 
+ * 1. Verifies the JWT signature against Supabase's signing keys
+ * 2. Validates token expiration automatically
+ * 3. Returns the user's claims (sub, email, role, exp)
+ * 4. Returns an error for invalid, expired, or tampered tokens
+ * 
+ * This provides equivalent security to automatic JWT verification while
+ * being compatible with the signing-keys infrastructure.
+ * 
+ * @see https://docs.lovable.dev/features/security
+ */
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
