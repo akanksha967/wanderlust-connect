@@ -34,7 +34,6 @@ const MatchesListScreen = () => {
     const diff = currentY - startYRef.current;
     
     if (diff > 0 && scrollRef.current?.scrollTop === 0) {
-      // Apply resistance to pull
       const resistance = 0.4;
       setPullDistance(Math.min(diff * resistance, PULL_THRESHOLD * 1.5));
     }
@@ -48,15 +47,9 @@ const MatchesListScreen = () => {
     setIsPulling(false);
   }, [pullDistance, refreshing, refresh]);
 
-  const handleManualRefresh = () => {
-    if (!refreshing) {
-      refresh(true);
-    }
-  };
-
   return (
     <div className="h-full flex flex-col relative overflow-hidden">
-      {/* Full-screen background - lighter lavender-blue */}
+      {/* Full-screen background */}
       <div 
         className="fixed inset-0 bg-cover bg-center"
         style={{ backgroundImage: `url(https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&auto=format&fit=crop)` }}
@@ -64,7 +57,7 @@ const MatchesListScreen = () => {
       <div className="fixed inset-0 bg-gradient-to-b from-sky-300/40 via-blue-200/35 to-indigo-300/40" />
       <div className="fixed inset-0 backdrop-blur-[2px]" />
 
-      {/* Header */}
+      {/* Header - no refresh button */}
       <div className="relative z-10 px-4 pt-12 pb-4 flex items-center gap-4 border-b border-white/20">
         <button 
           onClick={() => setScreen('swipe')}
@@ -74,14 +67,10 @@ const MatchesListScreen = () => {
         </button>
         <div className="flex-1">
           <h1 className="text-xl font-display text-white drop-shadow-lg">Your Matches</h1>
+          {refreshing && (
+            <p className="text-xs text-white/70 mt-0.5">Refreshing...</p>
+          )}
         </div>
-        <button 
-          onClick={handleManualRefresh}
-          disabled={refreshing}
-          className="w-10 h-10 flex items-center justify-center rounded-full bg-white/30 backdrop-blur-xl border border-white/40 shadow-lg transition-all hover:bg-white/40 disabled:opacity-50"
-        >
-          <RefreshCw className={`w-5 h-5 text-white ${refreshing ? 'animate-spin' : ''}`} />
-        </button>
       </div>
 
       {/* Pull-to-refresh indicator */}
