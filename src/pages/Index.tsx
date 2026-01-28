@@ -37,6 +37,16 @@ const Index = () => {
     }
   }, [user, loading, currentScreen, hasCompletedProfile, hasExistingProfile, setScreen]);
 
+  // Hard guard: first-time users must complete profile before accessing any other screens.
+  // This also prevents sessionStorage-persisted screens (e.g. "travel") from bypassing onboarding.
+  useEffect(() => {
+    if (loading || !user) return;
+    const isProfileComplete = hasCompletedProfile || hasExistingProfile;
+    if (!isProfileComplete && currentScreen !== 'profile') {
+      setScreen('profile');
+    }
+  }, [user, loading, currentScreen, hasCompletedProfile, hasExistingProfile, setScreen]);
+
   // Only redirect to login if user is not authenticated
   // Don't redirect if we're still loading or if user exists
   useEffect(() => {
