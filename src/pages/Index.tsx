@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import MatchPopup from '@/components/MatchPopup';
 import LoginScreen from '@/screens/LoginScreen';
 import ProfileScreen from '@/screens/ProfileScreen';
@@ -9,17 +9,98 @@ import AccountScreen from '@/screens/AccountScreen';
 import MatchesListScreen from '@/screens/MatchesListScreen';
 import { useAppStore } from '@/store/useAppStore';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 const Index = () => {
   const currentScreen = useAppStore((state) => state.currentScreen);
   const setScreen = useAppStore((state) => state.setScreen);
   const hasCompletedProfile = useAppStore((state) => state.hasCompletedProfile);
+  const setHasCompletedProfile = useAppStore((state) => state.setHasCompletedProfile);
   const { user, loading, hasExistingProfile } = useAuth();
+
+  // Authoritative onboarding check (prevents any local/persisted state from bypassing profile completion).
+  const [profileChecked, setProfileChecked] = useState(false);
+  const [dbProfileComplete, setDbProfileComplete] = useState(false);
+
+  const userId = user?.id ?? null;
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      if (!userId) {
+        setDbProfileComplete(false);
+        setProfileChecked(true);
+        setHasCompletedProfile(false);
+        return;
+      }
+
+      setProfileChecked(false);
+      try {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, name, age')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+        if (profileError) throw profileError;
+
+        if (!profile) {
+          if (!cancelled) {
+            setDbProfileComplete(false);
+            setHasCompletedProfile(false);
+          }
+          return;
+        }
+
+        const nameTrimmed = (profile.name ?? '').trim();
+        const hasRealName = nameTrimmed.length > 0 && nameTrimmed !== 'Traveler';
+        const hasValidAge = typeof profile.age === 'number' && profile.age >= 18;
+
+        const { data: photos, error: photosError } = await supabase
+          .from('photos')
+          .select('id')
+          .eq('profile_id', profile.id)
+          .limit(1);
+
+        if (photosError) throw photosError;
+
+        const hasPhoto = (photos?.length ?? 0) > 0;
+        const isComplete = hasRealName && hasValidAge && hasPhoto;
+
+        if (!cancelled) {
+          setDbProfileComplete(isComplete);
+          setHasCompletedProfile(isComplete);
+        }
+      } catch (e) {
+        // Fail closed: if we can't verify completion, treat as incomplete
+        if (!cancelled) {
+          setDbProfileComplete(false);
+          setHasCompletedProfile(false);
+        }
+      } finally {
+        if (!cancelled) setProfileChecked(true);
+      }
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, setHasCompletedProfile]);
+
+  const isProfileComplete = useMemo(() => {
+    // If the DB check isn't ready yet, fall back to existing client flags.
+    // Once checked, trust the DB result.
+    if (!profileChecked) return hasCompletedProfile || hasExistingProfile;
+    return dbProfileComplete;
+  }, [profileChecked, dbProfileComplete, hasCompletedProfile, hasExistingProfile]);
 
   // Only redirect when explicitly on login screen and user is authenticated
   useEffect(() => {
     if (!loading && user && currentScreen === 'login') {
-      if (hasCompletedProfile || hasExistingProfile) {
+      // Wait until we've verified onboarding state
+      if (!profileChecked) return;
+      if (isProfileComplete) {
         // Returning user - go to travel screen to set up new trip (they can skip)
         setScreen('travel');
       } else {
@@ -27,25 +108,25 @@ const Index = () => {
         setScreen('profile');
       }
     }
-  }, [user, loading, currentScreen, hasCompletedProfile, hasExistingProfile, setScreen]);
+  }, [user, loading, currentScreen, isProfileComplete, profileChecked, setScreen]);
 
   // If a returning user somehow lands on the profile setup screen (e.g. refresh/persisted state),
   // send them to Travel instead.
   useEffect(() => {
-    if (!loading && user && currentScreen === 'profile' && (hasCompletedProfile || hasExistingProfile)) {
+    if (!loading && user && currentScreen === 'profile' && profileChecked && isProfileComplete) {
       setScreen('travel');
     }
-  }, [user, loading, currentScreen, hasCompletedProfile, hasExistingProfile, setScreen]);
+  }, [user, loading, currentScreen, profileChecked, isProfileComplete, setScreen]);
 
   // Hard guard: first-time users must complete profile before accessing any other screens.
   // This also prevents sessionStorage-persisted screens (e.g. "travel") from bypassing onboarding.
   useEffect(() => {
     if (loading || !user) return;
-    const isProfileComplete = hasCompletedProfile || hasExistingProfile;
+    if (!profileChecked) return;
     if (!isProfileComplete && currentScreen !== 'profile') {
       setScreen('profile');
     }
-  }, [user, loading, currentScreen, hasCompletedProfile, hasExistingProfile, setScreen]);
+  }, [user, loading, currentScreen, profileChecked, isProfileComplete, setScreen]);
 
   // Only redirect to login if user is not authenticated
   // Don't redirect if we're still loading or if user exists
@@ -55,8 +136,8 @@ const Index = () => {
     }
   }, [user, loading, currentScreen, setScreen]);
 
-  // Show nothing while checking auth
-  if (loading) {
+  // Show nothing while checking auth + onboarding status
+  if (loading || (user && !profileChecked)) {
     return (
       <div className="h-[100dvh] overflow-hidden bg-background flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
