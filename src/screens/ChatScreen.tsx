@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useAppStore } from '@/store/useAppStore';
-import { ArrowLeft, Send, Phone, MoreVertical, UserX, Ban, Flag } from 'lucide-react';
+import { ArrowLeft, Send, MoreVertical, UserX, Ban, Flag } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -198,7 +198,7 @@ const ChatScreen = () => {
       <div className="fixed inset-0 backdrop-blur-sm" />
 
       {/* Header - glassmorphism style */}
-      <div className="relative z-10 px-4 pt-12 pb-3 flex items-center gap-3 shrink-0">
+      <div className="relative z-30 px-4 pt-12 pb-3 flex items-center gap-3 shrink-0">
         <button 
           onClick={() => setScreen('matches')}
           className="w-11 h-11 flex items-center justify-center rounded-full bg-white/40 backdrop-blur-md border border-white/30 shadow-lg transition-all hover:bg-white/50 active:scale-95"
@@ -222,9 +222,6 @@ const ChatScreen = () => {
         </div>
 
         <div className="flex gap-2">
-          <button className="w-11 h-11 flex items-center justify-center rounded-full bg-white/40 backdrop-blur-md border border-white/30 shadow-lg transition-all hover:bg-white/50 active:scale-95">
-            <Phone className="w-5 h-5 text-gray-800" />
-          </button>
           <div className="relative">
             <button 
               onClick={() => setShowOptions(!showOptions)}
