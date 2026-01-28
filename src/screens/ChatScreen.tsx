@@ -221,7 +221,7 @@ const ChatScreen = () => {
           </div>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 relative z-50">
           <div className="relative">
             <button 
               onClick={() => setShowOptions(!showOptions)}
@@ -230,32 +230,39 @@ const ChatScreen = () => {
               <MoreVertical className="w-5 h-5 text-gray-800" />
             </button>
             {showOptions && (
-              <div className="absolute right-0 top-14 w-48 bg-white/90 backdrop-blur-xl rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.25)] border border-white/50 overflow-hidden z-50">
-                <button
-                  onClick={() => {
-                    setShowOptions(false);
-                    setShowReportDialog(true);
-                  }}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-800 hover:bg-white/50 transition-all"
-                >
-                  <Flag className="w-4 h-4" />
-                  Report User
-                </button>
-                <button
-                  onClick={handleBlock}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-50/50 transition-all"
-                >
-                  <Ban className="w-4 h-4" />
-                  Block User
-                </button>
-                <button
-                  onClick={handleUnmatch}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-50/50 transition-all"
-                >
-                  <UserX className="w-4 h-4" />
-                  Unmatch
-                </button>
-              </div>
+              <>
+                {/* Backdrop to close dropdown when clicking outside */}
+                <div 
+                  className="fixed inset-0 z-40" 
+                  onClick={() => setShowOptions(false)}
+                />
+                <div className="absolute right-0 top-14 w-48 bg-white backdrop-blur-xl rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.25)] border border-white/50 overflow-hidden z-50">
+                  <button
+                    onClick={() => {
+                      setShowOptions(false);
+                      setShowReportDialog(true);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-800 hover:bg-gray-100 transition-all"
+                  >
+                    <Flag className="w-4 h-4" />
+                    Report User
+                  </button>
+                  <button
+                    onClick={handleBlock}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-50 transition-all"
+                  >
+                    <Ban className="w-4 h-4" />
+                    Block User
+                  </button>
+                  <button
+                    onClick={handleUnmatch}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-50 transition-all"
+                  >
+                    <UserX className="w-4 h-4" />
+                    Unmatch
+                  </button>
+                </div>
+              </>
             )}
           </div>
         </div>
