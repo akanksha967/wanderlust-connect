@@ -41,6 +41,7 @@ export const useAuth = () => {
       if (!user) {
         setProfileId(null);
         setHasExistingProfile(false);
+        setHasCompletedProfile(false);
         setLoading(false);
         return;
       }
