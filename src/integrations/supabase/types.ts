@@ -427,6 +427,14 @@ export type Database = {
     Functions: {
       check_ai_access: { Args: never; Returns: Json }
       check_and_increment_ai_usage: { Args: never; Returns: Json }
+      get_my_active_travel_plan: {
+        Args: never
+        Returns: {
+          destination: string
+          end_date: string
+          start_date: string
+        }[]
+      }
       get_my_profile_id: { Args: never; Returns: string }
       has_role: {
         Args: {
