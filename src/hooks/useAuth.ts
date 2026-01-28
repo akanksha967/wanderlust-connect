@@ -156,14 +156,45 @@ export const useAuth = () => {
     }
   };
 
-  const deleteAccount = async () => {
-    // Sign out the user - actual account deletion would require an edge function
-    // For now, we sign out and show a message
-    await signOut();
-    toast({
-      title: 'Account Deletion Requested',
-      description: 'Your account deletion request has been submitted.',
-    });
+  const deleteAccount = async (): Promise<boolean> => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        toast({
+          title: 'Error',
+          description: 'You must be logged in to delete your account.',
+          variant: 'destructive',
+        });
+        return false;
+      }
+
+      const response = await supabase.functions.invoke('delete-account', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Failed to delete account');
+      }
+
+      // Clear local state
+      await supabase.auth.signOut();
+      
+      toast({
+        title: 'Account Deleted',
+        description: 'Your account and all data have been permanently removed.',
+      });
+      return true;
+    } catch (error: any) {
+      console.error('Error deleting account:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete account. Please try again.',
+        variant: 'destructive',
+      });
+      return false;
+    }
   };
 
   return {
