@@ -16,7 +16,7 @@ export interface TravelDetails {
 }
 
 interface AppState {
-  currentScreen: 'login' | 'profile' | 'travel' | 'swipe' | 'chat' | 'account' | 'matches';
+  currentScreen: 'login' | 'profile' | 'travel' | 'swipe' | 'chat' | 'account' | 'matches' | 'access' | 'admin';
   userProfile: Partial<UserProfile>;
   travelDetails: TravelDetails | null;
   matchedUser: UserProfile | null;
@@ -53,7 +53,7 @@ const safeJsonParse = <T,>(value: string | null): T | null => {
 // Persist screen to localStorage so it survives closing the tab/browser
 const getInitialScreen = (): AppState['currentScreen'] => {
   if (typeof window !== 'undefined') {
-    const allowed = ['login', 'profile', 'travel', 'swipe', 'chat', 'account', 'matches'] as const;
+    const allowed = ['login', 'profile', 'travel', 'swipe', 'chat', 'account', 'matches', 'access', 'admin'] as const;
     const saved = localStorage.getItem(STORAGE_KEYS.currentScreen);
     const last = localStorage.getItem(STORAGE_KEYS.lastScreen);
 

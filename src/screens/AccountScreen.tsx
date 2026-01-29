@@ -3,9 +3,10 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAppStore } from '@/store/useAppStore';
-import { ArrowLeft, Camera, MapPin, Calendar, LogOut, Trash2, ChevronRight, Edit2, X, Plus, Loader2 } from 'lucide-react';
+import { ArrowLeft, Camera, MapPin, Calendar, LogOut, Trash2, ChevronRight, Edit2, X, Plus, Loader2, Shield } from 'lucide-react';
 import DeleteAccountDialog from '@/components/DeleteAccountDialog';
 import PhotoSourceDialog from '@/components/PhotoSourceDialog';
+import InviteFriendsCard from '@/components/InviteFriendsCard';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -38,6 +39,7 @@ const AccountScreen = () => {
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // Fetch profile data from database on mount
   useEffect(() => {
@@ -48,6 +50,15 @@ const AccountScreen = () => {
       }
 
       try {
+        // Check if user is admin
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('role', 'admin')
+          .maybeSingle();
+        
+        setIsAdmin(!!roleData);
         // Get profile
         const { data: profile } = await supabase
           .from('profiles')
@@ -546,6 +557,11 @@ const AccountScreen = () => {
           )}
         </motion.div>
 
+        {/* Invite Friends Card */}
+        <div className="mb-6">
+          <InviteFriendsCard />
+        </div>
+
         {/* Settings */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -566,6 +582,24 @@ const AccountScreen = () => {
               </div>
               <ChevronRight className="w-5 h-5 text-white/60" />
             </button>
+
+            {isAdmin && (
+              <>
+                <div className="h-px bg-white/20 mx-4" />
+                <button
+                  onClick={() => setScreen('admin')}
+                  className="w-full flex items-center justify-between p-4 hover:bg-white/20 transition-all"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-sky-400 to-indigo-400 flex items-center justify-center">
+                      <Shield className="w-5 h-5 text-white" />
+                    </div>
+                    <span className="text-sm text-white drop-shadow">Admin Panel</span>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-white/60" />
+                </button>
+              </>
+            )}
 
             <div className="h-px bg-white/20 mx-4" />
 
