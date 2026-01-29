@@ -7,8 +7,11 @@ import SwipeScreen from '@/screens/SwipeScreen';
 import ChatScreen from '@/screens/ChatScreen';
 import AccountScreen from '@/screens/AccountScreen';
 import MatchesListScreen from '@/screens/MatchesListScreen';
+import AccessRequestScreen from '@/screens/AccessRequestScreen';
+import AdminPanelScreen from '@/screens/AdminPanelScreen';
 import { useAppStore } from '@/store/useAppStore';
 import { useAuth } from '@/hooks/useAuth';
+import { useAccessControl } from '@/hooks/useAccessControl';
 import { supabase } from '@/integrations/supabase/client';
 
 const Index = () => {
@@ -17,6 +20,7 @@ const Index = () => {
   const hasCompletedProfile = useAppStore((state) => state.hasCompletedProfile);
   const setHasCompletedProfile = useAppStore((state) => state.setHasCompletedProfile);
   const { user, loading, hasExistingProfile } = useAuth();
+  const { hasAccess, status: accessStatus, loading: accessLoading } = useAccessControl();
 
   // Authoritative onboarding check (prevents any local/persisted state from bypassing profile completion).
   const [profileChecked, setProfileChecked] = useState(false);
@@ -105,9 +109,15 @@ const Index = () => {
 
   // Only redirect when explicitly on login screen and user is authenticated
   useEffect(() => {
-    if (!loading && user && currentScreen === 'login') {
+    if (!loading && !accessLoading && user && currentScreen === 'login') {
       // Wait until we've verified onboarding state
       if (!profileChecked) return;
+      
+      // Check access first - if no access, show access request screen
+      if (!hasAccess && accessStatus !== 'admin') {
+        setScreen('access');
+        return;
+      }
       
       if (isProfileComplete) {
         // Returning user - check if there's a last screen they were on
@@ -116,7 +126,7 @@ const Index = () => {
           : null;
         
         // If they have a valid last screen, go there; otherwise stay on current screen
-        const validScreens = ['swipe', 'chat', 'account', 'matches', 'travel'];
+        const validScreens = ['swipe', 'chat', 'account', 'matches', 'travel', 'admin'];
         if (lastScreen && validScreens.includes(lastScreen)) {
           setScreen(lastScreen as any);
         } else if (currentScreen === 'login') {
@@ -128,7 +138,7 @@ const Index = () => {
         setScreen('profile');
       }
     }
-  }, [user, loading, currentScreen, isProfileComplete, profileChecked, setScreen]);
+  }, [user, loading, accessLoading, hasAccess, accessStatus, currentScreen, isProfileComplete, profileChecked, setScreen]);
 
   // If a returning user somehow lands on the profile setup screen (e.g. refresh/persisted state),
   // send them to Travel instead.
@@ -138,15 +148,16 @@ const Index = () => {
     }
   }, [user, loading, currentScreen, profileChecked, isProfileComplete, setScreen]);
 
-  // Hard guard: first-time users must complete profile before accessing any other screens.
-  // This also prevents sessionStorage-persisted screens (e.g. "travel") from bypassing onboarding.
+  // Hard guard: block access to main screens if user doesn't have access
   useEffect(() => {
-    if (loading || !user) return;
+    if (loading || accessLoading || !user) return;
     if (!profileChecked) return;
-    if (!isProfileComplete && currentScreen !== 'profile') {
-      setScreen('profile');
+    
+    const protectedScreens = ['travel', 'swipe', 'chat', 'account', 'matches', 'admin'];
+    if (!hasAccess && accessStatus !== 'admin' && protectedScreens.includes(currentScreen)) {
+      setScreen('access');
     }
-  }, [user, loading, currentScreen, profileChecked, isProfileComplete, setScreen]);
+  }, [user, loading, accessLoading, hasAccess, accessStatus, currentScreen, profileChecked, setScreen]);
 
   // Only redirect to login if user is not authenticated
   // Don't redirect if we're still loading or if user exists
@@ -156,8 +167,8 @@ const Index = () => {
     }
   }, [user, loading, currentScreen, setScreen]);
 
-  // Show nothing while checking auth + onboarding status
-  if (loading || (user && !profileChecked)) {
+  // Show nothing while checking auth + onboarding + access status
+  if (loading || accessLoading || (user && !profileChecked)) {
     return (
       <div className="h-[100dvh] overflow-hidden bg-background flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
@@ -169,6 +180,8 @@ const Index = () => {
     switch (currentScreen) {
       case 'login':
         return <LoginScreen />;
+      case 'access':
+        return <AccessRequestScreen />;
       case 'profile':
         return <ProfileScreen />;
       case 'travel':
@@ -181,6 +194,8 @@ const Index = () => {
         return <AccountScreen />;
       case 'matches':
         return <MatchesListScreen />;
+      case 'admin':
+        return <AdminPanelScreen />;
       default:
         return <LoginScreen />;
     }

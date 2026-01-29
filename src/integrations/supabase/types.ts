@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_requests: {
+        Row: {
+          email: string
+          id: string
+          requested_at: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          email: string
+          id?: string
+          requested_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          email?: string
+          id?: string
+          requested_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_itinerary_users: {
         Row: {
           created_at: string
@@ -73,6 +103,51 @@ export type Database = {
           {
             foreignKeyName: "blocks_blocker_id_fkey"
             columns: ["blocker_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invites: {
+        Row: {
+          code: string
+          created_at: string
+          creator_profile_id: string
+          expires_at: string | null
+          id: string
+          used_at: string | null
+          used_by_profile_id: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          creator_profile_id: string
+          expires_at?: string | null
+          id?: string
+          used_at?: string | null
+          used_by_profile_id?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          creator_profile_id?: string
+          expires_at?: string | null
+          id?: string
+          used_at?: string | null
+          used_by_profile_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invites_creator_profile_id_fkey"
+            columns: ["creator_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invites_used_by_profile_id_fkey"
+            columns: ["used_by_profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -195,6 +270,8 @@ export type Database = {
           bio: string | null
           created_at: string
           id: string
+          invite_slots: number
+          invited_by: string | null
           is_verified: boolean | null
           name: string
           updated_at: string
@@ -205,6 +282,8 @@ export type Database = {
           bio?: string | null
           created_at?: string
           id?: string
+          invite_slots?: number
+          invited_by?: string | null
           is_verified?: boolean | null
           name: string
           updated_at?: string
@@ -215,12 +294,22 @@ export type Database = {
           bio?: string | null
           created_at?: string
           id?: string
+          invite_slots?: number
+          invited_by?: string | null
           is_verified?: boolean | null
           name?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reports: {
         Row: {
@@ -427,6 +516,8 @@ export type Database = {
     Functions: {
       check_ai_access: { Args: never; Returns: Json }
       check_and_increment_ai_usage: { Args: never; Returns: Json }
+      check_user_access: { Args: never; Returns: Json }
+      generate_invite_code: { Args: never; Returns: Json }
       get_my_active_travel_plan: {
         Args: never
         Returns: {
@@ -443,6 +534,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      use_invite_code: { Args: { invite_code: string }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
