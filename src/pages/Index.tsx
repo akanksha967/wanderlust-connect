@@ -33,7 +33,11 @@ const Index = () => {
     const run = async () => {
       // Only run the onboarding check on screens where onboarding routing is relevant.
       // This also ensures we re-check right after Profile -> Travel.
-      const shouldCheck = currentScreen === 'login' || currentScreen === 'profile' || currentScreen === 'travel';
+        const shouldCheck =
+          currentScreen === 'login' ||
+          currentScreen === 'access' ||
+          currentScreen === 'profile' ||
+          currentScreen === 'travel';
       if (!shouldCheck) {
         setProfileChecked(true);
         return;
@@ -107,9 +111,9 @@ const Index = () => {
     return dbProfileComplete;
   }, [profileChecked, dbProfileComplete, hasCompletedProfile, hasExistingProfile]);
 
-  // Only redirect when explicitly on login screen and user is authenticated
+  // Redirect off gate screens (login/access) once auth + access + onboarding state is known.
   useEffect(() => {
-    if (!loading && !accessLoading && user && currentScreen === 'login') {
+    if (!loading && !accessLoading && user && (currentScreen === 'login' || currentScreen === 'access')) {
       // Wait until we've verified onboarding state
       if (!profileChecked) return;
       
@@ -129,8 +133,7 @@ const Index = () => {
         const validScreens = ['swipe', 'chat', 'account', 'matches', 'travel', 'admin'];
         if (lastScreen && validScreens.includes(lastScreen)) {
           setScreen(lastScreen as any);
-        } else if (currentScreen === 'login') {
-          // Only redirect to swipe if we're actually on login (not when refreshing on another screen)
+        } else {
           setScreen('swipe');
         }
       } else {
