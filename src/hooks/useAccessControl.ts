@@ -25,12 +25,16 @@ export const useAccessControl = () => {
         return;
       }
 
+      // Reset to loading when user changes to force fresh check
+      setLoading(true);
+      
       try {
         const { data, error } = await supabase.rpc('check_user_access');
         
         if (error) throw error;
         
         const result = data as { has_access: boolean; status: string };
+        console.log('[AccessControl] check_user_access result:', result);
         setAccessStatus({
           hasAccess: result.has_access,
           status: result.status as AccessStatus['status'],
@@ -44,7 +48,7 @@ export const useAccessControl = () => {
     };
 
     checkAccess();
-  }, [user, authLoading]);
+  }, [user?.id, authLoading]);
 
   const requestAccess = async () => {
     if (!user) return false;
