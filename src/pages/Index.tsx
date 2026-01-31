@@ -118,22 +118,18 @@ const Index = () => {
       if (!profileChecked) return;
       
       // Check access first - if no access, show access request screen
-      // This MUST be checked before allowing profile setup or any other screen
       if (!hasAccess && accessStatus !== 'admin') {
-        if (currentScreen !== 'access') {
-          setScreen('access');
-        }
+        setScreen('access');
         return;
       }
       
-      // User has access - now check profile completion
       if (isProfileComplete) {
         // Returning user - check if there's a last screen they were on
         const lastScreen = typeof window !== 'undefined' 
           ? localStorage.getItem('lastScreen') 
           : null;
         
-        // If they have a valid last screen, go there; otherwise go to swipe
+        // If they have a valid last screen, go there; otherwise stay on current screen
         const validScreens = ['swipe', 'chat', 'account', 'matches', 'travel', 'admin'];
         if (lastScreen && validScreens.includes(lastScreen)) {
           setScreen(lastScreen as any);
@@ -141,7 +137,7 @@ const Index = () => {
           setScreen('swipe');
         }
       } else {
-        // New user WITH ACCESS - go to profile setup
+        // New user - go to profile setup
         setScreen('profile');
       }
     }
@@ -155,13 +151,12 @@ const Index = () => {
     }
   }, [user, loading, currentScreen, profileChecked, isProfileComplete, setScreen]);
 
-  // Hard guard: block access to main screens AND profile setup if user doesn't have access
+  // Hard guard: block access to main screens if user doesn't have access
   useEffect(() => {
     if (loading || accessLoading || !user) return;
     if (!profileChecked) return;
     
-    // Profile setup is also protected - users must have access before setting up profile
-    const protectedScreens = ['profile', 'travel', 'swipe', 'chat', 'account', 'matches', 'admin'];
+    const protectedScreens = ['travel', 'swipe', 'chat', 'account', 'matches', 'admin'];
     if (!hasAccess && accessStatus !== 'admin' && protectedScreens.includes(currentScreen)) {
       setScreen('access');
     }
