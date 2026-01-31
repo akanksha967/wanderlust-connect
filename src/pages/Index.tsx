@@ -23,21 +23,29 @@ const Index = () => {
 
   // Single source of truth for profile completion status
   const [profileStatus, setProfileStatus] = useState<'loading' | 'complete' | 'incomplete'>('loading');
+  // Track which userId we last checked to avoid stale state
+  const [checkedUserId, setCheckedUserId] = useState<string | null>(null);
 
   const userId = user?.id ?? null;
 
-  // Check profile completion status from database
+  // Check profile completion status from database whenever userId changes
   useEffect(() => {
     let cancelled = false;
 
     const checkProfileCompletion = async () => {
       if (!userId) {
-        setProfileStatus('incomplete');
-        setHasCompletedProfile(false);
+        if (!cancelled) {
+          setProfileStatus('incomplete');
+          setHasCompletedProfile(false);
+          setCheckedUserId(null);
+        }
         return;
       }
 
-      setProfileStatus('loading');
+      // Only show loading if we haven't checked this user yet
+      if (checkedUserId !== userId) {
+        setProfileStatus('loading');
+      }
 
       try {
         // Get profile with photo count in a single query pattern
@@ -77,6 +85,7 @@ const Index = () => {
         if (!cancelled) {
           setProfileStatus(isComplete ? 'complete' : 'incomplete');
           setHasCompletedProfile(isComplete);
+          setCheckedUserId(userId);
         }
       } catch (e) {
         console.error('Error checking profile completion:', e);
@@ -84,6 +93,7 @@ const Index = () => {
         if (!cancelled) {
           setProfileStatus('incomplete');
           setHasCompletedProfile(false);
+          setCheckedUserId(userId);
         }
       }
     };
