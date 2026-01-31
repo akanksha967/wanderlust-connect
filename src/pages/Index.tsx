@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import MatchPopup from '@/components/MatchPopup';
 import LoginScreen from '@/screens/LoginScreen';
 import ProfileScreen from '@/screens/ProfileScreen';
@@ -17,41 +17,30 @@ import { supabase } from '@/integrations/supabase/client';
 const Index = () => {
   const currentScreen = useAppStore((state) => state.currentScreen);
   const setScreen = useAppStore((state) => state.setScreen);
-  const hasCompletedProfile = useAppStore((state) => state.hasCompletedProfile);
   const setHasCompletedProfile = useAppStore((state) => state.setHasCompletedProfile);
-  const { user, loading, hasExistingProfile } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { hasAccess, status: accessStatus, loading: accessLoading } = useAccessControl();
 
-  // Authoritative onboarding check (prevents any local/persisted state from bypassing profile completion).
-  const [profileChecked, setProfileChecked] = useState(false);
-  const [dbProfileComplete, setDbProfileComplete] = useState(false);
+  // Single source of truth for profile completion status
+  const [profileStatus, setProfileStatus] = useState<'loading' | 'complete' | 'incomplete'>('loading');
 
   const userId = user?.id ?? null;
+
+  // Check profile completion status from database
   useEffect(() => {
     let cancelled = false;
 
-    const run = async () => {
-      // Only run the onboarding check on screens where onboarding routing is relevant.
-      // This also ensures we re-check right after Profile -> Travel.
-        const shouldCheck =
-          currentScreen === 'login' ||
-          currentScreen === 'access' ||
-          currentScreen === 'profile' ||
-          currentScreen === 'travel';
-      if (!shouldCheck) {
-        setProfileChecked(true);
-        return;
-      }
-
+    const checkProfileCompletion = async () => {
       if (!userId) {
-        setDbProfileComplete(false);
-        setProfileChecked(true);
+        setProfileStatus('incomplete');
         setHasCompletedProfile(false);
         return;
       }
 
-      setProfileChecked(false);
+      setProfileStatus('loading');
+
       try {
+        // Get profile with photo count in a single query pattern
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('id, name, age')
@@ -62,16 +51,18 @@ const Index = () => {
 
         if (!profile) {
           if (!cancelled) {
-            setDbProfileComplete(false);
+            setProfileStatus('incomplete');
             setHasCompletedProfile(false);
           }
           return;
         }
 
+        // Check name validity (not empty, not default "Traveler")
         const nameTrimmed = (profile.name ?? '').trim();
         const hasRealName = nameTrimmed.length > 0 && nameTrimmed !== 'Traveler';
         const hasValidAge = typeof profile.age === 'number' && profile.age >= 18;
 
+        // Check for at least one photo
         const { data: photos, error: photosError } = await supabase
           .from('photos')
           .select('id')
@@ -84,52 +75,49 @@ const Index = () => {
         const isComplete = hasRealName && hasValidAge && hasPhoto;
 
         if (!cancelled) {
-          setDbProfileComplete(isComplete);
+          setProfileStatus(isComplete ? 'complete' : 'incomplete');
           setHasCompletedProfile(isComplete);
         }
       } catch (e) {
-        // Fail closed: if we can't verify completion, treat as incomplete
+        console.error('Error checking profile completion:', e);
+        // Fail closed: treat as incomplete if we can't verify
         if (!cancelled) {
-          setDbProfileComplete(false);
+          setProfileStatus('incomplete');
           setHasCompletedProfile(false);
         }
-      } finally {
-        if (!cancelled) setProfileChecked(true);
       }
     };
 
-    run();
-    return () => {
-      cancelled = true;
-    };
-  }, [userId, currentScreen, setHasCompletedProfile]);
+    checkProfileCompletion();
+    return () => { cancelled = true; };
+  }, [userId, setHasCompletedProfile]);
 
-  const isProfileComplete = useMemo(() => {
-    // If the DB check isn't ready yet, fall back to existing client flags.
-    // Once checked, trust the DB result.
-    if (!profileChecked) return hasCompletedProfile || hasExistingProfile;
-    return dbProfileComplete;
-  }, [profileChecked, dbProfileComplete, hasCompletedProfile, hasExistingProfile]);
-
-  // Redirect off gate screens (login/access) once auth + access + onboarding state is known.
+  // ROUTING LOGIC: Handle screen transitions based on auth + profile + access status
   useEffect(() => {
-    if (!loading && !accessLoading && user && (currentScreen === 'login' || currentScreen === 'access')) {
-      // Wait until we've verified onboarding state
-      if (!profileChecked) return;
-      
-      // Check access first - if no access, show access request screen
+    // Wait for all checks to complete
+    if (authLoading || accessLoading || profileStatus === 'loading') return;
+
+    // Not authenticated → login screen
+    if (!user) {
+      if (currentScreen !== 'login') {
+        setScreen('login');
+      }
+      return;
+    }
+
+    // Authenticated but on login/access screens → route appropriately
+    if (currentScreen === 'login' || currentScreen === 'access') {
+      // Check access first
       if (!hasAccess && accessStatus !== 'admin') {
         setScreen('access');
         return;
       }
-      
-      if (isProfileComplete) {
-        // Returning user - check if there's a last screen they were on
+
+      // Returning user with complete profile → go to last screen or swipe
+      if (profileStatus === 'complete') {
         const lastScreen = typeof window !== 'undefined' 
           ? localStorage.getItem('lastScreen') 
           : null;
-        
-        // If they have a valid last screen, go there; otherwise stay on current screen
         const validScreens = ['swipe', 'chat', 'account', 'matches', 'travel', 'admin'];
         if (lastScreen && validScreens.includes(lastScreen)) {
           setScreen(lastScreen as any);
@@ -137,41 +125,27 @@ const Index = () => {
           setScreen('swipe');
         }
       } else {
-        // New user - go to profile setup
+        // New user → profile setup
         setScreen('profile');
       }
+      return;
     }
-  }, [user, loading, accessLoading, hasAccess, accessStatus, currentScreen, isProfileComplete, profileChecked, setScreen]);
 
-  // If a returning user somehow lands on the profile setup screen (e.g. refresh/persisted state),
-  // send them to Travel instead.
-  useEffect(() => {
-    if (!loading && user && currentScreen === 'profile' && profileChecked && isProfileComplete) {
+    // Returning user somehow on profile screen with complete profile → go to travel
+    if (currentScreen === 'profile' && profileStatus === 'complete') {
       setScreen('travel');
+      return;
     }
-  }, [user, loading, currentScreen, profileChecked, isProfileComplete, setScreen]);
 
-  // Hard guard: block access to main screens if user doesn't have access
-  useEffect(() => {
-    if (loading || accessLoading || !user) return;
-    if (!profileChecked) return;
-    
+    // Block access to protected screens if no access
     const protectedScreens = ['travel', 'swipe', 'chat', 'account', 'matches', 'admin'];
     if (!hasAccess && accessStatus !== 'admin' && protectedScreens.includes(currentScreen)) {
       setScreen('access');
     }
-  }, [user, loading, accessLoading, hasAccess, accessStatus, currentScreen, profileChecked, setScreen]);
+  }, [user, authLoading, accessLoading, hasAccess, accessStatus, currentScreen, profileStatus, setScreen]);
 
-  // Only redirect to login if user is not authenticated
-  // Don't redirect if we're still loading or if user exists
-  useEffect(() => {
-    if (!loading && !user && currentScreen !== 'login') {
-      setScreen('login');
-    }
-  }, [user, loading, currentScreen, setScreen]);
-
-  // Show nothing while checking auth + onboarding + access status
-  if (loading || accessLoading || (user && !profileChecked)) {
+  // Show loading spinner while checking auth + profile + access
+  if (authLoading || accessLoading || (user && profileStatus === 'loading')) {
     return (
       <div className="h-[100dvh] overflow-hidden bg-background flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
