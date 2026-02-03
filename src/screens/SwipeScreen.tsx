@@ -37,6 +37,7 @@ const SwipeCard = ({
   const rotate = useTransform(x, [-200, 200], [-25, 25]);
   const likeOpacity = useTransform(x, [0, 100], [0, 1]);
   const nopeOpacity = useTransform(x, [-100, 0], [1, 0]);
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
   const handleDragEnd = (_: any, info: PanInfo) => {
     if (info.offset.x > 100) {
@@ -46,7 +47,22 @@ const SwipeCard = ({
     }
   };
 
-  const primaryPhoto = profile.photos.find(p => p.is_primary)?.url || profile.photos[0]?.url;
+  const photos = profile.photos.slice(0, 3); // Limit to 3 photos
+  const currentPhoto = photos[currentPhotoIndex]?.url || photos[0]?.url;
+
+  const handlePhotoTap = (e: React.MouseEvent) => {
+    if (!isTop || photos.length <= 1) return;
+    
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const isLeftSide = clickX < rect.width / 2;
+    
+    if (isLeftSide) {
+      setCurrentPhotoIndex((prev) => (prev > 0 ? prev - 1 : photos.length - 1));
+    } else {
+      setCurrentPhotoIndex((prev) => (prev < photos.length - 1 ? prev + 1 : 0));
+    }
+  };
 
   return (
     <motion.div
@@ -63,11 +79,28 @@ const SwipeCard = ({
         transition: { duration: 0.3 }
       }}
     >
-      <div className="relative w-full h-full rounded-[32px] overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.25)] bg-white/30 backdrop-blur-2xl border border-white/40">
+      <div 
+        className="relative w-full h-full rounded-[32px] overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.25)] bg-white/30 backdrop-blur-2xl border border-white/40"
+        onClick={handlePhotoTap}
+      >
+        {/* Photo indicators */}
+        {photos.length > 1 && (
+          <div className="absolute top-4 left-4 right-14 z-20 flex gap-1">
+            {photos.map((_, idx) => (
+              <div
+                key={idx}
+                className={`h-1 flex-1 rounded-full transition-all ${
+                  idx === currentPhotoIndex ? 'bg-white' : 'bg-white/40'
+                }`}
+              />
+            ))}
+          </div>
+        )}
+
         {/* Photo - object-top to show faces */}
-        {primaryPhoto ? (
+        {currentPhoto ? (
           <img
-            src={primaryPhoto}
+            src={currentPhoto}
             alt={profile.name}
             className="w-full h-full object-cover object-top"
             draggable={false}
@@ -130,9 +163,11 @@ const SwipeCard = ({
                 <span>{destination}</span>
               </div>
               {profile.bio && (
-                <p className="text-white/80 text-sm line-clamp-2 mb-3">
-                  {profile.bio}
-                </p>
+                <div className="mb-3 p-2 rounded-lg bg-white/10 backdrop-blur-sm max-h-16 overflow-y-auto">
+                  <p className="text-white/80 text-sm break-words">
+                    {profile.bio}
+                  </p>
+                </div>
               )}
               {profile.travel_vibes.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">

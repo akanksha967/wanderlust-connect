@@ -29,11 +29,11 @@ const AccountScreen = () => {
   const [startDate, setStartDate] = useState(travelDetails?.startDate || '');
   const [endDate, setEndDate] = useState(travelDetails?.endDate || '');
   
-  // Profile editing state
-  const [name, setName] = useState(userProfile.name || '');
-  const [age, setAge] = useState(userProfile.age?.toString() || '');
-  const [bio, setBio] = useState(userProfile.bio || '');
-  const [photos, setPhotos] = useState<string[]>(userProfile.photos || []);
+  // Profile editing state - initialized empty, will be populated from DB
+  const [name, setName] = useState('');
+  const [age, setAge] = useState('');
+  const [bio, setBio] = useState('');
+  const [photos, setPhotos] = useState<string[]>([]);
   const [selectedVibes, setSelectedVibes] = useState<string[]>(userProfile.travelVibes || []);
   
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -228,7 +228,7 @@ const AccountScreen = () => {
     setEditingProfile(false);
   };
 
-  const isProfileValid = name && age && photos.length > 0 && selectedVibes.length > 0;
+  const isProfileValid = name && age && Number(age) >= 18 && Number(age) <= 99 && photos.length > 0 && selectedVibes.length > 0;
 
   if (loading) {
     return (
@@ -359,11 +359,18 @@ const AccountScreen = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-white/80 mb-1 block drop-shadow">Age</label>
+                  <label className="text-xs text-white/80 mb-1 block drop-shadow">Age (18-99)</label>
                   <Input
                     type="number"
                     value={age}
-                    onChange={(e) => setAge(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '' || (Number(val) >= 0 && Number(val) <= 99)) {
+                        setAge(val);
+                      }
+                    }}
+                    min={18}
+                    max={99}
                     placeholder="Age"
                     className="h-10 rounded-xl bg-white/80 border border-white/50 text-gray-900 placeholder:text-gray-400"
                   />
@@ -372,10 +379,15 @@ const AccountScreen = () => {
 
               {/* Bio */}
               <div>
-                <label className="text-xs text-white/80 mb-1 block drop-shadow">Bio</label>
+                <label className="text-xs text-white/80 mb-1 block drop-shadow">Bio ({bio.length}/300)</label>
                 <textarea
                   value={bio}
-                  onChange={(e) => setBio(e.target.value)}
+                  onChange={(e) => {
+                    if (e.target.value.length <= 300) {
+                      setBio(e.target.value);
+                    }
+                  }}
+                  maxLength={300}
                   placeholder="Tell fellow travelers about yourself..."
                   className="w-full h-20 p-3 rounded-xl bg-white/80 border border-white/50 resize-none text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-400/50"
                 />
@@ -442,9 +454,11 @@ const AccountScreen = () => {
               </div>
 
               {userProfile.bio && (
-                <p className="text-sm text-white/80 mt-3 pt-3 border-t border-white/20 drop-shadow">
-                  {userProfile.bio}
-                </p>
+                <div className="mt-3 pt-3 border-t border-white/20">
+                  <p className="text-sm text-white/80 drop-shadow break-words overflow-hidden p-2 rounded-lg bg-white/10 backdrop-blur-sm max-h-24 overflow-y-auto">
+                    {userProfile.bio}
+                  </p>
+                </div>
               )}
 
               {userProfile.travelVibes && userProfile.travelVibes.length > 0 && (

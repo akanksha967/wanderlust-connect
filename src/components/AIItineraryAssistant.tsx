@@ -150,13 +150,21 @@ export const AIItineraryAssistant = ({ destination }: AIItineraryAssistantProps)
     setItinerary('');
 
     try {
+      // Get the current session to use the user's auth token
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        toast({ title: 'Error', description: 'Please log in to generate itineraries', variant: 'destructive' });
+        setIsGenerating(false);
+        return;
+      }
+
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-itinerary`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            Authorization: `Bearer ${session.access_token}`,
           },
           body: JSON.stringify({
             destination,
