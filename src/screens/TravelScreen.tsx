@@ -51,7 +51,8 @@ export default function TravelScreen() {
   const [index, setIndex] = useState(0);
 
   const active = DESTINATIONS[index];
-  const canProceed = destination && startDate && endDate;
+  const isDateValid = startDate && endDate && new Date(startDate) <= new Date(endDate);
+  const canProceed = destination && isDateValid;
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -151,13 +152,21 @@ export default function TravelScreen() {
                     <Input 
                       type="date" 
                       value={startDate} 
-                      onChange={(e) => setStartDate(e.target.value)} 
+                      onChange={(e) => {
+                        setStartDate(e.target.value);
+                        // Reset end date if it becomes invalid
+                        if (endDate && new Date(e.target.value) > new Date(endDate)) {
+                          setEndDate('');
+                        }
+                      }}
+                      min={new Date().toISOString().split('T')[0]}
                       className="h-10 rounded-xl bg-white/80 text-gray-900 border border-white/40 w-full min-w-0 max-w-full px-3 appearance-none text-[16px] sm:text-sm"
                     />
                     <Input 
                       type="date" 
                       value={endDate} 
-                      onChange={(e) => setEndDate(e.target.value)} 
+                      onChange={(e) => setEndDate(e.target.value)}
+                      min={startDate || new Date().toISOString().split('T')[0]}
                       className="h-10 rounded-xl bg-white/80 text-gray-900 border border-white/40 w-full min-w-0 max-w-full px-3 appearance-none text-[16px] sm:text-sm"
                     />
                   </div>

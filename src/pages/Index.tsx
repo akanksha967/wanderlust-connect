@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import MatchPopup from '@/components/MatchPopup';
 import LoginScreen from '@/screens/LoginScreen';
 import ProfileScreen from '@/screens/ProfileScreen';
@@ -14,7 +15,36 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAccessControl } from '@/hooks/useAccessControl';
 import { supabase } from '@/integrations/supabase/client';
 
+type ScreenType = 'login' | 'profile' | 'travel' | 'swipe' | 'chat' | 'account' | 'matches' | 'access' | 'admin';
+
+const pathToScreen: Record<string, ScreenType> = {
+  '/': 'login',
+  '/login': 'login',
+  '/profile': 'profile',
+  '/travel': 'travel',
+  '/swipe': 'swipe',
+  '/matches': 'matches',
+  '/chat': 'chat',
+  '/account': 'account',
+  '/admin': 'admin',
+  '/access': 'access',
+};
+
+const screenToPath: Record<ScreenType, string> = {
+  login: '/login',
+  profile: '/profile',
+  travel: '/travel',
+  swipe: '/swipe',
+  matches: '/matches',
+  chat: '/chat',
+  account: '/account',
+  admin: '/admin',
+  access: '/access',
+};
+
 const Index = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const currentScreen = useAppStore((state) => state.currentScreen);
   const setScreen = useAppStore((state) => state.setScreen);
   const setHasCompletedProfile = useAppStore((state) => state.setHasCompletedProfile);
@@ -27,6 +57,25 @@ const Index = () => {
   const [checkedUserId, setCheckedUserId] = useState<string | null>(null);
 
   const userId = user?.id ?? null;
+
+  // Sync URL path to screen state on mount and URL changes
+  useEffect(() => {
+    const screenFromPath = pathToScreen[location.pathname];
+    if (screenFromPath && screenFromPath !== currentScreen) {
+      // Don't override screen during auth loading - let the routing logic handle it
+      if (!authLoading && !accessLoading) {
+        setScreen(screenFromPath);
+      }
+    }
+  }, [location.pathname, authLoading, accessLoading]);
+
+  // Sync screen state to URL
+  useEffect(() => {
+    const expectedPath = screenToPath[currentScreen];
+    if (expectedPath && location.pathname !== expectedPath) {
+      navigate(expectedPath, { replace: true });
+    }
+  }, [currentScreen, navigate, location.pathname]);
 
   // Check profile completion status from database whenever userId changes
   useEffect(() => {

@@ -79,7 +79,7 @@ const ProfileScreen = () => {
     });
   };
 
-  const isValid = name.trim().length > 0 && Number(age) >= 18 && photos.length > 0 && selectedVibes.length > 0;
+  const isValid = name.trim().length > 0 && Number(age) >= 18 && Number(age) <= 99 && photos.length > 0 && selectedVibes.length > 0;
 
   const handleContinue = async () => {
     if (!isValid || saving) return;
@@ -180,24 +180,39 @@ const ProfileScreen = () => {
               value={age}
               onFocus={() => setFocused("age")}
               onBlur={() => setFocused(null)}
-              onChange={(e) => setAge(e.target.value)}
-              placeholder="Age"
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === '' || (Number(val) >= 0 && Number(val) <= 99)) {
+                  setAge(val);
+                }
+              }}
+              min={18}
+              max={99}
+              placeholder="Age (18-99)"
               className={`h-12 rounded-2xl bg-white/40 border-white/30 text-gray-900 placeholder:text-gray-500 appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
                 focused === "age" ? glow : ""
               }`}
             />
           </div>
 
-          <textarea
-            value={bio}
-            onFocus={() => setFocused("bio")}
-            onBlur={() => setFocused(null)}
-            onChange={(e) => setBio(e.target.value)}
-            placeholder="Solo traveler heading to Bali..."
-            className={`w-full h-20 p-4 rounded-2xl bg-white/40 border border-white/30 text-gray-900 placeholder:text-gray-500 resize-none mb-4 transition-shadow ${
-              focused === "bio" ? glow : ""
-            }`}
-          />
+          <div className="relative mb-4">
+            <textarea
+              value={bio}
+              onFocus={() => setFocused("bio")}
+              onBlur={() => setFocused(null)}
+              onChange={(e) => {
+                if (e.target.value.length <= 300) {
+                  setBio(e.target.value);
+                }
+              }}
+              maxLength={300}
+              placeholder="Solo traveler heading to Bali..."
+              className={`w-full h-20 p-4 rounded-2xl bg-white/40 border border-white/30 text-gray-900 placeholder:text-gray-500 resize-none transition-shadow ${
+                focused === "bio" ? glow : ""
+              }`}
+            />
+            <span className="absolute bottom-2 right-3 text-xs text-gray-500">{bio.length}/300</span>
+          </div>
 
           {/* Vibes */}
           <div className="flex flex-wrap gap-2 mb-5">
