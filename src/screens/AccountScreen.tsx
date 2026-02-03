@@ -1,19 +1,40 @@
-import { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useAppStore } from '@/store/useAppStore';
-import { ArrowLeft, Camera, MapPin, Calendar, LogOut, Trash2, ChevronRight, Edit2, X, Plus, Loader2, Shield } from 'lucide-react';
-import DeleteAccountDialog from '@/components/DeleteAccountDialog';
-import PhotoSourceDialog from '@/components/PhotoSourceDialog';
-import InviteFriendsCard from '@/components/InviteFriendsCard';
-import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useRef, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useAppStore } from "@/store/useAppStore";
+import {
+  ArrowLeft,
+  Camera,
+  MapPin,
+  Calendar,
+  LogOut,
+  Trash2,
+  ChevronRight,
+  Edit2,
+  X,
+  Plus,
+  Loader2,
+  Shield,
+} from "lucide-react";
+import DeleteAccountDialog from "@/components/DeleteAccountDialog";
+import PhotoSourceDialog from "@/components/PhotoSourceDialog";
+import InviteFriendsCard from "@/components/InviteFriendsCard";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const vibeOptions = [
-  'Adventure', 'Relaxation', 'Culture', 'Foodie', 'Nature',
-  'Nightlife', 'Photography', 'Budget', 'Luxury', 'Solo'
+  "Adventure",
+  "Relaxation",
+  "Culture",
+  "Foodie",
+  "Nature",
+  "Nightlife",
+  "Photography",
+  "Budget",
+  "Luxury",
+  "Solo",
 ];
 
 const AccountScreen = () => {
@@ -25,17 +46,17 @@ const AccountScreen = () => {
   const [showPhotoSourceDialog, setShowPhotoSourceDialog] = useState(false);
   const [editingTravel, setEditingTravel] = useState(false);
   const [editingProfile, setEditingProfile] = useState(false);
-  const [destination, setDestination] = useState(travelDetails?.destination || '');
-  const [startDate, setStartDate] = useState(travelDetails?.startDate || '');
-  const [endDate, setEndDate] = useState(travelDetails?.endDate || '');
-  
+  const [destination, setDestination] = useState(travelDetails?.destination || "");
+  const [startDate, setStartDate] = useState(travelDetails?.startDate || "");
+  const [endDate, setEndDate] = useState(travelDetails?.endDate || "");
+
   // Profile editing state - initialized empty, will be populated from DB
-  const [name, setName] = useState('');
-  const [age, setAge] = useState('');
-  const [bio, setBio] = useState('');
+  const [name, setName] = useState("");
+  const [age, setAge] = useState("");
+  const [bio, setBio] = useState("");
   const [photos, setPhotos] = useState<string[]>([]);
   const [selectedVibes, setSelectedVibes] = useState<string[]>(userProfile.travelVibes || []);
-  
+
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
@@ -52,49 +73,46 @@ const AccountScreen = () => {
       try {
         // Check if user is admin
         const { data: roleData } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id)
-          .eq('role', 'admin')
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id)
+          .eq("role", "admin")
           .maybeSingle();
-        
+
         setIsAdmin(!!roleData);
         // Get profile
         const { data: profile } = await supabase
-          .from('profiles')
-          .select('id, name, age, bio')
-          .eq('user_id', user.id)
+          .from("profiles")
+          .select("id, name, age, bio")
+          .eq("user_id", user.id)
           .maybeSingle();
 
         if (profile) {
           // Get photos
           const { data: photosData } = await supabase
-            .from('photos')
-            .select('url')
-            .eq('profile_id', profile.id)
-            .order('is_primary', { ascending: false });
+            .from("photos")
+            .select("url")
+            .eq("profile_id", profile.id)
+            .order("is_primary", { ascending: false });
 
           // Get vibes
-          const { data: vibesData } = await supabase
-            .from('travel_vibes')
-            .select('vibe')
-            .eq('profile_id', profile.id);
+          const { data: vibesData } = await supabase.from("travel_vibes").select("vibe").eq("profile_id", profile.id);
 
           // Get active travel plan
           const { data: travelPlan } = await supabase
-            .from('travel_plans')
-            .select('destination, start_date, end_date')
-            .eq('profile_id', profile.id)
-            .eq('is_active', true)
+            .from("travel_plans")
+            .select("destination, start_date, end_date")
+            .eq("profile_id", profile.id)
+            .eq("is_active", true)
             .maybeSingle();
 
-          const photoUrls = photosData?.map(p => p.url) || [];
-          const vibes = vibesData?.map(v => v.vibe) || [];
+          const photoUrls = photosData?.map((p) => p.url) || [];
+          const vibes = vibesData?.map((v) => v.vibe) || [];
 
           // Update local state
-          setName(profile.name || '');
-          setAge(profile.age?.toString() || '');
-          setBio(profile.bio || '');
+          setName(profile.name || "");
+          setAge(profile.age?.toString() || "");
+          setBio(profile.bio || "");
           setPhotos(photoUrls);
           setSelectedVibes(vibes);
 
@@ -103,7 +121,7 @@ const AccountScreen = () => {
             id: profile.id,
             name: profile.name,
             age: profile.age || undefined,
-            bio: profile.bio || '',
+            bio: profile.bio || "",
             photos: photoUrls,
             travelVibes: vibes,
           });
@@ -122,7 +140,7 @@ const AccountScreen = () => {
           }
         }
       } catch (error) {
-        console.error('Error fetching profile data:', error);
+        console.error("Error fetching profile data:", error);
       } finally {
         setLoading(false);
       }
@@ -132,12 +150,12 @@ const AccountScreen = () => {
   }, [user, setUserProfile, setTravelDetails]);
 
   const handleAccountDeleted = () => {
-    setScreen('login');
+    setScreen("login");
   };
 
   const handleSignOut = async () => {
     await signOut();
-    setScreen('login');
+    setScreen("login");
   };
 
   const handleSaveTravel = () => {
@@ -174,9 +192,9 @@ const AccountScreen = () => {
         const isDuplicate = photos.some((p, i) => p === dataUrl && i !== activePhotoIndex);
         if (isDuplicate) {
           toast({
-            title: 'Duplicate photo',
-            description: 'That photo is already added. Please pick a different one.',
-            variant: 'destructive',
+            title: "Duplicate photo",
+            description: "That photo is already added. Please pick a different one.",
+            variant: "destructive",
           });
           return;
         }
@@ -192,8 +210,8 @@ const AccountScreen = () => {
       reader.readAsDataURL(file);
     }
     // Reset file inputs
-    if (cameraInputRef.current) cameraInputRef.current.value = '';
-    if (galleryInputRef.current) galleryInputRef.current.value = '';
+    if (cameraInputRef.current) cameraInputRef.current.value = "";
+    if (galleryInputRef.current) galleryInputRef.current.value = "";
   };
 
   const handleRemovePhoto = (index: number) => {
@@ -202,7 +220,7 @@ const AccountScreen = () => {
 
   const toggleVibe = (vibe: string) => {
     if (selectedVibes.includes(vibe)) {
-      setSelectedVibes(selectedVibes.filter(v => v !== vibe));
+      setSelectedVibes(selectedVibes.filter((v) => v !== vibe));
     } else if (selectedVibes.length < 4) {
       setSelectedVibes([...selectedVibes, vibe]);
     }
@@ -220,15 +238,16 @@ const AccountScreen = () => {
   };
 
   const handleCancelProfileEdit = () => {
-    setName(userProfile.name || '');
-    setAge(userProfile.age?.toString() || '');
-    setBio(userProfile.bio || '');
+    setName(userProfile.name || "");
+    setAge(userProfile.age?.toString() || "");
+    setBio(userProfile.bio || "");
     setPhotos(userProfile.photos || []);
     setSelectedVibes(userProfile.travelVibes || []);
     setEditingProfile(false);
   };
 
-  const isProfileValid = name && age && Number(age) >= 18 && Number(age) <= 99 && photos.length > 0 && selectedVibes.length > 0;
+  const isProfileValid =
+    name && age && Number(age) >= 18 && Number(age) <= 99 && photos.length > 0 && selectedVibes.length > 0;
 
   if (loading) {
     return (
@@ -241,7 +260,7 @@ const AccountScreen = () => {
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden flex flex-col">
       {/* Full-screen nature background - lighter lavender-blue */}
-      <div 
+      <div
         className="fixed inset-0 bg-cover bg-center"
         style={{ backgroundImage: `url(https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80)` }}
       />
@@ -256,22 +275,16 @@ const AccountScreen = () => {
         capture="environment"
         className="hidden"
       />
-      <input
-        type="file"
-        ref={galleryInputRef}
-        onChange={handleFileChange}
-        accept="image/*"
-        className="hidden"
-      />
+      <input type="file" ref={galleryInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
 
       {/* Header */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         className="absolute top-6 left-6 right-6 z-50 flex items-center gap-3"
       >
-        <button 
-          onClick={() => setScreen('swipe')}
+        <button
+          onClick={() => setScreen("swipe")}
           className="h-11 w-11 rounded-full bg-white/40 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-lg transition-all hover:bg-white/50"
         >
           <ArrowLeft className="w-5 h-5 text-white" />
@@ -290,10 +303,10 @@ const AccountScreen = () => {
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-white drop-shadow">Profile</h3>
             <button
-              onClick={() => editingProfile ? handleCancelProfileEdit() : setEditingProfile(true)}
+              onClick={() => (editingProfile ? handleCancelProfileEdit() : setEditingProfile(true))}
               className="text-xs text-white/90 font-medium hover:text-white drop-shadow"
             >
-              {editingProfile ? 'Cancel' : 'Edit'}
+              {editingProfile ? "Cancel" : "Edit"}
             </button>
           </div>
 
@@ -311,11 +324,7 @@ const AccountScreen = () => {
                     >
                       {photos[index] ? (
                         <>
-                          <img
-                            src={photos[index]}
-                            alt={`Photo ${index + 1}`}
-                            className="w-full h-full object-cover"
-                          />
+                          <img src={photos[index]} alt={`Photo ${index + 1}`} className="w-full h-full object-cover" />
                           <button
                             onClick={() => handleRemovePhoto(index)}
                             className="absolute top-1 right-1 w-5 h-5 bg-foreground/80 rounded-full flex items-center justify-center"
@@ -359,13 +368,13 @@ const AccountScreen = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-white/80 mb-1 block drop-shadow">Age (18-99)</label>
+                  <label className="text-xs text-white/80 mb-1 block drop-shadow">Age </label>
                   <Input
                     type="number"
                     value={age}
                     onChange={(e) => {
                       const val = e.target.value;
-                      if (val === '' || (Number(val) >= 0 && Number(val) <= 99)) {
+                      if (val === "" || (Number(val) >= 0 && Number(val) <= 99)) {
                         setAge(val);
                       }
                     }}
@@ -395,9 +404,7 @@ const AccountScreen = () => {
 
               {/* Travel vibes */}
               <div>
-                <label className="text-xs text-white/80 mb-2 block drop-shadow">
-                  Travel vibes (select up to 4)
-                </label>
+                <label className="text-xs text-white/80 mb-2 block drop-shadow">Travel vibes (select up to 4)</label>
                 <div className="flex flex-wrap gap-2">
                   {vibeOptions.map((vibe) => (
                     <button
@@ -405,8 +412,8 @@ const AccountScreen = () => {
                       onClick={() => toggleVibe(vibe)}
                       className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                         selectedVibes.includes(vibe)
-                          ? 'bg-gradient-to-r from-sky-400 via-blue-400 to-indigo-400 text-white shadow-lg'
-                          : 'bg-white/50 border border-white/40 text-gray-700 hover:bg-white/60'
+                          ? "bg-gradient-to-r from-sky-400 via-blue-400 to-indigo-400 text-white shadow-lg"
+                          : "bg-white/50 border border-white/40 text-gray-700 hover:bg-white/60"
                       }`}
                     >
                       {vibe}
@@ -429,11 +436,7 @@ const AccountScreen = () => {
               <div className="flex items-center gap-4">
                 <div className="relative">
                   {userProfile.photos?.[0] ? (
-                    <img
-                      src={userProfile.photos[0]}
-                      alt="Profile"
-                      className="w-16 h-16 rounded-full object-cover"
-                    />
+                    <img src={userProfile.photos[0]} alt="Profile" className="w-16 h-16 rounded-full object-cover" />
                   ) : (
                     <div className="w-16 h-16 rounded-full bg-white/40 border border-white/30 flex items-center justify-center">
                       <Camera className="w-6 h-6 text-white/70" />
@@ -441,12 +444,8 @@ const AccountScreen = () => {
                   )}
                 </div>
                 <div className="flex-1">
-                  <h2 className="font-display text-lg text-white drop-shadow">
-                    {userProfile.name || 'Traveler'}
-                  </h2>
-                  <p className="text-sm text-white/80 drop-shadow">
-                    {user?.phone || user?.email || 'No contact info'}
-                  </p>
+                  <h2 className="font-display text-lg text-white drop-shadow">{userProfile.name || "Traveler"}</h2>
+                  <p className="text-sm text-white/80 drop-shadow">{user?.phone || user?.email || "No contact info"}</p>
                   {userProfile.age && (
                     <p className="text-xs text-white/70 mt-1 drop-shadow">{userProfile.age} years old</p>
                   )}
@@ -493,7 +492,7 @@ const AccountScreen = () => {
               onClick={() => setEditingTravel(!editingTravel)}
               className="text-xs text-white/90 font-medium hover:text-white drop-shadow"
             >
-              {editingTravel ? 'Cancel' : 'Edit'}
+              {editingTravel ? "Cancel" : "Edit"}
             </button>
           </div>
 
@@ -563,9 +562,7 @@ const AccountScreen = () => {
                   </div>
                 </div>
               ) : (
-                <p className="text-sm text-white/70 text-center py-4 drop-shadow">
-                  No trip planned yet
-                </p>
+                <p className="text-sm text-white/70 text-center py-4 drop-shadow">No trip planned yet</p>
               )}
             </div>
           )}
@@ -577,15 +574,11 @@ const AccountScreen = () => {
         </div>
 
         {/* Settings */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           <h3 className="text-sm font-medium text-white drop-shadow mb-3">Settings</h3>
           <div className="rounded-[24px] bg-white/30 backdrop-blur-2xl border border-white/40 shadow-[0_20px_60px_rgba(0,0,0,0.15)] overflow-hidden">
             <button
-              onClick={() => setScreen('travel')}
+              onClick={() => setScreen("travel")}
               className="w-full flex items-center justify-between p-4 hover:bg-white/20 transition-all"
             >
               <div className="flex items-center gap-3">
@@ -601,7 +594,7 @@ const AccountScreen = () => {
               <>
                 <div className="h-px bg-white/20 mx-4" />
                 <button
-                  onClick={() => setScreen('admin')}
+                  onClick={() => setScreen("admin")}
                   className="w-full flex items-center justify-between p-4 hover:bg-white/20 transition-all"
                 >
                   <div className="flex items-center gap-3">
