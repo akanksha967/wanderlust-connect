@@ -14,6 +14,8 @@ export const useAccessControl = () => {
     status: 'loading',
   });
   const [loading, setLoading] = useState(true);
+  // Track which userId we last completed a check for
+  const [checkedUserId, setCheckedUserId] = useState<string | null>(null);
 
   useEffect(() => {
     const checkAccess = async () => {
@@ -22,6 +24,7 @@ export const useAccessControl = () => {
       if (!user) {
         setAccessStatus({ hasAccess: false, status: 'none' });
         setLoading(false);
+        setCheckedUserId(null);
         return;
       }
 
@@ -44,11 +47,15 @@ export const useAccessControl = () => {
         setAccessStatus({ hasAccess: false, status: 'none' });
       } finally {
         setLoading(false);
+        setCheckedUserId(user.id);
       }
     };
 
     checkAccess();
   }, [user?.id, authLoading]);
+
+  // Treat as loading if user changed but check hasn't completed yet
+  const isStale = !!user && checkedUserId !== user.id;
 
   const requestAccess = async () => {
     if (!user) return false;
@@ -94,7 +101,7 @@ export const useAccessControl = () => {
 
   return {
     ...accessStatus,
-    loading: loading || authLoading,
+    loading: loading || authLoading || isStale,
     requestAccess,
     useInviteCode,
   };
