@@ -68,7 +68,7 @@ export const useAuth = () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/`,
+        redirectTo: `${window.location.origin}/login`,
         queryParams: {
           prompt: 'select_account',
         },
@@ -154,7 +154,7 @@ export const useAuth = () => {
 
       // Clear local state
       await supabase.auth.signOut();
-      
+
       toast({
         title: 'Account Deleted',
         description: 'Your account and all data have been permanently removed.',
