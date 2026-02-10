@@ -73,7 +73,14 @@ const Index = () => {
   useEffect(() => {
     const expectedPath = screenToPath[currentScreen];
     if (expectedPath && location.pathname !== expectedPath) {
-      navigate(expectedPath, { replace: true });
+      navigate(
+        {
+          pathname: expectedPath,
+          search: location.search,
+          hash: location.hash,
+        },
+        { replace: true }
+      );
     }
   }, [currentScreen, navigate, location.pathname]);
 
@@ -172,17 +179,12 @@ const Index = () => {
         return;
       }
 
-      // Returning user with complete profile → go to last screen or swipe
+      // Returning user with complete profile → go to travel screen to confirm details
       if (profileStatus === 'complete') {
-        const lastScreen = typeof window !== 'undefined' 
-          ? localStorage.getItem('lastScreen') 
-          : null;
-        const validScreens = ['swipe', 'chat', 'account', 'matches', 'travel', 'admin'];
-        if (lastScreen && validScreens.includes(lastScreen)) {
-          setScreen(lastScreen as any);
-        } else {
-          setScreen('swipe');
-        }
+        // If they are already on a valid screen, let them stay (e.g. they navigated there)
+        // But if they are just logging in (coming from login/access), send them to travel
+        // We can detect "just logging in" because we are in the block for currentScreen === 'login'
+        setScreen('travel');
       } else {
         // New user → profile setup
         setScreen('profile');
@@ -241,6 +243,15 @@ const Index = () => {
     <div className="h-[100dvh] overflow-hidden bg-background">
       {renderScreen()}
       <MatchPopup />
+      <div className="fixed bottom-0 left-0 bg-black/80 text-white p-2 text-xs z-50 pointer-events-none">
+        <p>User: {user?.id ?? 'null'}</p>
+        <p>AuthLoading: {String(authLoading)}</p>
+        <p>ProfileStatus: {profileStatus}</p>
+        <p>CurrentScreen: {currentScreen}</p>
+        <p>AccessLoading: {String(accessLoading)}</p>
+        <p>HasAccess: {String(hasAccess)}</p>
+        <p>AccessStatus: {accessStatus}</p>
+      </div>
     </div>
   );
 };
