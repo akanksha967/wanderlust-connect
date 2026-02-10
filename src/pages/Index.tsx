@@ -1,19 +1,21 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import MatchPopup from '@/components/MatchPopup';
 import LoginScreen from '@/screens/LoginScreen';
-import ProfileScreen from '@/screens/ProfileScreen';
-import TravelScreen from '@/screens/TravelScreen';
-import SwipeScreen from '@/screens/SwipeScreen';
-import ChatScreen from '@/screens/ChatScreen';
-import AccountScreen from '@/screens/AccountScreen';
-import MatchesListScreen from '@/screens/MatchesListScreen';
-import AccessRequestScreen from '@/screens/AccessRequestScreen';
-import AdminPanelScreen from '@/screens/AdminPanelScreen';
 import { useAppStore } from '@/store/useAppStore';
 import { useAuth } from '@/hooks/useAuth';
 import { useAccessControl } from '@/hooks/useAccessControl';
 import { supabase } from '@/integrations/supabase/client';
+
+// Lazy-load heavy screens
+const ProfileScreen = lazy(() => import('@/screens/ProfileScreen'));
+const TravelScreen = lazy(() => import('@/screens/TravelScreen'));
+const SwipeScreen = lazy(() => import('@/screens/SwipeScreen'));
+const ChatScreen = lazy(() => import('@/screens/ChatScreen'));
+const AccountScreen = lazy(() => import('@/screens/AccountScreen'));
+const MatchesListScreen = lazy(() => import('@/screens/MatchesListScreen'));
+const AccessRequestScreen = lazy(() => import('@/screens/AccessRequestScreen'));
+const AdminPanelScreen = lazy(() => import('@/screens/AdminPanelScreen'));
 
 type ScreenType = 'login' | 'profile' | 'travel' | 'swipe' | 'chat' | 'account' | 'matches' | 'access' | 'admin';
 
@@ -206,12 +208,14 @@ const Index = () => {
   }, [user, authLoading, accessLoading, hasAccess, accessStatus, currentScreen, profileStatus, setScreen]);
 
   // Show loading spinner while checking auth + profile + access
+  const LazyFallback = (
+    <div className="h-[100dvh] overflow-hidden bg-background flex items-center justify-center">
+      <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+
   if (authLoading || accessLoading || (user && profileStatus === 'loading')) {
-    return (
-      <div className="h-[100dvh] overflow-hidden bg-background flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return LazyFallback;
   }
 
   const renderScreen = () => {
@@ -241,7 +245,9 @@ const Index = () => {
 
   return (
     <div className="h-[100dvh] overflow-hidden bg-background">
-      {renderScreen()}
+      <Suspense fallback={LazyFallback}>
+        {renderScreen()}
+      </Suspense>
       <MatchPopup />
 
     </div>

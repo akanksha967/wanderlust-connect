@@ -5,31 +5,31 @@ const destinations = [
   {
     id: 1,
     name: 'Santorini, Greece',
-    image: 'https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?w=400&h=500&fit=crop',
+    image: 'https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?w=400&h=500&fit=crop&fm=webp&q=75',
     vibe: 'Romantic',
   },
   {
     id: 2,
     name: 'Bali, Indonesia',
-    image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=400&h=500&fit=crop',
+    image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=400&h=500&fit=crop&fm=webp&q=75',
     vibe: 'Adventure',
   },
   {
     id: 3,
     name: 'Tokyo, Japan',
-    image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400&h=500&fit=crop',
+    image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400&h=500&fit=crop&fm=webp&q=75',
     vibe: 'Culture',
   },
   {
     id: 4,
     name: 'Machu Picchu, Peru',
-    image: 'https://images.unsplash.com/photo-1587595431973-160d0d94add1?w=400&h=500&fit=crop',
+    image: 'https://images.unsplash.com/photo-1587595431973-160d0d94add1?w=400&h=500&fit=crop&fm=webp&q=75',
     vibe: 'Explorer',
   },
   {
     id: 5,
     name: 'Maldives',
-    image: 'https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=400&h=500&fit=crop',
+    image: 'https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=400&h=500&fit=crop&fm=webp&q=75',
     vibe: 'Relaxation',
   },
 ];
