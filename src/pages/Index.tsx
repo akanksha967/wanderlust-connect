@@ -243,15 +243,7 @@ const Index = () => {
     <div className="h-[100dvh] overflow-hidden bg-background">
       {renderScreen()}
       <MatchPopup />
-      <div className="fixed bottom-0 left-0 bg-black/80 text-white p-2 text-xs z-50 pointer-events-none">
-        <p>User: {user?.id ?? 'null'}</p>
-        <p>AuthLoading: {String(authLoading)}</p>
-        <p>ProfileStatus: {profileStatus}</p>
-        <p>CurrentScreen: {currentScreen}</p>
-        <p>AccessLoading: {String(accessLoading)}</p>
-        <p>HasAccess: {String(hasAccess)}</p>
-        <p>AccessStatus: {accessStatus}</p>
-      </div>
+
     </div>
   );
 };
