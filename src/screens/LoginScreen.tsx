@@ -14,31 +14,31 @@ const DESTINATIONS = [
     name: "Swiss Alps",
     country: "Switzerland",
     tagline: "Where peaks touch the sky",
-    image: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1200&q=90",
+    image: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=800&q=75&fm=webp",
   },
   {
     name: "Bali",
     country: "Indonesia",
     tagline: "Island of the gods",
-    image: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=1200&q=90",
+    image: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&q=75&fm=webp",
   },
   {
     name: "Patagonia",
     country: "Argentina",
     tagline: "The end of the world",
-    image: "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=1200&q=90",
+    image: "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=800&q=75&fm=webp",
   },
   {
     name: "Kyoto",
     country: "Japan",
     tagline: "Where tradition breathes",
-    image: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=1200&q=90",
+    image: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=800&q=75&fm=webp",
   },
   {
     name: "Santorini",
     country: "Greece",
     tagline: "Where blue meets white",
-    image: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=1200&q=90",
+    image: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=800&q=75&fm=webp",
   },
 ];
 
@@ -127,10 +127,11 @@ const LoginScreen = () => {
                   className="absolute w-[50%] aspect-[4/5] rounded-xl overflow-hidden shadow-lg"
                   style={{ zIndex: 1, filter: "blur(2px)" }}
                 >
-                  <img 
+            <img 
                     src={DESTINATIONS[getCardIndex(-1)].image} 
                     alt={DESTINATIONS[getCardIndex(-1)].name}
                     className="w-full h-full object-cover"
+                    loading="lazy"
                   />
                   <div className="absolute inset-0 bg-black/40" />
                 </motion.div>
@@ -143,10 +144,11 @@ const LoginScreen = () => {
                   transition={{ duration: 0.6, ease: "easeInOut" }}
                   className="relative w-[65%] aspect-[4/5] rounded-[24px] overflow-hidden shadow-2xl z-10"
                 >
-                  <img 
+            <img 
                     src={DESTINATIONS[activeIndex].image} 
                     alt={DESTINATIONS[activeIndex].name}
                     className="w-full h-full object-cover"
+                    fetchPriority="high"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
@@ -167,10 +169,11 @@ const LoginScreen = () => {
                   className="absolute w-[50%] aspect-[4/5] rounded-xl overflow-hidden shadow-lg"
                   style={{ zIndex: 1, filter: "blur(2px)" }}
                 >
-                  <img 
+            <img 
                     src={DESTINATIONS[getCardIndex(1)].image} 
                     alt={DESTINATIONS[getCardIndex(1)].name}
                     className="w-full h-full object-cover"
+                    loading="lazy"
                   />
                   <div className="absolute inset-0 bg-black/40" />
                 </motion.div>
