@@ -104,44 +104,36 @@ const Index = () => {
       }
 
       try {
-        // Get profile with photo count in a single query pattern
+        // Get profile with photos count in a single query
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('id, name, age')
+          .select(`
+            id, 
+            name, 
+            age,
+            photos(id)
+          `)
           .eq('user_id', userId)
           .maybeSingle();
 
         if (profileError) throw profileError;
 
-        if (!profile) {
+        if (profile) {
+          const p = profile as any;
+          // Check name validity (not empty, not default "Traveler")
+          const nameTrimmed = (p.name ?? '').trim();
+          const hasRealName = nameTrimmed.length > 0 && nameTrimmed !== 'Traveler';
+          const hasValidAge = typeof p.age === 'number' && p.age >= 18;
+
+          // Check for at least one photo from the joined query result
+          const hasPhoto = (p.photos?.length ?? 0) > 0;
+          const isComplete = hasRealName && hasValidAge && hasPhoto;
+
           if (!cancelled) {
-            setProfileStatus('incomplete');
-            setHasCompletedProfile(false);
+            setProfileStatus(isComplete ? 'complete' : 'incomplete');
+            setHasCompletedProfile(isComplete);
+            setCheckedUserId(userId);
           }
-          return;
-        }
-
-        // Check name validity (not empty, not default "Traveler")
-        const nameTrimmed = (profile.name ?? '').trim();
-        const hasRealName = nameTrimmed.length > 0 && nameTrimmed !== 'Traveler';
-        const hasValidAge = typeof profile.age === 'number' && profile.age >= 18;
-
-        // Check for at least one photo
-        const { data: photos, error: photosError } = await supabase
-          .from('photos')
-          .select('id')
-          .eq('profile_id', profile.id)
-          .limit(1);
-
-        if (photosError) throw photosError;
-
-        const hasPhoto = (photos?.length ?? 0) > 0;
-        const isComplete = hasRealName && hasValidAge && hasPhoto;
-
-        if (!cancelled) {
-          setProfileStatus(isComplete ? 'complete' : 'incomplete');
-          setHasCompletedProfile(isComplete);
-          setCheckedUserId(userId);
         }
       } catch (e) {
         console.error('Error checking profile completion:', e);

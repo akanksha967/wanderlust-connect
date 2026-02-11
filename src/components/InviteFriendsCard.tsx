@@ -25,24 +25,19 @@ const InviteFriendsCard = () => {
 
   const fetchInviteData = async () => {
     try {
-      // Get profile with invite slots
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('invite_slots')
-        .single();
+      const [profileRes, invitesRes] = await Promise.all([
+        supabase.from('profiles').select('invite_slots').single(),
+        supabase.from('invites')
+          .select('code, created_at, used_by_profile_id')
+          .order('created_at', { ascending: false })
+      ]) as [any, any];
 
-      if (profile) {
-        setInviteSlots(profile.invite_slots);
+      if (profileRes.data) {
+        setInviteSlots(profileRes.data.invite_slots);
       }
 
-      // Get existing invites
-      const { data: invitesData } = await supabase
-        .from('invites')
-        .select('code, created_at, used_by_profile_id')
-        .order('created_at', { ascending: false });
-
-      if (invitesData) {
-        setInvites(invitesData.map(inv => ({
+      if (invitesRes.data) {
+        setInvites((invitesRes.data as any[]).map(inv => ({
           code: inv.code,
           createdAt: inv.created_at,
           used: !!inv.used_by_profile_id,
@@ -59,11 +54,11 @@ const InviteFriendsCard = () => {
     setGenerating(true);
     try {
       const { data, error } = await supabase.rpc('generate_invite_code');
-      
+
       if (error) throw error;
-      
+
       const result = data as { success: boolean; code?: string; slots_remaining?: number; error?: string };
-      
+
       if (result.success) {
         toast({
           title: 'Invite Created!',
@@ -75,6 +70,11 @@ const InviteFriendsCard = () => {
           createdAt: new Date().toISOString(),
           used: false,
         }, ...prev]);
+
+        // Auto-share if possible
+        if (navigator.share) {
+          handleShareCode(result.code!);
+        }
       } else {
         toast({
           title: 'Error',
@@ -108,6 +108,26 @@ const InviteFriendsCard = () => {
         description: 'Failed to copy code.',
         variant: 'destructive',
       });
+    }
+  };
+
+  const handleShareCode = async (code: string) => {
+    const shareData = {
+      title: 'Join RoamMate',
+      text: `Hey! Join me on RoamMate to find the perfect travel companions. Use my invite code: ${code}`,
+      url: window.location.origin,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          console.error('Error sharing:', err);
+        }
+      }
+    } else {
+      handleCopyCode(code);
     }
   };
 
@@ -158,14 +178,13 @@ const InviteFriendsCard = () => {
           {invites.map((invite) => (
             <div
               key={invite.code}
-              className={`flex items-center justify-between p-3 rounded-xl ${
-                invite.used 
-                  ? 'bg-white/20 opacity-60' 
-                  : 'bg-white/40'
-              } border border-white/30`}
+              className={`flex items-center justify-between p-3 rounded-xl ${invite.used
+                ? 'bg-white/20 opacity-60'
+                : 'bg-white/40'
+                } border border-white/30`}
             >
               <div>
-                <span className="font-mono text-sm tracking-widest text-foreground">
+                <span className="font-mono text-sm tracking-widest text-foreground uppercase">
                   {invite.code}
                 </span>
                 {invite.used && (
@@ -173,16 +192,25 @@ const InviteFriendsCard = () => {
                 )}
               </div>
               {!invite.used && (
-                <button
-                  onClick={() => handleCopyCode(invite.code)}
-                  className="p-2 rounded-lg hover:bg-white/30 transition-colors"
-                >
-                  {copiedCode === invite.code ? (
-                    <Check className="w-4 h-4 text-green-600" />
-                  ) : (
-                    <Copy className="w-4 h-4 text-foreground/70" />
-                  )}
-                </button>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => handleShareCode(invite.code)}
+                    className="p-2 rounded-lg hover:bg-white/30 transition-colors text-foreground/70"
+                    title="Share code"
+                  >
+                    <Gift className="w-4 h-4 text-sky-500" />
+                  </button>
+                  <button
+                    onClick={() => handleCopyCode(invite.code)}
+                    className="p-2 rounded-lg hover:bg-white/30 transition-colors"
+                  >
+                    {copiedCode === invite.code ? (
+                      <Check className="w-4 h-4 text-green-600" />
+                    ) : (
+                      <Copy className="w-4 h-4 text-foreground/70" />
+                    )}
+                  </button>
+                </div>
               )}
             </div>
           ))}

@@ -71,49 +71,50 @@ const AccountScreen = () => {
       }
 
       try {
-        // Check if user is admin
-        const { data: roleData } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", user.id)
-          .eq("role", "admin")
-          .maybeSingle();
+        const [roleResponse, profileResponse] = await Promise.all([
+          // 1. Check if user is admin (Parallel)
+          supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", user.id)
+            .eq("role", "admin")
+            .maybeSingle(),
 
-        setIsAdmin(!!roleData);
-        // Get profile
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("id, name, age, bio")
-          .eq("user_id", user.id)
-          .maybeSingle();
+          // 2. Get profile and all related data in ONE query (Parallel)
+          supabase
+            .from("profiles")
+            .select(`
+              id, name, age, bio,
+              photos (url, is_primary),
+              travel_vibes (vibe),
+              travel_plans (destination, start_date, end_date, is_active)
+            `)
+            .eq("user_id", user.id)
+            .maybeSingle()
+        ]);
+
+        setIsAdmin(!!roleResponse.data);
+
+        // Type checking for the joined response can be tricky, casting to any for flexibility in this optimization
+        const profile = profileResponse.data as any;
 
         if (profile) {
-          // Get photos
-          const { data: photosData } = await supabase
-            .from("photos")
-            .select("url")
-            .eq("profile_id", profile.id)
-            .order("is_primary", { ascending: false });
+          // Process Photos - Sort by is_primary desc in JS since it's hard to order joined relations in select string without specific syntax
+          const sortedPhotos = (profile.photos || [])
+            .sort((a: any, b: any) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0))
+            .map((p: any) => p.url);
 
-          // Get vibes
-          const { data: vibesData } = await supabase.from("travel_vibes").select("vibe").eq("profile_id", profile.id);
+          // Process Vibes
+          const vibes = (profile.travel_vibes || []).map((v: any) => v.vibe);
 
-          // Get active travel plan
-          const { data: travelPlan } = await supabase
-            .from("travel_plans")
-            .select("destination, start_date, end_date")
-            .eq("profile_id", profile.id)
-            .eq("is_active", true)
-            .maybeSingle();
-
-          const photoUrls = photosData?.map((p) => p.url) || [];
-          const vibes = vibesData?.map((v) => v.vibe) || [];
+          // Process Travel Plan - Find the active one
+          const activePlan = (profile.travel_plans || []).find((tp: any) => tp.is_active);
 
           // Update local state
           setName(profile.name || "");
           setAge(profile.age?.toString() || "");
           setBio(profile.bio || "");
-          setPhotos(photoUrls);
+          setPhotos(sortedPhotos);
           setSelectedVibes(vibes);
 
           // Update global store
@@ -122,20 +123,20 @@ const AccountScreen = () => {
             name: profile.name,
             age: profile.age || undefined,
             bio: profile.bio || "",
-            photos: photoUrls,
+            photos: sortedPhotos,
             travelVibes: vibes,
           });
 
           // Update travel details
-          if (travelPlan) {
+          if (activePlan) {
             const travelInfo = {
-              destination: travelPlan.destination,
-              startDate: travelPlan.start_date,
-              endDate: travelPlan.end_date,
+              destination: activePlan.destination,
+              startDate: activePlan.start_date,
+              endDate: activePlan.end_date,
             };
-            setDestination(travelPlan.destination);
-            setStartDate(travelPlan.start_date);
-            setEndDate(travelPlan.end_date);
+            setDestination(activePlan.destination);
+            setStartDate(activePlan.start_date);
+            setEndDate(activePlan.end_date);
             setTravelDetails(travelInfo);
           }
         }
@@ -410,11 +411,10 @@ const AccountScreen = () => {
                     <button
                       key={vibe}
                       onClick={() => toggleVibe(vibe)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                        selectedVibes.includes(vibe)
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${selectedVibes.includes(vibe)
                           ? "bg-gradient-to-r from-sky-400 via-blue-400 to-indigo-400 text-white shadow-lg"
                           : "bg-white/50 border border-white/40 text-gray-700 hover:bg-white/60"
-                      }`}
+                        }`}
                     >
                       {vibe}
                     </button>
