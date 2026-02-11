@@ -27,62 +27,47 @@ export const useSwipeProfiles = (destination: string, startDate: string, endDate
 
     const fetchProfiles = async () => {
       try {
-        // Get current user's profile id
-        const { data: myProfile } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('user_id', user.id)
-          .single();
+        // 1. Get current user's profile ID and matching travel plans in parallel
+        const [myProfileRes, travelPlansRes] = await Promise.all([
+          supabase.from('profiles').select('id').eq('user_id', user.id).single(),
+          supabase.from('travel_plans')
+            .select('profile_id')
+            .eq('destination', destination)
+            .eq('is_active', true)
+            .lte('start_date', endDate)
+            .gte('end_date', startDate)
+        ]) as [any, any];
 
-        if (!myProfile) {
-          setLoading(false);
-          return;
-        }
-
-        // Get profiles with matching travel plans
-        const { data: travelPlans, error: travelError } = await supabase
-          .from('travel_plans')
-          .select(`
-            profile_id,
-            destination,
-            start_date,
-            end_date
-          `)
-          .eq('destination', destination)
-          .eq('is_active', true)
-          .neq('profile_id', myProfile.id)
-          .lte('start_date', endDate)
-          .gte('end_date', startDate);
-
-        if (travelError) throw travelError;
-
-        if (!travelPlans || travelPlans.length === 0) {
+        const myProfile = myProfileRes.data;
+        if (!myProfile || !travelPlansRes.data) {
           setProfiles([]);
           setLoading(false);
           return;
         }
 
-        const profileIds = [...new Set(travelPlans.map(tp => tp.profile_id))];
+        const potentialProfileIds = (travelPlansRes.data as any[])
+          .map(tp => tp.profile_id)
+          .filter(id => id !== myProfile.id);
 
-        // Get already swiped profiles
-        const { data: swipedProfiles } = await supabase
-          .from('swipes')
-          .select('swiped_id')
-          .eq('swiper_id', myProfile.id);
+        if (potentialProfileIds.length === 0) {
+          setProfiles([]);
+          setLoading(false);
+          return;
+        }
 
-        const swipedIds = swipedProfiles?.map(s => s.swiped_id) || [];
+        // 2. Get swiped and blocked profiles in parallel
+        const [swipesRes, blocksRes] = await Promise.all([
+          supabase.from('swipes').select('swiped_id').eq('swiper_id', myProfile.id),
+          supabase.from('blocks').select('blocked_id, blocker_id')
+            .or(`blocker_id.eq.${myProfile.id},blocked_id.eq.${myProfile.id}`)
+        ]) as [any, any];
 
-        // Get blocked profiles (both directions)
-        const { data: blockedProfiles } = await supabase
-          .from('blocks')
-          .select('blocked_id, blocker_id')
-          .or(`blocker_id.eq.${myProfile.id},blocked_id.eq.${myProfile.id}`);
+        const swipedIds = new Set((swipesRes.data as any[])?.map(s => s.swiped_id) || []);
+        const blockedIds = new Set((blocksRes.data as any[])?.flatMap(b => [b.blocked_id, b.blocker_id]) || []);
 
-        const blockedIds = blockedProfiles?.flatMap(b => [b.blocked_id, b.blocker_id]) || [];
-
-        // Filter out swiped and blocked profiles
-        const eligibleIds = profileIds.filter(id => 
-          !swipedIds.includes(id) && !blockedIds.includes(id)
+        // Filter eligible IDs
+        const eligibleIds = [...new Set(potentialProfileIds)].filter(id =>
+          !swipedIds.has(id) && !blockedIds.has(id)
         );
 
         if (eligibleIds.length === 0) {
@@ -91,35 +76,27 @@ export const useSwipeProfiles = (destination: string, startDate: string, endDate
           return;
         }
 
-        // Fetch full profiles
+        // 3. Fetch full profiles with photos and vibes in ONE joined query
         const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
-          .select('id, name, age, bio, is_verified')
+          .select(`
+            id, name, age, bio, is_verified,
+            photos (url, is_primary),
+            travel_vibes (vibe)
+          `)
           .in('id', eligibleIds);
 
         if (profilesError) throw profilesError;
 
-        // Fetch photos for all profiles
-        const { data: photosData } = await supabase
-          .from('photos')
-          .select('profile_id, url, is_primary')
-          .in('profile_id', eligibleIds);
-
-        // Fetch travel vibes
-        const { data: vibesData } = await supabase
-          .from('travel_vibes')
-          .select('profile_id, vibe')
-          .in('profile_id', eligibleIds);
-
         // Combine data
-        const fullProfiles: SwipeProfile[] = (profilesData || []).map(profile => ({
-          ...profile,
-          photos: (photosData || [])
-            .filter(p => p.profile_id === profile.id)
-            .map(p => ({ url: p.url, is_primary: p.is_primary })),
-          travel_vibes: (vibesData || [])
-            .filter(v => v.profile_id === profile.id)
-            .map(v => v.vibe),
+        const fullProfiles: SwipeProfile[] = (profilesData || []).map((profile: any) => ({
+          id: profile.id,
+          name: profile.name,
+          age: profile.age,
+          bio: profile.bio,
+          is_verified: profile.is_verified,
+          photos: (profile.photos || []).map((p: any) => ({ url: p.url, is_primary: p.is_primary })),
+          travel_vibes: (profile.travel_vibes || []).map((v: any) => v.vibe),
         }));
 
         setProfiles(fullProfiles);
@@ -202,7 +179,7 @@ export const useSwipeProfiles = (destination: string, startDate: string, endDate
 
       // Remove from local profiles
       setProfiles(prev => prev.filter(p => p.id !== blockedId));
-      
+
       toast({
         title: 'User blocked',
         description: 'You will no longer see this profile',
