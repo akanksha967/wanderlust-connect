@@ -14,7 +14,9 @@ interface AIItineraryAssistantProps {
 export const AIItineraryAssistant = ({ destination }: AIItineraryAssistantProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
-  const [needsSubscription, setNeedsSubscription] = useState(false);
+  const [needsPayment, setNeedsPayment] = useState(false);
+  const [isFreeTierAvailable, setIsFreeTierAvailable] = useState(false);
+  const [globalCount, setGlobalCount] = useState(0);
   const [isCheckingAccess, setIsCheckingAccess] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
@@ -37,31 +39,45 @@ export const AIItineraryAssistant = ({ destination }: AIItineraryAssistantProps)
 
   const checkAccess = async () => {
     try {
-      const { data, error } = await supabase.rpc('check_ai_access');
-      if (error) throw error;
-      
-      const result = data as { has_access: boolean; spots_remaining: number };
-      setHasAccess(result.has_access);
-      
-      // Check if user has already used their free generation
-      if (result.has_access) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('id')
-            .eq('user_id', user.id)
-            .single();
-          
-          if (profile) {
-            const { data: aiUser } = await supabase
-              .from('ai_itinerary_users')
-              .select('usage_count')
-              .eq('profile_id', profile.id)
-              .single();
-            
-            if (aiUser && aiUser.usage_count >= 1) {
-              setNeedsSubscription(true);
+      // Check global count
+      const { data: count, error: countError } = await supabase.rpc('get_global_ai_users_count');
+      if (countError) throw countError;
+
+      setGlobalCount(count as number);
+      setIsFreeTierAvailable((count as number) < 50);
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setIsCheckingAccess(false);
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profile) {
+        const { data: aiUser } = await supabase
+          .from('ai_itinerary_users')
+          .select('usage_count, has_paid')
+          .eq('profile_id', profile.id)
+          .single();
+
+        if (aiUser) {
+          // If they have paid, they have access
+          if (aiUser.has_paid) {
+            setHasAccess(true);
+            setNeedsPayment(false);
+          } else {
+            // If they haven't paid, check if they used their free turn
+            if (aiUser.usage_count >= 1) {
+              setHasAccess(false);
+              setNeedsPayment(true);
+            } else {
+              // Haven't used free turn yet.
+              setHasAccess(true);
             }
           }
         }
@@ -73,47 +89,91 @@ export const AIItineraryAssistant = ({ destination }: AIItineraryAssistantProps)
     }
   };
 
+  const initPayment = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast({ title: "Login required", description: "Please login to pay", variant: "destructive" });
+      return;
+    }
+
+    // Track click
+    try {
+      await supabase.from('payment_clicks').insert({
+        user_id: user.id,
+        metadata: { method: 'razorpay_button' }
+      });
+    } catch (err) {
+      console.error("Failed to track click:", err);
+    }
+
+    const options = {
+      key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+      amount: 15000, // Amount in paise (150 INR)
+      currency: "INR",
+      name: "Wanderlust Connect",
+      description: "Premium AI Itinerary",
+      handler: async function (response: any) {
+        try {
+          const { error } = await supabase.rpc('record_ai_payment', {
+            payment_id_param: response.razorpay_payment_id,
+            amount_param: 150.00
+          });
+
+          if (error) throw error;
+
+          toast({ title: "Payment Successful", description: "Premium features unlocked!" });
+          setHasAccess(true);
+          setNeedsPayment(false);
+          checkAccess();
+        } catch (err) {
+          console.error("Payment record error:", err);
+          toast({ title: "Error", description: "Payment succeeded but recording failed. Contact support.", variant: "destructive" });
+        }
+      },
+      prefill: {
+        email: user.email,
+      },
+      theme: {
+        color: "#6366f1"
+      }
+    };
+
+    const rzp1 = new (window as any).Razorpay(options);
+    rzp1.open();
+  };
+
   const claimAccess = async () => {
     try {
-      // Get the current user's session first
       const { data: { user } } = await supabase.auth.getUser();
-      
       if (!user) {
         toast({ title: 'Error', description: 'Please log in first', variant: 'destructive' });
         return;
       }
 
-      // Get profile using user_id
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
+      const { data: profile } = await supabase.from('profiles').select('id').eq('user_id', user.id).single();
+      if (!profile) return;
 
-      if (profileError || !profile) {
-        toast({ title: 'Error', description: 'Please complete your profile first', variant: 'destructive' });
+      // Double check global limit before inserting
+      const { data: count } = await supabase.rpc('get_global_ai_users_count');
+      if ((count as number) >= 50) {
+        setIsFreeTierAvailable(false);
+        setNeedsPayment(true);
+        toast({ title: 'Free Tier Full', description: 'Sorry, free spots are gone!', variant: 'destructive' });
         return;
       }
 
       const { error } = await supabase
         .from('ai_itinerary_users')
-        .insert({ profile_id: profile.id });
+        .insert({ profile_id: profile.id, usage_count: 0 });
 
-      if (error) {
-        if (error.code === '23505') {
-          toast({ title: 'Already registered', description: 'You already have access!' });
-          setHasAccess(true);
-        } else {
-          throw error;
-        }
-        return;
-      }
+      if (error) throw error;
 
       setHasAccess(true);
-      toast({ title: 'Access granted!', description: 'You can now use the AI itinerary assistant' });
+      toast({ title: 'Access granted!', description: 'You claimed a free spot!' });
+      checkAccess(); // Refresh state
     } catch (error: any) {
       console.error('Error claiming access:', error);
-      toast({ title: 'Error', description: 'Failed to claim access. Spots may be full.', variant: 'destructive' });
+      toast({ title: 'Error', description: 'Failed to claim access.', variant: 'destructive' });
     }
   };
 
@@ -123,24 +183,35 @@ export const AIItineraryAssistant = ({ destination }: AIItineraryAssistantProps)
       return;
     }
 
-    // Check usage limit before generating
+    // Check usage limit logic via RPC
     try {
       const { data: usageCheck, error: usageError } = await supabase.rpc('check_and_increment_ai_usage');
+
       if (usageError) throw usageError;
-      
-      const result = usageCheck as { can_generate: boolean; needs_subscription?: boolean; needs_registration?: boolean };
-      
-      if (result.needs_registration) {
-        toast({ title: 'Access required', description: 'Please claim your spot first', variant: 'destructive' });
+
+      const result = usageCheck as { can_generate: boolean; needs_payment?: boolean; limit_reached?: boolean; message?: string };
+
+      if (result.needs_payment) {
+        setNeedsPayment(true);
+        toast({ title: 'Payment Required', description: result.message || 'Please upgrade to Premium', variant: 'destructive' });
         return;
       }
-      
-      if (result.needs_subscription || !result.can_generate) {
-        setNeedsSubscription(true);
+
+      if (result.limit_reached) {
+        setNeedsPayment(true); // Treat limit reached as needing upgrade/payment
+        toast({ title: 'Limit Reached', description: result.message, variant: 'destructive' });
         return;
       }
+
+      if (!result.can_generate) {
+        toast({ title: 'Error', description: result.message || 'Cannot generate', variant: 'destructive' });
+        return;
+      }
+
     } catch (error) {
       console.error('Error checking usage:', error);
+      // Fallback: If RPC fails, user might not have a record yet, try to claim if free tier checks out
+      // But really, the RPC handles "new user" logic too. So this is a real error.
       toast({ title: 'Error', description: 'Failed to verify access', variant: 'destructive' });
       return;
     }
@@ -150,13 +221,8 @@ export const AIItineraryAssistant = ({ destination }: AIItineraryAssistantProps)
     setItinerary('');
 
     try {
-      // Get the current session to use the user's auth token
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) {
-        toast({ title: 'Error', description: 'Please log in to generate itineraries', variant: 'destructive' });
-        setIsGenerating(false);
-        return;
-      }
+      if (!session?.access_token) return;
 
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-itinerary`,
@@ -191,6 +257,9 @@ export const AIItineraryAssistant = ({ destination }: AIItineraryAssistantProps)
         if (done) break;
 
         buffer += decoder.decode(value, { stream: true });
+        // ... (existing stream parsing logic logic kept same implicitly by React state updates, but here I'm replacing the function so I need to include it)
+        // Wait, replace_file_content replaces the BLOCK. I need to make sure I include the stream parsing logic if I'm replacing the whole function. 
+        // I am replacing the whole component body basically.
 
         let newlineIndex: number;
         while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
@@ -227,7 +296,6 @@ export const AIItineraryAssistant = ({ destination }: AIItineraryAssistantProps)
 
   const downloadItinerary = () => {
     if (!itinerary) return;
-    
     const blob = new Blob([`# Travel Itinerary: ${destination}\n\n${itinerary}`], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -244,7 +312,6 @@ export const AIItineraryAssistant = ({ destination }: AIItineraryAssistantProps)
 
   return (
     <>
-      {/* Floating AI Button */}
       <motion.button
         onClick={() => setIsOpen(true)}
         className="fixed bottom-24 right-4 z-40 w-14 h-14 rounded-full bg-white/40 backdrop-blur-xl text-indigo-600 shadow-lg flex items-center justify-center border border-white/30"
@@ -254,7 +321,6 @@ export const AIItineraryAssistant = ({ destination }: AIItineraryAssistantProps)
         <Sparkles className="w-6 h-6" />
       </motion.button>
 
-      {/* AI Assistant Modal */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -271,7 +337,6 @@ export const AIItineraryAssistant = ({ destination }: AIItineraryAssistantProps)
               onClick={(e) => e.stopPropagation()}
               className="w-full max-w-lg max-h-[85vh] bg-white/30 backdrop-blur-2xl rounded-[32px] shadow-2xl overflow-hidden flex flex-col border border-white/30"
             >
-              {/* Header */}
               <div className="p-4 bg-white/20 backdrop-blur-xl flex items-center justify-between border-b border-white/20">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-full bg-gradient-to-r from-indigo-400 to-purple-500 flex items-center justify-center">
@@ -284,69 +349,75 @@ export const AIItineraryAssistant = ({ destination }: AIItineraryAssistantProps)
                 </button>
               </div>
 
-              {/* Content */}
-              {needsSubscription ? (
-                <div className="p-6 flex flex-col items-center text-center">
+              {needsPayment ? (
+                <div className="p-6 flex flex-col items-center text-center overflow-y-auto">
                   <div className="w-16 h-16 rounded-full bg-white/30 backdrop-blur-xl flex items-center justify-center mb-4 border border-white/30">
                     <Lock className="w-8 h-8 text-white/80" />
                   </div>
-                  <h3 className="text-xl font-bold text-white/90 mb-2">Free Trial Used</h3>
-                  <p className="text-white/70 mb-4">
-                    You've used your free itinerary generation. Subscribe to unlock unlimited AI-powered travel planning!
+                  <h3 className="text-xl font-bold text-white/90 mb-2">Unlock Premium Itinerary</h3>
+                  <p className="text-white/70 mb-6">
+                    {!isFreeTierAvailable ? "Free spots are all claimed!" : "You've used your free itinerary."} <br /> Get unlimited access to premium features for just <span className="font-bold text-white">₹150</span>.
                   </p>
+
+                  {/* Premium Perks Box */}
+                  <div className="w-full bg-white/10 rounded-xl p-4 mb-6 text-left border border-white/20">
+                    <h4 className="font-semibold text-white mb-3 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-yellow-300" /> Premium Includes:
+                    </h4>
+                    <ul className="space-y-2 text-sm text-white/80">
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-400">✓</span> Detailed day-wise plan
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-400">✓</span> Budget breakdown
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-400">✓</span> Local hidden gems
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-400">✓</span> Safety notes
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-400">✓</span> AI personalization
+                      </li>
+                    </ul>
+                  </div>
+
                   <Button
-                    onClick={async () => {
-                      try {
-                        const { data: { user } } = await supabase.auth.getUser();
-                        if (user) {
-                          const { data: profile } = await supabase
-                            .from('profiles')
-                            .select('id')
-                            .eq('user_id', user.id)
-                            .single();
-                          
-                          if (profile) {
-                            await supabase
-                              .from('subscription_interest')
-                              .insert({ profile_id: profile.id })
-                              .select();
-                          }
-                        }
-                      } catch (error) {
-                        console.error('Error recording subscription interest:', error);
-                      }
-                      toast({ title: 'Coming Soon', description: 'Subscription feature is under development' });
-                    }}
-                    className="w-full bg-gradient-to-r from-indigo-400 to-purple-500 hover:from-indigo-500 hover:to-purple-600 text-white border-0"
+                    onClick={initPayment}
+                    className="w-full bg-gradient-to-r from-indigo-400 to-purple-500 hover:from-indigo-500 hover:to-purple-600 text-white border-0 py-6 text-lg font-medium shadow-xl"
                   >
-                    Subscribe Now
+                    Pay ₹150 to Unlock
                   </Button>
+                  <p className="text-xs text-white/50 mt-4">Secured by Razorpay</p>
                 </div>
               ) : !hasAccess ? (
                 <div className="p-6 flex flex-col items-center text-center">
                   <div className="w-16 h-16 rounded-full bg-white/30 backdrop-blur-xl flex items-center justify-center mb-4 border border-white/30">
-                    <Lock className="w-8 h-8 text-white/80" />
+                    <Sparkles className="w-8 h-8 text-white/80" />
                   </div>
-                  <h3 className="text-xl font-bold text-white/90 mb-2">Early Access Feature</h3>
+                  <h3 className="text-xl font-bold text-white/90 mb-2">Claim Your Free Spot</h3>
                   <p className="text-white/70 mb-4">
-                    Get one free AI-powered travel itinerary! Claim your spot now.
+                    Be one of the first 50 users to experience our AI Planner for free!<br />
+                    <span className="text-sm px-2 py-1 bg-white/20 rounded-full mt-2 inline-block">
+                      {Math.max(0, 50 - globalCount)} spots remaining
+                    </span>
                   </p>
                   <Button
                     onClick={claimAccess}
                     className="w-full bg-gradient-to-r from-indigo-400 to-purple-500 hover:from-indigo-500 hover:to-purple-600 text-white border-0"
                   >
-                    Claim Your Free Itinerary
+                    Claim Free Access
                   </Button>
                 </div>
               ) : (
                 <>
-                  {/* Input Form */}
                   <div className="p-4 border-b border-white/20 space-y-3">
                     <div className="flex items-center gap-2 text-sm text-white/80">
                       <MapPin className="w-4 h-4 text-indigo-300" />
                       <span className="font-medium">{destination || 'Select a destination'}</span>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-3">
                       <div className="relative flex items-center">
                         <span className="absolute left-3 text-gray-500 text-sm font-medium">₹</span>
@@ -397,7 +468,6 @@ export const AIItineraryAssistant = ({ destination }: AIItineraryAssistantProps)
                     </Button>
                   </div>
 
-                  {/* Itinerary Content */}
                   <div ref={contentRef} className="flex-1 overflow-y-auto p-4">
                     {itinerary ? (
                       <div className="space-y-4">
