@@ -112,7 +112,7 @@ const LoginScreen = () => {
               transition={{ delay: 0.2 }}
               className="text-center flex-shrink-0 flex flex-col items-center"
             >
-              <img src={roammateLogo} alt="RoamMate logo" className="w-16 h-16 rounded-full object-cover drop-shadow-lg" />
+              <img src={roammateLogo} alt="RoamMate logo" className="w-20 h-20 object-contain drop-shadow-lg" />
               <p className="text-xs text-foreground/70 mt-1.5">Travel is better with the right company</p>
             </motion.div>
 
