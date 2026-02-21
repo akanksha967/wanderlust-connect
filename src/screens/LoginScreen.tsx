@@ -7,6 +7,7 @@ import PhoneAuthModal from "@/components/PhoneAuthModal";
 import EmailAuthModal from "@/components/EmailAuthModal";
 import PrivacyPolicyModal from "@/components/PrivacyPolicyModal";
 import { Shield, Phone, Mail, MapPin } from "lucide-react";
+import roammateLogo from "@/assets/roammate-logo.png";
 
 /* ---------------- DESTINATIONS ---------------- */
 const DESTINATIONS = [
@@ -109,10 +110,10 @@ const LoginScreen = () => {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-center flex-shrink-0"
+              className="text-center flex-shrink-0 flex flex-col items-center"
             >
-              <h1 className="font-serif text-2xl text-foreground drop-shadow-md">RoamMate</h1>
-              <p className="text-xs text-foreground/70 mt-1">Travel is better with the right company</p>
+              <img src={roammateLogo} alt="RoamMate logo" className="w-16 h-16 rounded-full object-cover shadow-lg border-2 border-white/50" />
+              <p className="text-xs text-foreground/70 mt-1.5">Travel is better with the right company</p>
             </motion.div>
 
             {/* ---------- CAROUSEL SECTION (smooth right-to-left) ---------- */}
