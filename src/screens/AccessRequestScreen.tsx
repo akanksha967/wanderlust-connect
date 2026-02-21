@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import roammateLogo from "@/assets/roammate-logo.png";
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -96,9 +97,9 @@ const AccessRequestScreen = () => {
           className="w-full max-w-md rounded-[28px] bg-white/25 backdrop-blur-2xl border border-white/40 shadow-[0_20px_60px_rgba(0,0,0,0.2)] p-6"
         >
           {/* Header */}
-          <div className="text-center mb-6">
-            <h1 className="font-serif text-2xl text-foreground drop-shadow-md">RoamMate</h1>
-            <p className="text-xs text-foreground/70 mt-1">Invite-only travel companion</p>
+          <div className="text-center mb-6 flex flex-col items-center">
+            <img src={roammateLogo} alt="RoamMate logo" className="w-14 h-14 rounded-full object-cover drop-shadow-lg" />
+            <p className="text-xs text-foreground/70 mt-1.5">Invite-only travel companion</p>
           </div>
 
           {/* Status Display */}
