@@ -98,9 +98,7 @@ const AccessRequestScreen = () => {
         >
           {/* Header */}
           <div className="text-center mb-6 flex flex-col items-center">
-            <div className="w-14 h-14 rounded-full overflow-hidden drop-shadow-lg">
-              <img src={roammateLogo} alt="RoamMate logo" className="w-full h-full object-cover scale-105" />
-            </div>
+            <img src={roammateLogo} alt="RoamMate logo" className="w-14 h-14 object-contain drop-shadow-lg" style={{ clipPath: 'circle(43% at center)' }} />
             <p className="text-xs text-foreground/70 mt-1.5">Invite-only travel companion</p>
           </div>
 
