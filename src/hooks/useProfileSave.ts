@@ -19,7 +19,7 @@ interface TravelData {
 
 export const useProfileSave = () => {
   const [saving, setSaving] = useState(false);
-  const { user } = useAuth();
+  const { user, profileId: myProfileId } = useAuth();
   const { toast } = useToast();
 
   const saveProfile = async (profileData: ProfileData): Promise<boolean> => {
@@ -35,15 +35,10 @@ export const useProfileSave = () => {
     setSaving(true);
 
     try {
-      // First check if profile exists, if not create it
-      let { data: profile, error: profileFetchError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
+      let profileId = myProfileId;
 
       // If profile doesn't exist, create it
-      if (!profile) {
+      if (!profileId) {
         const { data: newProfile, error: createError } = await supabase
           .from('profiles')
           .insert({
@@ -56,7 +51,7 @@ export const useProfileSave = () => {
           .single();
 
         if (createError) throw createError;
-        profile = newProfile;
+        profileId = newProfile.id;
       } else {
         // Update existing profile
         const { error: profileError } = await supabase
@@ -66,19 +61,19 @@ export const useProfileSave = () => {
             age: profileData.age,
             bio: profileData.bio || null,
           })
-          .eq('user_id', user.id);
+          .eq('id', profileId);
 
         if (profileError) throw profileError;
       }
 
-      if (!profile) throw new Error('Failed to create or find profile');
+      if (!profileId) throw new Error('Failed to create or find profile');
 
       // Delete existing photos and add new ones
-      await supabase.from('photos').delete().eq('profile_id', profile.id);
-      
+      await supabase.from('photos').delete().eq('profile_id', profileId);
+
       if (profileData.photos.length > 0) {
         const photosToInsert = profileData.photos.map((url, index) => ({
-          profile_id: profile.id,
+          profile_id: profileId,
           url,
           is_primary: index === 0,
         }));
@@ -91,11 +86,11 @@ export const useProfileSave = () => {
       }
 
       // Delete existing vibes and add new ones
-      await supabase.from('travel_vibes').delete().eq('profile_id', profile.id);
-      
+      await supabase.from('travel_vibes').delete().eq('profile_id', profileId);
+
       if (profileData.travelVibes.length > 0) {
         const vibesToInsert = profileData.travelVibes.map((vibe) => ({
-          profile_id: profile.id,
+          profile_id: profileId,
           vibe,
         }));
 
@@ -133,27 +128,19 @@ export const useProfileSave = () => {
     setSaving(true);
 
     try {
-      // Get the profile ID using maybeSingle to avoid error if not found
-      const { data: profile, error: profileIdError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (profileIdError) throw profileIdError;
-      if (!profile) throw new Error('Profile not found. Please complete your profile first.');
+      if (!myProfileId) throw new Error('Profile not found. Please complete your profile first.');
 
       // Deactivate any existing travel plans
       await supabase
         .from('travel_plans')
         .update({ is_active: false })
-        .eq('profile_id', profile.id);
+        .eq('profile_id', myProfileId);
 
       // Insert new travel plan
       const { error: travelError } = await supabase
         .from('travel_plans')
         .insert({
-          profile_id: profile.id,
+          profile_id: myProfileId,
           destination: travelData.destination,
           start_date: travelData.startDate,
           end_date: travelData.endDate,

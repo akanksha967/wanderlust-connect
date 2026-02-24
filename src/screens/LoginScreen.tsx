@@ -80,7 +80,7 @@ const LoginScreen = () => {
         <div
           key={i}
           className="fixed inset-0 bg-cover bg-center transition-opacity duration-700"
-          style={{ 
+          style={{
             backgroundImage: `url('${dest.image}')`,
             opacity: i === activeIndex ? 1 : 0,
             zIndex: i === activeIndex ? 0 : -1
@@ -101,12 +101,12 @@ const LoginScreen = () => {
             bg-white/25 
             backdrop-blur-2xl 
             border border-white/40 
-            shadow-[0_20px_60px_rgba(0,0,0,0.2)]
+            shadow-[0_30px_80px_rgba(0,0,0,0.25)]
             flex flex-col overflow-hidden"
         >
           <div className="p-5 flex flex-col gap-4 flex-1 min-h-0">
             {/* ---------- HEADER ---------- */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
@@ -128,8 +128,8 @@ const LoginScreen = () => {
                   className="absolute w-[50%] aspect-[4/5] rounded-xl overflow-hidden shadow-lg"
                   style={{ zIndex: 1, filter: "blur(2px)" }}
                 >
-            <img 
-                    src={DESTINATIONS[getCardIndex(-1)].image} 
+                  <img
+                    src={DESTINATIONS[getCardIndex(-1)].image}
                     alt={DESTINATIONS[getCardIndex(-1)].name}
                     className="w-full h-full object-cover"
                     loading="lazy"
@@ -145,8 +145,8 @@ const LoginScreen = () => {
                   transition={{ duration: 0.6, ease: "easeInOut" }}
                   className="relative w-[65%] aspect-[4/5] rounded-[24px] overflow-hidden shadow-2xl z-10"
                 >
-            <img 
-                    src={DESTINATIONS[activeIndex].image} 
+                  <img
+                    src={DESTINATIONS[activeIndex].image}
                     alt={DESTINATIONS[activeIndex].name}
                     className="w-full h-full object-cover"
                     fetchPriority="high"
@@ -170,8 +170,8 @@ const LoginScreen = () => {
                   className="absolute w-[50%] aspect-[4/5] rounded-xl overflow-hidden shadow-lg"
                   style={{ zIndex: 1, filter: "blur(2px)" }}
                 >
-            <img 
-                    src={DESTINATIONS[getCardIndex(1)].image} 
+                  <img
+                    src={DESTINATIONS[getCardIndex(1)].image}
                     alt={DESTINATIONS[getCardIndex(1)].name}
                     className="w-full h-full object-cover"
                     loading="lazy"
@@ -189,13 +189,13 @@ const LoginScreen = () => {
 
             {/* ---------- AUTH BUTTONS ---------- */}
             <div className="space-y-2 flex-shrink-0">
-              <Button 
+              <Button
                 className="w-full h-10 rounded-2xl 
                   bg-white/50 hover:bg-white/70 
                   border border-white/50 
                   text-foreground text-sm
                   shadow-sm backdrop-blur-sm 
-                  transition-all duration-300 hover:scale-[1.02]" 
+                  transition-all duration-300 hover:scale-[1.02]"
                 onClick={signInWithGoogle}
               >
                 <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
@@ -208,26 +208,26 @@ const LoginScreen = () => {
               </Button>
 
               <div className="grid grid-cols-2 gap-2">
-                <Button 
+                <Button
                   className="h-10 rounded-2xl 
                     bg-white/50 hover:bg-white/70 
                     border border-white/50 
                     text-foreground text-sm
                     shadow-sm backdrop-blur-sm 
-                    transition-all duration-300 hover:scale-[1.02]" 
+                    transition-all duration-300 hover:scale-[1.02]"
                   onClick={() => setShowPhoneModal(true)}
                 >
                   <Phone className="w-4 h-4 mr-1.5 text-indigo-500" />
                   Phone
                 </Button>
 
-                <Button 
+                <Button
                   className="h-10 rounded-2xl 
                     bg-white/50 hover:bg-white/70 
                     border border-white/50 
                     text-foreground text-sm
                     shadow-sm backdrop-blur-sm 
-                    transition-all duration-300 hover:scale-[1.02]" 
+                    transition-all duration-300 hover:scale-[1.02]"
                   onClick={() => setShowEmailModal(true)}
                 >
                   <Mail className="w-4 h-4 mr-1.5 text-indigo-500" />

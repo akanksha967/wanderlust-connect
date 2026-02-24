@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppStore, type UserProfile } from "@/store/useAppStore";
+import { useToast } from "@/hooks/use-toast";
 
 type MatchRow = {
   id: string;
@@ -12,6 +13,7 @@ type MatchRow = {
 
 export const useMatches = () => {
   const { profileId } = useAuth();
+  const { toast } = useToast();
   const matches = useAppStore((s) => s.matches);
   const setMatches = useAppStore((s) => s.setMatches);
   // Only show loading on first load when no matches exist
@@ -130,11 +132,21 @@ export const useMatches = () => {
         .filter(Boolean) as UserProfile[];
 
       setMatches(hydrated);
+    } catch (error: any) {
+      console.error("Error fetching matches:", error);
+      // Only show toast for manual refreshes or if matches list becomes empty unexpectedly
+      if (isManualRefresh || matches.length === 0) {
+        toast({
+          title: "Couldn't load matches",
+          description: "There was a problem reaching the server. Please check your connection.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [profileId, setMatches]);
+  }, [profileId, setMatches, matches.length, toast]);
 
   // Initial load
   useEffect(() => {
