@@ -16,38 +16,37 @@ export interface SwipeProfile {
 export const useSwipeProfiles = (destination: string, startDate: string, endDate: string) => {
   const [profiles, setProfiles] = useState<SwipeProfile[]>([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, profileId: myProfileId } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!user || !destination) {
-      setLoading(false);
+    if (!user || !destination || !myProfileId) {
+      if (!user || !destination) setLoading(false);
       return;
     }
 
     const fetchProfiles = async () => {
       try {
-        // 1. Get current user's profile ID and matching travel plans in parallel
-        const [myProfileRes, travelPlansRes] = await Promise.all([
-          supabase.from('profiles').select('id').eq('user_id', user.id).single(),
-          supabase.from('travel_plans')
-            .select('profile_id')
-            .eq('destination', destination)
-            .eq('is_active', true)
-            .lte('start_date', endDate)
-            .gte('end_date', startDate)
-        ]) as [any, any];
+        // 1. Get matching travel plans
+        const { data: travelPlans, error: travelError } = await supabase
+          .from('travel_plans')
+          .select('profile_id')
+          .eq('destination', destination)
+          .eq('is_active', true)
+          .lte('start_date', endDate)
+          .gte('end_date', startDate);
 
-        const myProfile = myProfileRes.data;
-        if (!myProfile || !travelPlansRes.data) {
+        if (travelError) throw travelError;
+
+        if (!travelPlans || travelPlans.length === 0) {
           setProfiles([]);
           setLoading(false);
           return;
         }
 
-        const potentialProfileIds = (travelPlansRes.data as any[])
+        const potentialProfileIds = (travelPlans as any[])
           .map(tp => tp.profile_id)
-          .filter(id => id !== myProfile.id);
+          .filter(id => id !== myProfileId);
 
         if (potentialProfileIds.length === 0) {
           setProfiles([]);
@@ -55,11 +54,10 @@ export const useSwipeProfiles = (destination: string, startDate: string, endDate
           return;
         }
 
-        // 2. Get swiped and blocked profiles in parallel
         const [swipesRes, blocksRes] = await Promise.all([
-          supabase.from('swipes').select('swiped_id').eq('swiper_id', myProfile.id),
+          supabase.from('swipes').select('swiped_id').eq('swiper_id', myProfileId),
           supabase.from('blocks').select('blocked_id, blocker_id')
-            .or(`blocker_id.eq.${myProfile.id},blocked_id.eq.${myProfile.id}`)
+            .or(`blocker_id.eq.${myProfileId},blocked_id.eq.${myProfileId}`)
         ]) as [any, any];
 
         const swipedIds = new Set((swipesRes.data as any[])?.map(s => s.swiped_id) || []);
@@ -116,34 +114,24 @@ export const useSwipeProfiles = (destination: string, startDate: string, endDate
   }, [user, destination, startDate, endDate, toast]);
 
   const recordSwipe = async (swipedId: string, direction: 'left' | 'right') => {
-    if (!user) return { matched: false };
+    if (!user || !myProfileId) return { matched: false };
 
     try {
-      const { data: myProfile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!myProfile) return { matched: false };
-
-      // Insert swipe
       const { error } = await supabase
         .from('swipes')
         .insert({
-          swiper_id: myProfile.id,
+          swiper_id: myProfileId,
           swiped_id: swipedId,
           direction,
         });
 
       if (error) throw error;
 
-      // If right swipe, check if match was created by trigger
       if (direction === 'right') {
         const { data: match } = await supabase
           .from('matches')
           .select('id')
-          .or(`and(profile1_id.eq.${myProfile.id},profile2_id.eq.${swipedId}),and(profile1_id.eq.${swipedId},profile2_id.eq.${myProfile.id})`)
+          .or(`and(profile1_id.eq.${myProfileId},profile2_id.eq.${swipedId}),and(profile1_id.eq.${swipedId},profile2_id.eq.${myProfileId})`)
           .single();
 
         return { matched: !!match };
@@ -157,34 +145,23 @@ export const useSwipeProfiles = (destination: string, startDate: string, endDate
   };
 
   const blockUser = async (blockedId: string) => {
-    if (!user) return false;
+    if (!user || !myProfileId) return false;
 
     try {
-      const { data: myProfile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!myProfile) return false;
-
       const { error } = await supabase
         .from('blocks')
         .insert({
-          blocker_id: myProfile.id,
+          blocker_id: myProfileId,
           blocked_id: blockedId,
         });
 
       if (error) throw error;
 
-      // Remove from local profiles
       setProfiles(prev => prev.filter(p => p.id !== blockedId));
-
       toast({
         title: 'User blocked',
         description: 'You will no longer see this profile',
       });
-
       return true;
     } catch (error: any) {
       console.error('Error blocking user:', error);
@@ -198,21 +175,13 @@ export const useSwipeProfiles = (destination: string, startDate: string, endDate
   };
 
   const reportUser = async (reportedId: string, reason: string, description?: string) => {
-    if (!user) return false;
+    if (!user || !myProfileId) return false;
 
     try {
-      const { data: myProfile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!myProfile) return false;
-
       const { error } = await supabase
         .from('reports')
         .insert({
-          reporter_id: myProfile.id,
+          reporter_id: myProfileId,
           reported_id: reportedId,
           reason,
           description,
@@ -224,7 +193,6 @@ export const useSwipeProfiles = (destination: string, startDate: string, endDate
         title: 'Report submitted',
         description: 'Thank you for helping keep our community safe',
       });
-
       return true;
     } catch (error: any) {
       console.error('Error reporting user:', error);

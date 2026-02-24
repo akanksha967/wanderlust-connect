@@ -61,11 +61,12 @@ const Index = () => {
     }
   }, [currentScreen, navigate, location.pathname]);
 
-  // Check profile completion status from database whenever userId changes
+  // Check profile completion status from database
   useEffect(() => {
     let cancelled = false;
 
     const checkProfileCompletion = async () => {
+      // If we don't even have a user ID yet, we definitely don't have a profile
       if (!userId) {
         if (!cancelled) {
           setProfileStatus('incomplete');
@@ -75,19 +76,16 @@ const Index = () => {
         return;
       }
 
-      // Only show loading if we haven't checked this user yet
-      if (checkedUserId !== userId) {
-        setProfileStatus('loading');
-      }
+      // If we already checked this user, don't repeat (unless forced by some state)
+      if (checkedUserId === userId) return;
+
+      setProfileStatus('loading');
 
       try {
-        // Get profile with photos count in a single query
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select(`
-            id, 
-            name, 
-            age,
+            id, name, age,
             photos(id)
           `)
           .eq('user_id', userId)
@@ -97,12 +95,9 @@ const Index = () => {
 
         if (profile) {
           const p = profile as any;
-          // Check name validity (not empty, not default "Traveler")
           const nameTrimmed = (p.name ?? '').trim();
           const hasRealName = nameTrimmed.length > 0 && nameTrimmed !== 'Traveler';
           const hasValidAge = typeof p.age === 'number' && p.age >= 18;
-
-          // Check for at least one photo from the joined query result
           const hasPhoto = (p.photos?.length ?? 0) > 0;
           const isComplete = hasRealName && hasValidAge && hasPhoto;
 
@@ -111,10 +106,15 @@ const Index = () => {
             setHasCompletedProfile(isComplete);
             setCheckedUserId(userId);
           }
+        } else {
+          if (!cancelled) {
+            setProfileStatus('incomplete');
+            setHasCompletedProfile(false);
+            setCheckedUserId(userId);
+          }
         }
       } catch (e) {
         console.error('Error checking profile completion:', e);
-        // Fail closed: treat as incomplete if we can't verify
         if (!cancelled) {
           setProfileStatus('incomplete');
           setHasCompletedProfile(false);
@@ -125,12 +125,14 @@ const Index = () => {
 
     checkProfileCompletion();
     return () => { cancelled = true; };
-  }, [userId, setHasCompletedProfile]);
+  }, [userId, setHasCompletedProfile, checkedUserId]);
 
   // ROUTING LOGIC: Handle screen transitions based on auth + profile + access status
   useEffect(() => {
     // Wait for all checks to complete
-    if (authLoading || accessLoading || profileStatus === 'loading') return;
+    if (authLoading || accessLoading || profileStatus === 'loading') {
+      return;
+    }
 
     // Not authenticated → login screen
     if (!user) {
@@ -190,8 +192,20 @@ const Index = () => {
 
   // Show loading spinner while checking auth + profile + access
   const LazyFallback = (
-    <div className="h-[100dvh] overflow-hidden bg-background flex items-center justify-center">
-      <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
+    <div className="h-[100dvh] overflow-hidden flex flex-col items-center justify-center relative">
+      <div
+        className="fixed inset-0 bg-cover bg-center"
+        style={{ backgroundImage: `url(https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80)` }}
+      />
+      <div className="fixed inset-0 bg-gradient-to-br from-sky-400/40 via-indigo-400/30 to-violet-500/40" />
+      <div className="fixed inset-0 backdrop-blur-md" />
+
+      <div className="relative z-10 flex flex-col items-center gap-4">
+        <div className="w-12 h-12 rounded-full bg-white/30 backdrop-blur-xl border border-white/40 flex items-center justify-center shadow-xl">
+          <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin" />
+        </div>
+        <p className="text-white text-sm font-medium drop-shadow-lg animate-pulse">Initializing RoamMate...</p>
+      </div>
     </div>
   );
 

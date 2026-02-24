@@ -13,12 +13,15 @@ export const useAuth = () => {
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         if (!session?.user) {
           setLoading(false);
           setProfileId(null);
+        } else {
+          // Proactively fetch profileId on auth change
+          fetchProfileId(session.user.id);
         }
       }
     );
@@ -29,40 +32,31 @@ export const useAuth = () => {
       setUser(session?.user ?? null);
       if (!session?.user) {
         setLoading(false);
+      } else {
+        fetchProfileId(session.user.id);
       }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  // Fetch profile ID when user changes
-  useEffect(() => {
-    const fetchProfileId = async () => {
-      if (!user) {
-        setProfileId(null);
-        setLoading(false);
-        return;
+  const fetchProfileId = async (uid: string) => {
+    try {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', uid)
+        .maybeSingle();
+
+      if (profileData) {
+        setProfileId(profileData.id);
       }
-
-      try {
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        if (profileData) {
-          setProfileId(profileData.id);
-        }
-      } catch (error) {
-        console.error('Error fetching profile:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProfileId();
-  }, [user]);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const signInWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({

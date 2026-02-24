@@ -5,6 +5,7 @@ import { ArrowLeft, Send, MoreVertical, UserX, Ban, Flag } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 import ReportBlockDialog from '@/components/ReportBlockDialog';
 
 interface Message {
@@ -17,6 +18,7 @@ interface Message {
 const ChatScreen = () => {
   const { setScreen, matchedUser, setMatchedUser, removeMatch } = useAppStore();
   const { user, profileId } = useAuth();
+  const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [showOptions, setShowOptions] = useState(false);
@@ -63,6 +65,11 @@ const ChatScreen = () => {
         }
       } catch (error) {
         console.error('Error fetching messages:', error);
+        toast({
+          title: "Couldn't load chat",
+          description: "Failed to fetch previous messages.",
+          variant: "destructive",
+        });
       } finally {
         setLoading(false);
       }
@@ -121,9 +128,17 @@ const ChatScreen = () => {
           reason,
           description: description || null,
         });
-        // Optionally show success toast
+        toast({
+          title: "User reported",
+          description: "Thank you for helping keep the community safe.",
+        });
       } catch (error) {
         console.error('Error reporting user:', error);
+        toast({
+          title: "Report failed",
+          description: "Something went wrong while submitting the report.",
+          variant: "destructive",
+        });
       }
     }
   };
@@ -138,8 +153,17 @@ const ChatScreen = () => {
         removeMatch(matchedUser.id);
         setMatchedUser(null);
         setScreen('matches');
+        toast({
+          title: "User blocked",
+          description: "You will no longer see this person.",
+        });
       } catch (error) {
         console.error('Error blocking user:', error);
+        toast({
+          title: "Block failed",
+          description: "Could not block this user. Please try again.",
+          variant: "destructive",
+        });
       }
     }
     setShowOptions(false);
@@ -157,16 +181,25 @@ const ChatScreen = () => {
     try {
       // Delete messages first (they reference the match)
       await supabase.from('messages').delete().eq('match_id', matchId);
-      
+
       // Delete the match from database - this removes it for both users
       await supabase.from('matches').delete().eq('id', matchId);
-      
+
       // Update local state
       removeMatch(matchedUser.id);
       setMatchedUser(null);
       setScreen('matches');
+      toast({
+        title: "Unmatched successfully",
+        description: `You have unmatched with ${matchedUser.name}.`,
+      });
     } catch (error) {
       console.error('Error unmatching:', error);
+      toast({
+        title: "Unmatch failed",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
     }
     setShowOptions(false);
   };
@@ -184,6 +217,11 @@ const ChatScreen = () => {
 
       if (error) {
         console.error('Error sending message:', error);
+        toast({
+          title: "Message failed",
+          description: "Could not send your message.",
+          variant: "destructive",
+        });
         return;
       }
     } else {
@@ -208,7 +246,7 @@ const ChatScreen = () => {
   return (
     <div className="fixed inset-0 flex flex-col">
       {/* Full-screen background - matching theme */}
-      <div 
+      <div
         className="fixed inset-0 bg-cover bg-center"
         style={{ backgroundImage: `url(https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80)` }}
       />
@@ -217,13 +255,13 @@ const ChatScreen = () => {
 
       {/* Header - glassmorphism style */}
       <div className="relative z-30 px-4 pt-12 pb-3 flex items-center gap-3 shrink-0">
-        <button 
+        <button
           onClick={() => setScreen('matches')}
           className="w-11 h-11 flex items-center justify-center rounded-full bg-white/40 backdrop-blur-md border border-white/30 shadow-lg transition-all hover:bg-white/50 active:scale-95"
         >
           <ArrowLeft className="w-5 h-5 text-gray-800" />
         </button>
-        
+
         <div className="flex items-center gap-3 flex-1">
           <div className="relative">
             <img
@@ -241,7 +279,7 @@ const ChatScreen = () => {
 
         <div className="flex gap-2 relative z-50">
           <div className="relative">
-            <button 
+            <button
               onClick={() => setShowOptions(!showOptions)}
               className="w-11 h-11 flex items-center justify-center rounded-full bg-white/40 backdrop-blur-md border border-white/30 shadow-lg transition-all hover:bg-white/50 active:scale-95"
             >
@@ -250,8 +288,8 @@ const ChatScreen = () => {
             {showOptions && (
               <>
                 {/* Backdrop to close dropdown when clicking outside */}
-                <div 
-                  className="fixed inset-0 z-40" 
+                <div
+                  className="fixed inset-0 z-40"
                   onClick={() => setShowOptions(false)}
                 />
                 <div className="absolute right-0 top-14 w-48 bg-white backdrop-blur-xl rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.25)] border border-white/50 overflow-hidden z-50">
@@ -299,16 +337,14 @@ const ChatScreen = () => {
               className={`flex ${message.sender === 'me' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-[75%] px-4 py-3 rounded-2xl shadow-lg ${
-                  message.sender === 'me'
-                    ? 'bg-gradient-to-r from-indigo-400 via-blue-400 to-violet-400 text-white rounded-br-md'
-                    : 'bg-white/80 backdrop-blur-md text-gray-800 rounded-bl-md border border-white/50'
-                }`}
+                className={`max-w-[75%] px-4 py-3 rounded-2xl shadow-lg ${message.sender === 'me'
+                  ? 'bg-gradient-to-r from-indigo-400 via-blue-400 to-violet-400 text-white rounded-br-md shadow-indigo-500/20'
+                  : 'bg-white/80 backdrop-blur-xl text-gray-800 rounded-bl-md border border-white/50 shadow-sm'
+                  }`}
               >
                 <p className="text-sm">{message.text}</p>
-                <p className={`text-[10px] mt-1 ${
-                  message.sender === 'me' ? 'text-white/70' : 'text-gray-500'
-                }`}>
+                <p className={`text-[10px] mt-1 ${message.sender === 'me' ? 'text-white/70' : 'text-gray-500'
+                  }`}>
                   {message.time}
                 </p>
               </div>
@@ -320,7 +356,7 @@ const ChatScreen = () => {
 
       {/* Input - Fixed at bottom with glass styling */}
       <div className="fixed bottom-0 left-0 right-0 z-20 p-4 pb-6">
-        <div className="bg-white/30 backdrop-blur-xl rounded-2xl border border-white/40 shadow-lg p-2">
+        <div className="bg-white/30 backdrop-blur-2xl rounded-2xl border border-white/40 shadow-[0_30px_80px_rgba(0,0,0,0.15)] p-2">
           <div className="flex gap-2">
             <Input
               value={newMessage}

@@ -299,7 +299,7 @@ const AccountScreen = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-5 rounded-[24px] bg-white/30 backdrop-blur-2xl border border-white/40 shadow-[0_20px_60px_rgba(0,0,0,0.15)] mb-6"
+          className="p-5 rounded-[24px] bg-white/30 backdrop-blur-2xl border border-white/40 shadow-[0_30px_80px_rgba(0,0,0,0.15)] mb-6"
         >
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-white drop-shadow">Profile</h3>
@@ -412,8 +412,8 @@ const AccountScreen = () => {
                       key={vibe}
                       onClick={() => toggleVibe(vibe)}
                       className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${selectedVibes.includes(vibe)
-                          ? "bg-gradient-to-r from-sky-400 via-blue-400 to-indigo-400 text-white shadow-lg"
-                          : "bg-white/50 border border-white/40 text-gray-700 hover:bg-white/60"
+                        ? "bg-gradient-to-r from-sky-400 via-blue-400 to-indigo-400 text-white shadow-lg"
+                        : "bg-white/50 border border-white/40 text-gray-700 hover:bg-white/60"
                         }`}
                     >
                       {vibe}
@@ -497,7 +497,7 @@ const AccountScreen = () => {
           </div>
 
           {editingTravel ? (
-            <div className="p-5 rounded-[24px] bg-white/30 backdrop-blur-2xl border border-white/40 shadow-[0_20px_60px_rgba(0,0,0,0.15)] space-y-4">
+            <div className="p-5 rounded-[24px] bg-white/30 backdrop-blur-2xl border border-white/40 shadow-[0_30px_80px_rgba(0,0,0,0.15)] space-y-4">
               <div>
                 <label className="text-xs text-white/80 mb-1 block drop-shadow">Destination</label>
                 <div className="relative">
@@ -546,7 +546,7 @@ const AccountScreen = () => {
               </Button>
             </div>
           ) : (
-            <div className="p-5 rounded-[24px] bg-white/30 backdrop-blur-2xl border border-white/40 shadow-[0_20px_60px_rgba(0,0,0,0.15)]">
+            <div className="p-5 rounded-[24px] bg-white/30 backdrop-blur-2xl border border-white/40 shadow-[0_30px_80px_rgba(0,0,0,0.15)]">
               {travelDetails ? (
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
@@ -576,7 +576,7 @@ const AccountScreen = () => {
         {/* Settings */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           <h3 className="text-sm font-medium text-white drop-shadow mb-3">Settings</h3>
-          <div className="rounded-[24px] bg-white/30 backdrop-blur-2xl border border-white/40 shadow-[0_20px_60px_rgba(0,0,0,0.15)] overflow-hidden">
+          <div className="rounded-[24px] bg-white/30 backdrop-blur-2xl border border-white/40 shadow-[0_30px_80px_rgba(0,0,0,0.15)] overflow-hidden">
             <button
               onClick={() => setScreen("travel")}
               className="w-full flex items-center justify-between p-4 hover:bg-white/20 transition-all"
