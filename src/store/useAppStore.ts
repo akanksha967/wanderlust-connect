@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 
+import { pathToScreen, ScreenType } from '@/lib/navigation';
+
 export interface UserProfile {
   id: string;
   name: string;
@@ -16,7 +18,7 @@ export interface TravelDetails {
 }
 
 interface AppState {
-  currentScreen: 'login' | 'profile' | 'travel' | 'swipe' | 'chat' | 'account' | 'matches' | 'access' | 'admin';
+  currentScreen: ScreenType;
   userProfile: Partial<UserProfile>;
   travelDetails: TravelDetails | null;
   matchedUser: UserProfile | null;
@@ -51,20 +53,25 @@ const safeJsonParse = <T,>(value: string | null): T | null => {
 };
 
 // Persist screen to localStorage so it survives closing the tab/browser
-const getInitialScreen = (): AppState['currentScreen'] => {
+const getInitialScreen = (): ScreenType => {
   if (typeof window !== 'undefined') {
-    const allowed = ['login', 'profile', 'travel', 'swipe', 'chat', 'account', 'matches', 'access', 'admin'] as const;
+    // 1. First priority: The actual current URL path
+    const screenFromUrl = pathToScreen[window.location.pathname];
+    if (screenFromUrl) return screenFromUrl;
+
+    // 2. Second priority: localStorage
     const saved = localStorage.getItem(STORAGE_KEYS.currentScreen);
     const last = localStorage.getItem(STORAGE_KEYS.lastScreen);
+    const allowed = ['login', 'profile', 'travel', 'swipe', 'chat', 'account', 'matches', 'access', 'admin'];
 
     // If we have a last non-login screen, prefer it over "login" so users return
     // to where they left off (Index.tsx will still route to login if unauthenticated).
-    if (saved === 'login' && last && (allowed as readonly string[]).includes(last)) {
-      return last as AppState['currentScreen'];
+    if (saved === 'login' && last && allowed.includes(last)) {
+      return last as ScreenType;
     }
 
-    if (saved && (allowed as readonly string[]).includes(saved)) {
-      return saved as AppState['currentScreen'];
+    if (saved && allowed.includes(saved)) {
+      return saved as ScreenType;
     }
   }
   return 'login';
@@ -102,8 +109,8 @@ export const useAppStore = create<AppState>((set) => ({
     }
     set({ currentScreen: screen });
   },
-  setUserProfile: (profile) => set((state) => ({ 
-    userProfile: { ...state.userProfile, ...profile } 
+  setUserProfile: (profile) => set((state) => ({
+    userProfile: { ...state.userProfile, ...profile }
   })),
   setTravelDetails: (details) => {
     if (typeof window !== 'undefined') {
@@ -119,8 +126,8 @@ export const useAppStore = create<AppState>((set) => ({
     set({ matchedUser: user });
   },
   setMatches: (matches) => set({ matches }),
-  addMatch: (user) => set((state) => ({ 
-    matches: state.matches.some(m => m.id === user.id) ? state.matches : [...state.matches, user] 
+  addMatch: (user) => set((state) => ({
+    matches: state.matches.some(m => m.id === user.id) ? state.matches : [...state.matches, user]
   })),
   removeMatch: (userId) => set((state) => ({
     matches: state.matches.filter(m => m.id !== userId)

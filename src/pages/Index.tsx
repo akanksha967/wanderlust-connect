@@ -17,32 +17,7 @@ const MatchesListScreen = lazy(() => import('@/screens/MatchesListScreen'));
 const AccessRequestScreen = lazy(() => import('@/screens/AccessRequestScreen'));
 const AdminPanelScreen = lazy(() => import('@/screens/AdminPanelScreen'));
 
-type ScreenType = 'login' | 'profile' | 'travel' | 'swipe' | 'chat' | 'account' | 'matches' | 'access' | 'admin';
-
-const pathToScreen: Record<string, ScreenType> = {
-  '/': 'login',
-  '/login': 'login',
-  '/profile': 'profile',
-  '/travel': 'travel',
-  '/swipe': 'swipe',
-  '/matches': 'matches',
-  '/chat': 'chat',
-  '/account': 'account',
-  '/admin': 'admin',
-  '/access': 'access',
-};
-
-const screenToPath: Record<ScreenType, string> = {
-  login: '/login',
-  profile: '/profile',
-  travel: '/travel',
-  swipe: '/swipe',
-  matches: '/matches',
-  chat: '/chat',
-  account: '/account',
-  admin: '/admin',
-  access: '/access',
-};
+import { pathToScreen, screenToPath, ScreenType } from '@/lib/navigation';
 
 const Index = () => {
   const location = useLocation();
@@ -64,7 +39,7 @@ const Index = () => {
   useEffect(() => {
     const screenFromPath = pathToScreen[location.pathname];
     if (screenFromPath && screenFromPath !== currentScreen) {
-      // Don't override screen during auth loading - let the routing logic handle it
+      // Don't override screen during initial loading - let the routing logic handle it
       if (!authLoading && !accessLoading) {
         setScreen(screenFromPath);
       }
@@ -173,11 +148,19 @@ const Index = () => {
         return;
       }
 
+      // If they are on a specific URL (like /swipe) and it's valid, let them stay
+      // The getInitialScreen in store handles this for refreshes.
+      const screenFromUrl = pathToScreen[location.pathname];
+      if (screenFromUrl && screenFromUrl !== 'login' && screenFromUrl !== 'access') {
+        // Only stay if profile is complete or if they are going to profile setup
+        if (profileStatus === 'complete' || screenFromUrl === 'profile') {
+          setScreen(screenFromUrl);
+          return;
+        }
+      }
+
       // Returning user with complete profile → go to travel screen to confirm details
       if (profileStatus === 'complete') {
-        // If they are already on a valid screen, let them stay (e.g. they navigated there)
-        // But if they are just logging in (coming from login/access), send them to travel
-        // We can detect "just logging in" because we are in the block for currentScreen === 'login'
         setScreen('travel');
       } else {
         // New user → profile setup
@@ -193,11 +176,17 @@ const Index = () => {
     }
 
     // Block access to protected screens if no access
-    const protectedScreens = ['travel', 'swipe', 'chat', 'account', 'matches', 'admin'];
+    const protectedScreens: ScreenType[] = ['travel', 'swipe', 'chat', 'account', 'matches', 'admin'];
     if (!hasAccess && accessStatus !== 'admin' && protectedScreens.includes(currentScreen)) {
       setScreen('access');
     }
-  }, [user, authLoading, accessLoading, hasAccess, accessStatus, currentScreen, profileStatus, setScreen]);
+
+    // Block access to core screens if profile incomplete
+    const profileRequiredScreens: ScreenType[] = ['travel', 'swipe', 'chat', 'matches', 'account'];
+    if (profileStatus !== 'complete' && profileRequiredScreens.includes(currentScreen)) {
+      setScreen('profile');
+    }
+  }, [user, authLoading, accessLoading, hasAccess, accessStatus, currentScreen, profileStatus, setScreen, location.pathname]);
 
   // Show loading spinner while checking auth + profile + access
   const LazyFallback = (
