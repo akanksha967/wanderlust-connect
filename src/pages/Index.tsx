@@ -1,4 +1,5 @@
 import { useEffect, useState, lazy, Suspense } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
 import MatchPopup from '@/components/MatchPopup';
 import LoginScreen from '@/screens/LoginScreen';
@@ -85,15 +86,23 @@ const Index = () => {
 
       setProfileStatus('loading');
 
+      // Timeout for profile query
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Profile check timeout')), 8000)
+      );
+
       try {
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select(`
-            id, name, age,
-            photos(id)
-          `)
-          .eq('user_id', userId)
-          .maybeSingle();
+        const { data: profile, error: profileError } = await Promise.race([
+          supabase
+            .from('profiles')
+            .select(`
+              id, name, age,
+              photos(id)
+            `)
+            .eq('user_id', userId)
+            .maybeSingle(),
+          timeoutPromise as Promise<{ data: any; error: any }>
+        ]);
 
         if (profileError) throw profileError;
 
@@ -194,27 +203,69 @@ const Index = () => {
     }
   }, [user, authLoading, accessLoading, hasAccess, accessStatus, currentScreen, profileStatus, setScreen, location.pathname]);
 
-  // Show loading spinner while checking auth + profile + access
-  const LazyFallback = (
-    <div className="h-[100dvh] overflow-hidden flex flex-col items-center justify-center relative">
-      <div
-        className="fixed inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80)` }}
-      />
-      <div className="fixed inset-0 bg-gradient-to-br from-sky-400/40 via-indigo-400/30 to-violet-500/40" />
-      <div className="fixed inset-0 backdrop-blur-md" />
+  // Safety timeout to prevent getting stuck on Initializing RoamMate screen
+  const [showLoadingSlowly, setShowLoadingSlowly] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (authLoading || accessLoading || (user && profileStatus === 'loading')) {
+        setShowLoadingSlowly(true);
+      }
+    }, 8000); // Show "Taking longer than usual" after 8 seconds
 
-      <div className="relative z-10 flex flex-col items-center gap-4">
-        <div className="w-12 h-12 rounded-full bg-white/30 backdrop-blur-xl border border-white/40 flex items-center justify-center shadow-xl">
-          <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin" />
-        </div>
-        <p className="text-white text-sm font-medium drop-shadow-lg animate-pulse">Initializing RoamMate...</p>
-      </div>
-    </div>
-  );
+    // Another timer to force a fallback if it's REALLY stuck
+    const forceFallbackTimer = setTimeout(() => {
+      if (authLoading || accessLoading || (user && profileStatus === 'loading')) {
+        console.warn('Initialization timed out. Forcing fallback.');
+        // If we're stuck, try to force a screen change
+        if (!user) {
+          if (currentScreen !== 'login') setScreen('login');
+        } else {
+          // If we have a user but are stuck, try going to account setup as a fallback
+          if (currentScreen === 'login') setScreen('account');
+        }
+      }
+    }, 15000); // Force fallback after 15 seconds
+
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(forceFallbackTimer);
+    };
+  }, [authLoading, accessLoading, user, profileStatus, currentScreen, setScreen]);
 
   if (authLoading || accessLoading || (user && profileStatus === 'loading')) {
-    return LazyFallback;
+    return (
+      <div className="h-[100dvh] overflow-hidden flex flex-col items-center justify-center relative">
+        <div
+          className="fixed inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80)` }}
+        />
+        <div className="fixed inset-0 bg-gradient-to-br from-sky-400/40 via-indigo-400/30 to-violet-500/40" />
+        <div className="fixed inset-0 backdrop-blur-md" />
+
+        <div className="relative z-10 flex flex-col items-center gap-4 px-6 text-center">
+          <div className="w-12 h-12 rounded-full bg-white/30 backdrop-blur-xl border border-white/40 flex items-center justify-center shadow-xl">
+            <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin" />
+          </div>
+          <p className="text-white text-sm font-medium drop-shadow-lg animate-pulse">Initializing RoamMate...</p>
+
+          {showLoadingSlowly && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-4 flex flex-col gap-3"
+            >
+              <p className="text-white/80 text-xs">This is taking longer than usual...</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-4 py-2 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 text-white text-xs hover:bg-white/30 transition-all"
+              >
+                Try Refreshing
+              </button>
+            </motion.div>
+          )}
+        </div>
+      </div>
+    );
   }
 
   const renderScreen = () => {
@@ -244,7 +295,7 @@ const Index = () => {
 
   return (
     <div className="h-[100dvh] overflow-hidden bg-background">
-      <Suspense fallback={LazyFallback}>
+      <Suspense fallback={null}>
         {renderScreen()}
       </Suspense>
       <MatchPopup />
