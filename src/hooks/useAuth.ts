@@ -41,6 +41,8 @@ export const useAuth = () => {
         if (!error) {
           // Remove sensitive tokens from URL after session is established
           window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.search}`);
+          // Avoid a race where a stale getSession() result overrides a fresh OAuth session
+          return;
         }
       }
 

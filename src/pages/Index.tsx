@@ -4,7 +4,7 @@ import MatchPopup from '@/components/MatchPopup';
 import LoginScreen from '@/screens/LoginScreen';
 import { useAppStore } from '@/store/useAppStore';
 import { useAuth } from '@/hooks/useAuth';
-import { useAccessControl } from '@/hooks/useAccessControl';
+import { useAccessControlFromAuth } from '@/hooks/useAccessControl';
 import { supabase } from '@/integrations/supabase/client';
 
 // Lazy-load heavy screens
@@ -26,7 +26,7 @@ const Index = () => {
   const setScreen = useAppStore((state) => state.setScreen);
   const setHasCompletedProfile = useAppStore((state) => state.setHasCompletedProfile);
   const { user, loading: authLoading } = useAuth();
-  const { hasAccess, status: accessStatus, loading: accessLoading } = useAccessControl();
+  const { hasAccess, status: accessStatus, loading: accessLoading } = useAccessControlFromAuth(user, authLoading);
 
   // Single source of truth for profile completion status
   const [profileStatus, setProfileStatus] = useState<'loading' | 'complete' | 'incomplete'>('loading');
