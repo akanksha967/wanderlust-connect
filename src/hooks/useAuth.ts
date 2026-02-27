@@ -69,8 +69,12 @@ export const useAuth = () => {
 
   const signInWithGoogle = async () => {
     const { lovable } = await import('@/integrations/lovable/index');
+    const redirectUri = window.location.hostname === 'roammate-travel.lovable.app'
+      ? 'https://roammate.co.in'
+      : window.location.origin;
+
     const result = await lovable.auth.signInWithOAuth('google', {
-      redirect_uri: window.location.origin,
+      redirect_uri: redirectUri,
       extraParams: {
         prompt: 'select_account',
       },
