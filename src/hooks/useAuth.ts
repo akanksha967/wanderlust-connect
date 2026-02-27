@@ -44,6 +44,9 @@ export const useAuth = () => {
       return { access_token, refresh_token };
     };
 
+    const initialHashTokens = getHashTokens();
+    pendingHashSessionRef.current = Boolean(initialHashTokens);
+
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, nextSession) => {
@@ -58,7 +61,7 @@ export const useAuth = () => {
     const initializeSession = async () => {
       setLoading(true);
 
-      const hashTokens = getHashTokens();
+      const hashTokens = initialHashTokens;
       if (hashTokens) {
         pendingHashSessionRef.current = true;
         try {
