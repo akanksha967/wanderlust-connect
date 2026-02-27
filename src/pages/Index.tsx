@@ -148,9 +148,9 @@ const Index = () => {
       return;
     }
 
-    // Not authenticated → login screen
+    // Not authenticated → allow direct entry to profile from Start Travelling, otherwise show login
     if (!user) {
-      if (currentScreen !== 'login') {
+      if (currentScreen !== 'profile' && currentScreen !== 'login') {
         setScreen('login');
       }
       return;
