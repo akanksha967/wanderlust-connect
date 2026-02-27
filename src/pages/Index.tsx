@@ -47,13 +47,8 @@ const Index = () => {
     }
   }, [location.pathname, authLoading, accessLoading]);
 
-  // Sync screen state to URL (skip if hash has OAuth tokens to avoid stripping them)
+  // Sync screen state to URL
   useEffect(() => {
-    // Don't navigate while OAuth tokens are in the hash — let auth process them first
-    if (window.location.hash && window.location.hash.includes('access_token')) {
-      return;
-    }
-
     const expectedPath = screenToPath[currentScreen];
     if (expectedPath && location.pathname !== expectedPath) {
       navigate(
