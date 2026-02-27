@@ -15,21 +15,34 @@ const AuthCallback = () => {
     };
 
     const restoreSession = async () => {
-      const rawHash = window.location.hash.startsWith("#")
-        ? window.location.hash.slice(1)
-        : window.location.hash;
-      const params = new URLSearchParams(rawHash);
-      const access_token = params.get("access_token");
-      const refresh_token = params.get("refresh_token");
+      try {
+        const rawHash = window.location.hash.startsWith("#")
+          ? window.location.hash.slice(1)
+          : window.location.hash;
+        const params = new URLSearchParams(rawHash);
+        const access_token = params.get("access_token");
+        const refresh_token = params.get("refresh_token");
 
-      if (access_token && refresh_token) {
-        const { error } = await supabase.auth.setSession({ access_token, refresh_token });
-        if (!error) {
-          window.history.replaceState({}, document.title, window.location.pathname);
+        if (access_token && refresh_token) {
+          const timeoutPromise = new Promise<{ error: Error }>((resolve) =>
+            setTimeout(() => resolve({ error: new Error("setSession timeout") }), 5000)
+          );
+
+          const sessionPromise = supabase.auth
+            .setSession({ access_token, refresh_token })
+            .catch((error) => ({ error }));
+
+          const result = await Promise.race([sessionPromise, timeoutPromise]);
+
+          if (!result.error) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+          } else {
+            console.error("Auth callback session restore failed:", result.error);
+          }
         }
+      } finally {
+        finish();
       }
-
-      finish();
     };
 
     void restoreSession();
