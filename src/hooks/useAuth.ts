@@ -13,7 +13,7 @@ export const useAuth = () => {
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         if (!session?.user) {
@@ -26,16 +26,36 @@ export const useAuth = () => {
       }
     );
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const initializeSession = async () => {
+      // Recover OAuth sessions when provider redirects with hash tokens
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+
+      if (accessToken && refreshToken) {
+        const { error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+
+        if (!error) {
+          // Remove sensitive tokens from URL after session is established
+          window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.search}`);
+        }
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
       setUser(session?.user ?? null);
+
       if (!session?.user) {
         setLoading(false);
       } else {
         fetchProfileId(session.user.id);
       }
-    });
+    };
+
+    initializeSession();
 
     return () => subscription.unsubscribe();
   }, []);
