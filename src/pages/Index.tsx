@@ -54,7 +54,6 @@ const Index = () => {
         {
           pathname: expectedPath,
           search: location.search,
-          hash: location.hash,
         },
         { replace: true }
       );
