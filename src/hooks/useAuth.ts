@@ -11,79 +11,50 @@ export const useAuth = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Track whether initial session has been resolved.
-    // Until this is true, onAuthStateChange must NOT flip loading to false
-    // with a stale/null session (which would trigger a redirect to /login).
-    let initialised = false;
+    let cancelled = false;
+
+    const syncSessionState = async (nextSession: Session | null) => {
+      if (cancelled) return;
+
+      setSession(nextSession);
+      setUser(nextSession?.user ?? null);
+
+      if (!nextSession?.user) {
+        setProfileId(null);
+        setLoading(false);
+        return;
+      }
+
+      await fetchProfileId(nextSession.user.id);
+    };
 
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        // Before initialisation completes, only accept non-null sessions from
-        // the listener (e.g. Supabase SDK recovering from localStorage).
-        // A null session at this stage is likely the INITIAL_SESSION event
-        // firing before we've had a chance to process hash tokens.
-        if (!initialised && !session) {
-          return;
-        }
-
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (!session?.user) {
-          setLoading(false);
-          setProfileId(null);
-        } else {
-          fetchProfileId(session.user.id);
-        }
+      async (_event, nextSession) => {
+        await syncSessionState(nextSession);
       }
     );
 
     const initializeSession = async () => {
-      // Recover OAuth sessions when provider redirects with hash tokens
-      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
-      const accessToken = hashParams.get('access_token');
-      const refreshToken = hashParams.get('refresh_token');
-
-      if (accessToken && refreshToken) {
-        const { data: setSessionData, error } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        });
-
-        if (!error) {
-          const recoveredSession = setSessionData.session;
-          setSession(recoveredSession);
-          setUser(recoveredSession?.user ?? null);
-
-          if (recoveredSession?.user) {
-            await fetchProfileId(recoveredSession.user.id);
-          } else {
-            setLoading(false);
-          }
-
-          // Remove sensitive tokens from URL after session is established
-          window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.search}`);
-          initialised = true;
-          return;
-        }
-      }
-
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-      setUser(session?.user ?? null);
-
-      if (!session?.user) {
+      setLoading(true);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        await syncSessionState(session);
+      } catch (error) {
+        console.error('Error initializing session:', error);
+        setSession(null);
+        setUser(null);
+        setProfileId(null);
         setLoading(false);
-      } else {
-        fetchProfileId(session.user.id);
       }
-
-      initialised = true;
     };
 
     initializeSession();
 
-    return () => subscription.unsubscribe();
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const fetchProfileId = async (uid: string) => {

@@ -1,24 +1,12 @@
 import { useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 
 const AuthCallback = () => {
   useEffect(() => {
-    const handleAuth = async () => {
-      const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.href);
-
-      if (error) {
-        console.error(error);
-        window.location.href = "/login";
-        return;
-      }
-
-      window.location.href = "/";
-    };
-
-    handleAuth();
+    // Session restoration is handled centrally in useAuth via getSession + auth listener.
+    window.location.replace("/");
   }, []);
 
-  return <div>Logging you in...</div>;
+  return <div>Redirecting...</div>;
 };
 
 export default AuthCallback;
