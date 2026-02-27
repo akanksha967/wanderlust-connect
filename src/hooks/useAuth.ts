@@ -13,7 +13,7 @@ export const useAuth = () => {
   useEffect(() => {
     let cancelled = false;
 
-    const syncSessionState = async (nextSession: Session | null) => {
+    const syncSessionState = (nextSession: Session | null) => {
       if (cancelled) return;
 
       setSession(nextSession);
@@ -25,13 +25,15 @@ export const useAuth = () => {
         return;
       }
 
-      await fetchProfileId(nextSession.user.id);
+      // Profile fetch should not block auth initialization
+      void fetchProfileId(nextSession.user.id);
+      setLoading(false);
     };
 
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, nextSession) => {
-        await syncSessionState(nextSession);
+      (_event, nextSession) => {
+        syncSessionState(nextSession);
       }
     );
 
@@ -39,12 +41,20 @@ export const useAuth = () => {
       setLoading(true);
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        await syncSessionState(session);
+        setSession(session ?? null);
+        setUser(session?.user ?? null);
+
+        if (!session?.user) {
+          setProfileId(null);
+        } else {
+          void fetchProfileId(session.user.id);
+        }
       } catch (error) {
         console.error('Error initializing session:', error);
         setSession(null);
         setUser(null);
         setProfileId(null);
+      } finally {
         setLoading(false);
       }
     };
@@ -70,8 +80,6 @@ export const useAuth = () => {
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
