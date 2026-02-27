@@ -10,22 +10,18 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const isProcessingOAuthRef = useRef(false);
-  const AUTH_INIT_TIMEOUT_MS = 10000;
-
-  const withTimeout = async <T,>(promise: Promise<T>, label: string): Promise<T> => {
-    return await Promise.race([
-      promise,
-      new Promise<T>((_, reject) =>
-        setTimeout(() => reject(new Error(`${label} timed out`)), AUTH_INIT_TIMEOUT_MS)
-      ),
-    ]);
-  };
   useEffect(() => {
     let cancelled = false;
 
+    const loadingGuard = setTimeout(() => {
+      if (!cancelled) {
+        setLoading(false);
+      }
+    }, 12000);
+
     const syncSessionState = (nextSession: Session | null) => {
       if (cancelled) return;
-      
+
       setSession(nextSession);
       setUser(nextSession?.user ?? null);
 
@@ -34,13 +30,14 @@ export const useAuth = () => {
       } else {
         void fetchProfileId(nextSession.user.id);
       }
+
       setLoading(false);
     };
 
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, nextSession) => {
-        
+        // Ignore transient null session while processing OAuth hash tokens
         if (isProcessingOAuthRef.current && !nextSession) return;
         syncSessionState(nextSession);
       }
@@ -52,20 +49,16 @@ export const useAuth = () => {
         const accessToken = hashParams.get('access_token');
         const refreshToken = hashParams.get('refresh_token');
         const hasHashTokens = !!accessToken;
-        
 
         if (accessToken && refreshToken) {
           isProcessingOAuthRef.current = true;
-          try {
-            await withTimeout(
-              supabase.auth.setSession({
-                access_token: accessToken,
-                refresh_token: refreshToken,
-              }),
-              'setSession'
-            );
-          } catch (error) {
-            
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+
+          if (error && !cancelled) {
+            setLoading(false);
           }
         }
 
@@ -77,14 +70,12 @@ export const useAuth = () => {
           );
         }
 
-        const { data: { session } } = await withTimeout(supabase.auth.getSession(), 'getSession');
-        
+        const { data: { session } } = await supabase.auth.getSession();
 
         if (!cancelled) {
           syncSessionState(session ?? null);
         }
-      } catch (error) {
-        console.error('[useAuth] initializeAuth failed:', error);
+      } catch {
         if (!cancelled) {
           syncSessionState(null);
         }
@@ -97,6 +88,7 @@ export const useAuth = () => {
 
     return () => {
       cancelled = true;
+      clearTimeout(loadingGuard);
       subscription.unsubscribe();
     };
   }, []);
