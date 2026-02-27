@@ -12,91 +12,38 @@ export const useAuth = () => {
 
   useEffect(() => {
     let cancelled = false;
-    const pendingHashSessionRef = { current: false } as { current: boolean };
 
     const syncSessionState = (nextSession: Session | null) => {
       if (cancelled) return;
-
       setSession(nextSession);
       setUser(nextSession?.user ?? null);
 
       if (!nextSession?.user) {
         setProfileId(null);
       } else {
-        // Profile fetch should not block auth initialization
         void fetchProfileId(nextSession.user.id);
       }
-
-      // Always unblock initialization once we have a resolved auth state
       setLoading(false);
     };
 
-    const getHashTokens = () => {
-      const rawHash = window.location.hash.startsWith('#')
-        ? window.location.hash.slice(1)
-        : window.location.hash;
-
-      const params = new URLSearchParams(rawHash);
-      const access_token = params.get('access_token');
-      const refresh_token = params.get('refresh_token');
-
-      if (!access_token || !refresh_token) return null;
-      return { access_token, refresh_token };
-    };
-
-    const initialHashTokens = getHashTokens();
-    pendingHashSessionRef.current = Boolean(initialHashTokens);
-
-    // Set up auth state listener FIRST
+    // Set up auth state listener FIRST — Supabase auto-detects hash tokens
+    // and fires SIGNED_IN here, so no manual hash parsing needed
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, nextSession) => {
-        // Avoid resolving auth to null while we're still processing OAuth hash tokens
-        if (pendingHashSessionRef.current && !nextSession) {
-          return;
-        }
         syncSessionState(nextSession);
       }
     );
 
-    const initializeSession = async () => {
-      setLoading(true);
-
-      const hashTokens = initialHashTokens;
-      if (hashTokens) {
-        pendingHashSessionRef.current = true;
-        try {
-          const { data, error } = await supabase.auth.setSession(hashTokens);
-          if (error) throw error;
-
-          syncSessionState(data.session ?? null);
-
-          // Clean URL hash after successful token consumption
-          if (!cancelled) {
-            window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.search}`);
-          }
-          return;
-        } catch (error) {
-          console.error('Error restoring OAuth session from URL hash:', error);
-        } finally {
-          pendingHashSessionRef.current = false;
-        }
+    // Then get any existing session (for page refreshes)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!cancelled) {
+        syncSessionState(session);
       }
-
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        syncSessionState(session ?? null);
-      } catch (error) {
-        console.error('Error initializing session:', error);
+    }).catch(() => {
+      if (!cancelled) {
         syncSessionState(null);
-      } finally {
-        // Always end loading even if listener hasn't fired
-        if (!cancelled) {
-          setLoading(false);
-        }
       }
-    };
-
-    initializeSession();
+    });
 
     return () => {
       cancelled = true;
