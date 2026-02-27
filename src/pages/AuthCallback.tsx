@@ -2,31 +2,23 @@ import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 const AuthCallback = () => {
+  useEffect(() => {
+    const handleAuth = async () => {
+      const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.href);
 
-    useEffect(() => {
+      if (error) {
+        console.error(error);
+        window.location.href = "/login";
+        return;
+      }
 
-        const handleAuth = async () => {
+      window.location.href = "/";
+    };
 
-            const { data, error } = await supabase.auth.getSession();
+    handleAuth();
+  }, []);
 
-            if (data?.session) {
-
-                window.location.href = "/";
-
-            } else {
-
-                window.location.href = "/login";
-
-            }
-
-        };
-
-        handleAuth();
-
-    }, []);
-
-    return <div>Logging you in...</div>;
-
+  return <div>Logging you in...</div>;
 };
 
 export default AuthCallback;
