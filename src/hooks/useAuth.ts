@@ -33,12 +33,22 @@ export const useAuth = () => {
       const refreshToken = hashParams.get('refresh_token');
 
       if (accessToken && refreshToken) {
-        const { error } = await supabase.auth.setSession({
+        const { data: setSessionData, error } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
         });
 
         if (!error) {
+          const recoveredSession = setSessionData.session;
+          setSession(recoveredSession);
+          setUser(recoveredSession?.user ?? null);
+
+          if (recoveredSession?.user) {
+            await fetchProfileId(recoveredSession.user.id);
+          } else {
+            setLoading(false);
+          }
+
           // Remove sensitive tokens from URL after session is established
           window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.search}`);
           // Avoid a race where a stale getSession() result overrides a fresh OAuth session
