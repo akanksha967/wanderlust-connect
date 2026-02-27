@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
@@ -7,8 +8,7 @@ interface AccessStatus {
   status: 'loading' | 'none' | 'pending' | 'approved' | 'rejected' | 'admin';
 }
 
-export const useAccessControl = () => {
-  const { user, loading: authLoading } = useAuth();
+const useAccessControlBase = (user: User | null, authLoading: boolean) => {
   const [accessStatus, setAccessStatus] = useState<AccessStatus>({
     hasAccess: false,
     status: 'loading',
@@ -20,7 +20,7 @@ export const useAccessControl = () => {
   useEffect(() => {
     const checkAccess = async () => {
       if (authLoading) return;
-      
+
       if (!user) {
         setAccessStatus({ hasAccess: false, status: 'none' });
         setLoading(false);
@@ -30,12 +30,12 @@ export const useAccessControl = () => {
 
       // Reset to loading when user changes to force fresh check
       setLoading(true);
-      
+
       try {
         const { data, error } = await supabase.rpc('check_user_access');
-        
+
         if (error) throw error;
-        
+
         const result = data as { has_access: boolean; status: string };
         console.log('[AccessControl] check_user_access result:', result);
         setAccessStatus({
@@ -69,7 +69,7 @@ export const useAccessControl = () => {
         });
 
       if (error) throw error;
-      
+
       setAccessStatus({ hasAccess: false, status: 'pending' });
       return true;
     } catch (error) {
@@ -85,13 +85,13 @@ export const useAccessControl = () => {
       });
 
       if (error) throw error;
-      
+
       const result = data as { success: boolean; error?: string };
-      
+
       if (result.success) {
         setAccessStatus({ hasAccess: true, status: 'approved' });
       }
-      
+
       return result;
     } catch (error: any) {
       console.error('Error using invite code:', error);
@@ -105,4 +105,13 @@ export const useAccessControl = () => {
     requestAccess,
     useInviteCode,
   };
+};
+
+export const useAccessControl = () => {
+  const { user, loading: authLoading } = useAuth();
+  return useAccessControlBase(user, authLoading);
+};
+
+export const useAccessControlFromAuth = (user: User | null, authLoading: boolean) => {
+  return useAccessControlBase(user, authLoading);
 };
