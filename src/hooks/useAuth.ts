@@ -11,16 +11,28 @@ export const useAuth = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Track whether initial session has been resolved.
+    // Until this is true, onAuthStateChange must NOT flip loading to false
+    // with a stale/null session (which would trigger a redirect to /login).
+    let initialised = false;
+
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
+        // Before initialisation completes, only accept non-null sessions from
+        // the listener (e.g. Supabase SDK recovering from localStorage).
+        // A null session at this stage is likely the INITIAL_SESSION event
+        // firing before we've had a chance to process hash tokens.
+        if (!initialised && !session) {
+          return;
+        }
+
         setSession(session);
         setUser(session?.user ?? null);
         if (!session?.user) {
           setLoading(false);
           setProfileId(null);
         } else {
-          // Proactively fetch profileId on auth change
           fetchProfileId(session.user.id);
         }
       }
@@ -51,7 +63,7 @@ export const useAuth = () => {
 
           // Remove sensitive tokens from URL after session is established
           window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.search}`);
-          // Avoid a race where a stale getSession() result overrides a fresh OAuth session
+          initialised = true;
           return;
         }
       }
@@ -65,6 +77,8 @@ export const useAuth = () => {
       } else {
         fetchProfileId(session.user.id);
       }
+
+      initialised = true;
     };
 
     initializeSession();
