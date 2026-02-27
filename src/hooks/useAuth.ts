@@ -25,7 +25,7 @@ export const useAuth = () => {
 
     const syncSessionState = (nextSession: Session | null) => {
       if (cancelled) return;
-      console.log('[useAuth] syncSessionState:', nextSession ? `user=${nextSession.user.id}` : 'null');
+      
       setSession(nextSession);
       setUser(nextSession?.user ?? null);
 
@@ -40,7 +40,7 @@ export const useAuth = () => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, nextSession) => {
-        console.log('[useAuth] onAuthStateChange:', _event, 'processing:', isProcessingOAuthRef.current);
+        
         if (isProcessingOAuthRef.current && !nextSession) return;
         syncSessionState(nextSession);
       }
@@ -52,7 +52,7 @@ export const useAuth = () => {
         const accessToken = hashParams.get('access_token');
         const refreshToken = hashParams.get('refresh_token');
         const hasHashTokens = !!accessToken;
-        console.log('[useAuth] initializeAuth: hasHashTokens=', hasHashTokens);
+        
 
         if (accessToken && refreshToken) {
           isProcessingOAuthRef.current = true;
@@ -65,7 +65,7 @@ export const useAuth = () => {
               'setSession'
             );
           } catch (error) {
-            console.error('[useAuth] setSession failed:', error);
+            
           }
         }
 
@@ -78,7 +78,7 @@ export const useAuth = () => {
         }
 
         const { data: { session } } = await withTimeout(supabase.auth.getSession(), 'getSession');
-        console.log('[useAuth] getSession:', session ? `user=${session.user.id}` : 'null');
+        
 
         if (!cancelled) {
           syncSessionState(session ?? null);
