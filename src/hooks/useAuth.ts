@@ -12,6 +12,7 @@ export const useAuth = () => {
 
   useEffect(() => {
     let cancelled = false;
+    const pendingHashSessionRef = { current: false } as { current: boolean };
 
     const syncSessionState = (nextSession: Session | null) => {
       if (cancelled) return;
@@ -21,18 +22,35 @@ export const useAuth = () => {
 
       if (!nextSession?.user) {
         setProfileId(null);
-        setLoading(false);
-        return;
+      } else {
+        // Profile fetch should not block auth initialization
+        void fetchProfileId(nextSession.user.id);
       }
 
-      // Profile fetch should not block auth initialization
-      void fetchProfileId(nextSession.user.id);
+      // Always unblock initialization once we have a resolved auth state
       setLoading(false);
+    };
+
+    const getHashTokens = () => {
+      const rawHash = window.location.hash.startsWith('#')
+        ? window.location.hash.slice(1)
+        : window.location.hash;
+
+      const params = new URLSearchParams(rawHash);
+      const access_token = params.get('access_token');
+      const refresh_token = params.get('refresh_token');
+
+      if (!access_token || !refresh_token) return null;
+      return { access_token, refresh_token };
     };
 
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, nextSession) => {
+        // Avoid resolving auth to null while we're still processing OAuth hash tokens
+        if (pendingHashSessionRef.current && !nextSession) {
+          return;
+        }
         syncSessionState(nextSession);
       }
     );
@@ -40,33 +58,38 @@ export const useAuth = () => {
     const initializeSession = async () => {
       setLoading(true);
 
-      // Safety timeout to prevent indefinite hang
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Session initialization timeout')), 8000)
-      );
+      const hashTokens = getHashTokens();
+      if (hashTokens) {
+        pendingHashSessionRef.current = true;
+        try {
+          const { data, error } = await supabase.auth.setSession(hashTokens);
+          if (error) throw error;
+
+          syncSessionState(data.session ?? null);
+
+          // Clean URL hash after successful token consumption
+          if (!cancelled) {
+            window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.search}`);
+          }
+          return;
+        } catch (error) {
+          console.error('Error restoring OAuth session from URL hash:', error);
+        } finally {
+          pendingHashSessionRef.current = false;
+        }
+      }
 
       try {
-        const { data: { session } } = await Promise.race([
-          supabase.auth.getSession(),
-          timeoutPromise as Promise<{ data: { session: Session | null } }>
-        ]);
-
-        setSession(session ?? null);
-        setUser(session?.user ?? null);
-
-        if (!session?.user) {
-          setProfileId(null);
-        } else {
-          void fetchProfileId(session.user.id);
-        }
+        const { data: { session } } = await supabase.auth.getSession();
+        syncSessionState(session ?? null);
       } catch (error) {
         console.error('Error initializing session:', error);
-        // On error or timeout, we still need to stop loading
-        setSession(null);
-        setUser(null);
-        setProfileId(null);
+        syncSessionState(null);
       } finally {
-        setLoading(false);
+        // Always end loading even if listener hasn't fired
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
