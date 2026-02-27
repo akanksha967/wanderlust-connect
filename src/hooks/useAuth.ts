@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -9,6 +9,7 @@ export const useAuth = () => {
   const [profileId, setProfileId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const isProcessingOAuthRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -26,24 +27,51 @@ export const useAuth = () => {
       setLoading(false);
     };
 
-    // Set up auth state listener FIRST — Supabase auto-detects hash tokens
-    // and fires SIGNED_IN here, so no manual hash parsing needed
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, nextSession) => {
+        // During OAuth token bootstrapping, ignore transient null sessions
+        if (isProcessingOAuthRef.current && !nextSession) return;
         syncSessionState(nextSession);
       }
     );
 
-    // Then get any existing session (for page refreshes)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!cancelled) {
-        syncSessionState(session);
+    const initializeAuth = async () => {
+      try {
+        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+
+        // If OAuth tokens are in URL hash, set session explicitly once
+        if (accessToken && refreshToken) {
+          isProcessingOAuthRef.current = true;
+          await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+
+          // Clean hash after successful processing
+          window.history.replaceState(
+            null,
+            '',
+            `${window.location.pathname}${window.location.search}`
+          );
+        }
+
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!cancelled) {
+          syncSessionState(session);
+        }
+      } catch {
+        if (!cancelled) {
+          syncSessionState(null);
+        }
+      } finally {
+        isProcessingOAuthRef.current = false;
       }
-    }).catch(() => {
-      if (!cancelled) {
-        syncSessionState(null);
-      }
-    });
+    };
+
+    void initializeAuth();
 
     return () => {
       cancelled = true;
