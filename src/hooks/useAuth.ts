@@ -10,7 +10,16 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const isProcessingOAuthRef = useRef(false);
+  const AUTH_INIT_TIMEOUT_MS = 10000;
 
+  const withTimeout = async <T,>(promise: Promise<T>, label: string): Promise<T> => {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) =>
+        setTimeout(() => reject(new Error(`${label} timed out`)), AUTH_INIT_TIMEOUT_MS)
+      ),
+    ]);
+  };
   useEffect(() => {
     let cancelled = false;
 
@@ -42,16 +51,25 @@ export const useAuth = () => {
         const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
         const accessToken = hashParams.get('access_token');
         const refreshToken = hashParams.get('refresh_token');
-        console.log('[useAuth] initializeAuth: hasHashTokens=', !!(accessToken && refreshToken));
+        const hasHashTokens = !!accessToken;
+        console.log('[useAuth] initializeAuth: hasHashTokens=', hasHashTokens);
 
         if (accessToken && refreshToken) {
           isProcessingOAuthRef.current = true;
-          await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          });
+          try {
+            await withTimeout(
+              supabase.auth.setSession({
+                access_token: accessToken,
+                refresh_token: refreshToken,
+              }),
+              'setSession'
+            );
+          } catch (error) {
+            console.error('[useAuth] setSession failed:', error);
+          }
+        }
 
-          // Clean hash after successful processing
+        if (hasHashTokens) {
           window.history.replaceState(
             null,
             '',
@@ -59,12 +77,14 @@ export const useAuth = () => {
           );
         }
 
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await withTimeout(supabase.auth.getSession(), 'getSession');
         console.log('[useAuth] getSession:', session ? `user=${session.user.id}` : 'null');
+
         if (!cancelled) {
-          syncSessionState(session);
+          syncSessionState(session ?? null);
         }
-      } catch {
+      } catch (error) {
+        console.error('[useAuth] initializeAuth failed:', error);
         if (!cancelled) {
           syncSessionState(null);
         }
