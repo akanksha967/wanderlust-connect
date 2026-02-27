@@ -16,6 +16,7 @@ export const useAuth = () => {
 
     const syncSessionState = (nextSession: Session | null) => {
       if (cancelled) return;
+      console.log('[useAuth] syncSessionState:', nextSession ? `user=${nextSession.user.id}` : 'null');
       setSession(nextSession);
       setUser(nextSession?.user ?? null);
 
@@ -30,7 +31,7 @@ export const useAuth = () => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, nextSession) => {
-        // During OAuth token bootstrapping, ignore transient null sessions
+        console.log('[useAuth] onAuthStateChange:', _event, 'processing:', isProcessingOAuthRef.current);
         if (isProcessingOAuthRef.current && !nextSession) return;
         syncSessionState(nextSession);
       }
@@ -41,8 +42,8 @@ export const useAuth = () => {
         const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
         const accessToken = hashParams.get('access_token');
         const refreshToken = hashParams.get('refresh_token');
+        console.log('[useAuth] initializeAuth: hasHashTokens=', !!(accessToken && refreshToken));
 
-        // If OAuth tokens are in URL hash, set session explicitly once
         if (accessToken && refreshToken) {
           isProcessingOAuthRef.current = true;
           await supabase.auth.setSession({
@@ -59,6 +60,7 @@ export const useAuth = () => {
         }
 
         const { data: { session } } = await supabase.auth.getSession();
+        console.log('[useAuth] getSession:', session ? `user=${session.user.id}` : 'null');
         if (!cancelled) {
           syncSessionState(session);
         }
