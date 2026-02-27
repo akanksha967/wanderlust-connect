@@ -142,6 +142,7 @@ const Index = () => {
 
   // ROUTING LOGIC: Handle screen transitions based on auth + profile + access status
   useEffect(() => {
+    console.log('[Index] routing:', { authLoading, accessLoading, profileStatus, user: !!user, hasAccess, accessStatus, currentScreen });
     // Wait for all checks to complete
     if (authLoading || accessLoading || profileStatus === 'loading') {
       return;
