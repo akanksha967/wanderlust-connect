@@ -1,15 +1,46 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const AuthCallback = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Session restoration is handled centrally in useAuth via getSession + auth listener.
-    navigate("/", { replace: true });
+    let cancelled = false;
+
+    const finish = () => {
+      if (!cancelled) {
+        navigate("/", { replace: true });
+      }
+    };
+
+    const restoreSession = async () => {
+      const rawHash = window.location.hash.startsWith("#")
+        ? window.location.hash.slice(1)
+        : window.location.hash;
+      const params = new URLSearchParams(rawHash);
+      const access_token = params.get("access_token");
+      const refresh_token = params.get("refresh_token");
+
+      if (access_token && refresh_token) {
+        const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+        if (!error) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      }
+
+      finish();
+    };
+
+    void restoreSession();
+
+    return () => {
+      cancelled = true;
+    };
   }, [navigate]);
 
   return <div>Redirecting...</div>;
 };
 
 export default AuthCallback;
+
