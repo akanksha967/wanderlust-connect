@@ -1,5 +1,5 @@
 import { useEffect, useState, lazy, Suspense } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
 import MatchPopup from '@/components/MatchPopup';
 import LoginScreen from '@/screens/LoginScreen';
@@ -31,47 +31,23 @@ const Index = () => {
 
   // Single source of truth for profile completion status
   const [profileStatus, setProfileStatus] = useState<'loading' | 'complete' | 'incomplete'>('loading');
-  // Track which userId we last checked to avoid stale state
   const [checkedUserId, setCheckedUserId] = useState<string | null>(null);
 
   const userId = user?.id ?? null;
 
-  // Sync URL path to screen state on mount and URL changes
+  // Sync screen state → URL (one-way: screen drives URL)
   useEffect(() => {
-    const screenFromPath = pathToScreen[location.pathname];
-    if (screenFromPath && screenFromPath !== currentScreen) {
-      // Don't override screen during initial loading - let the routing logic handle it
-      if (!authLoading && !accessLoading) {
-        setScreen(screenFromPath);
-      }
-    }
-  }, [location.pathname, authLoading, accessLoading]);
-
-  // Sync screen state to URL (skip if hash has OAuth tokens to avoid stripping them)
-  useEffect(() => {
-    // Don't navigate while OAuth tokens are in the hash — let auth process them first
-    if (window.location.hash && window.location.hash.includes('access_token')) {
-      return;
-    }
-
     const expectedPath = screenToPath[currentScreen];
     if (expectedPath && location.pathname !== expectedPath) {
-      navigate(
-        {
-          pathname: expectedPath,
-          search: location.search,
-        },
-        { replace: true }
-      );
+      navigate({ pathname: expectedPath, search: location.search }, { replace: true });
     }
-  }, [currentScreen, navigate, location.pathname]);
+  }, [currentScreen, navigate, location.pathname, location.search]);
 
   // Check profile completion status from database
   useEffect(() => {
     let cancelled = false;
 
     const checkProfileCompletion = async () => {
-      // If we don't even have a user ID yet, we definitely don't have a profile
       if (!userId) {
         if (!cancelled) {
           setProfileStatus('incomplete');
@@ -81,28 +57,16 @@ const Index = () => {
         return;
       }
 
-      // If we already checked this user, don't repeat (unless forced by some state)
       if (checkedUserId === userId) return;
 
       setProfileStatus('loading');
 
-      // Timeout for profile query
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Profile check timeout')), 8000)
-      );
-
       try {
-        const { data: profile, error: profileError } = await Promise.race([
-          supabase
-            .from('profiles')
-            .select(`
-              id, name, age,
-              photos(id)
-            `)
-            .eq('user_id', userId)
-            .maybeSingle(),
-          timeoutPromise as Promise<{ data: any; error: any }>
-        ]);
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, name, age, photos(id)')
+          .eq('user_id', userId)
+          .maybeSingle();
 
         if (profileError) throw profileError;
 
@@ -140,15 +104,14 @@ const Index = () => {
     return () => { cancelled = true; };
   }, [userId, setHasCompletedProfile, checkedUserId]);
 
-  // ROUTING LOGIC: Handle screen transitions based on auth + profile + access status
+  // ROUTING LOGIC: single effect that decides which screen to show
   useEffect(() => {
-    console.log('[Index] routing:', { authLoading, accessLoading, profileStatus, user: !!user, hasAccess, accessStatus, currentScreen });
-    // Wait for all checks to complete
+    // Wait for all async checks to finish
     if (authLoading || accessLoading || profileStatus === 'loading') {
       return;
     }
 
-    // Not authenticated → login screen
+    // --- Not authenticated → login ---
     if (!user) {
       if (currentScreen !== 'login') {
         setScreen('login');
@@ -156,76 +119,72 @@ const Index = () => {
       return;
     }
 
-    // Authenticated but on login/access screens → route appropriately
-    if (currentScreen === 'login' || currentScreen === 'access') {
-      // Check access first
+    // --- Authenticated ---
+
+    // If on login screen, route forward
+    if (currentScreen === 'login') {
       if (!hasAccess && accessStatus !== 'admin') {
         setScreen('access');
-        return;
-      }
-
-      // If they are on a specific URL (like /swipe) and it's valid, let them stay
-      // The getInitialScreen in store handles this for refreshes.
-      const screenFromUrl = pathToScreen[location.pathname];
-      if (screenFromUrl && screenFromUrl !== 'login' && screenFromUrl !== 'access') {
-        // Only stay if profile is complete or if they are going to profile setup
-        if (profileStatus === 'complete' || screenFromUrl === 'profile') {
-          setScreen(screenFromUrl);
-          return;
-        }
-      }
-
-      // Returning user with complete profile → go to travel screen to confirm details
-      if (profileStatus === 'complete') {
+      } else if (profileStatus === 'complete') {
         setScreen('travel');
       } else {
-        // New user → profile setup
         setScreen('profile');
       }
       return;
     }
 
-    // Returning user somehow on profile screen with complete profile → go to travel
+    // If on access screen and now has access, move forward
+    if (currentScreen === 'access') {
+      if (hasAccess || accessStatus === 'admin') {
+        if (profileStatus === 'complete') {
+          setScreen('travel');
+        } else {
+          setScreen('profile');
+        }
+      }
+      return;
+    }
+
+    // Block protected screens if no access
+    const protectedScreens: ScreenType[] = ['travel', 'swipe', 'chat', 'account', 'matches', 'admin'];
+    if (!hasAccess && accessStatus !== 'admin' && protectedScreens.includes(currentScreen)) {
+      setScreen('access');
+      return;
+    }
+
+    // Block core screens if profile incomplete (but allow profile screen itself)
+    const profileRequiredScreens: ScreenType[] = ['travel', 'swipe', 'chat', 'matches', 'account'];
+    if (profileStatus !== 'complete' && profileRequiredScreens.includes(currentScreen)) {
+      setScreen('profile');
+      return;
+    }
+
+    // If profile is complete and user is on profile screen, send to travel
     if (currentScreen === 'profile' && profileStatus === 'complete') {
       setScreen('travel');
       return;
     }
+  }, [user, authLoading, accessLoading, hasAccess, accessStatus, currentScreen, profileStatus, setScreen]);
 
-    // Block access to protected screens if no access
-    const protectedScreens: ScreenType[] = ['travel', 'swipe', 'chat', 'account', 'matches', 'admin'];
-    if (!hasAccess && accessStatus !== 'admin' && protectedScreens.includes(currentScreen)) {
-      setScreen('access');
-    }
-
-    // Block access to core screens if profile incomplete
-    const profileRequiredScreens: ScreenType[] = ['travel', 'swipe', 'chat', 'matches', 'account'];
-    if (profileStatus !== 'complete' && profileRequiredScreens.includes(currentScreen)) {
-      setScreen('profile');
-    }
-  }, [user, authLoading, accessLoading, hasAccess, accessStatus, currentScreen, profileStatus, setScreen, location.pathname]);
-
-  // Safety timeout to prevent getting stuck on Initializing RoamMate screen
+  // Safety timeout
   const [showLoadingSlowly, setShowLoadingSlowly] = useState(false);
   useEffect(() => {
     const timer = setTimeout(() => {
       if (authLoading || accessLoading || (user && profileStatus === 'loading')) {
         setShowLoadingSlowly(true);
       }
-    }, 8000); // Show "Taking longer than usual" after 8 seconds
+    }, 8000);
 
-    // Another timer to force a fallback if it's REALLY stuck
     const forceFallbackTimer = setTimeout(() => {
       if (authLoading || accessLoading || (user && profileStatus === 'loading')) {
         console.warn('Initialization timed out. Forcing fallback.');
-        // If we're stuck, try to force a screen change
         if (!user) {
           if (currentScreen !== 'login') setScreen('login');
         } else {
-          // If we have a user but are stuck, try going to account setup as a fallback
-          if (currentScreen === 'login') setScreen('account');
+          if (currentScreen === 'login') setScreen('profile');
         }
       }
-    }, 15000); // Force fallback after 15 seconds
+    }, 15000);
 
     return () => {
       clearTimeout(timer);
@@ -233,6 +192,7 @@ const Index = () => {
     };
   }, [authLoading, accessLoading, user, profileStatus, currentScreen, setScreen]);
 
+  // Loading screen
   if (authLoading || accessLoading || (user && profileStatus === 'loading')) {
     return (
       <div className="h-[100dvh] overflow-hidden flex flex-col items-center justify-center relative">
@@ -300,7 +260,6 @@ const Index = () => {
         {renderScreen()}
       </Suspense>
       <MatchPopup />
-
     </div>
   );
 };

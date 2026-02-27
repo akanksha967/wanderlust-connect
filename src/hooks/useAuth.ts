@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -9,19 +9,17 @@ export const useAuth = () => {
   const [profileId, setProfileId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const isProcessingOAuthRef = useRef(false);
+
   useEffect(() => {
     let cancelled = false;
 
+    // Safety: force loading=false after 10s no matter what
     const loadingGuard = setTimeout(() => {
-      if (!cancelled) {
-        setLoading(false);
-      }
-    }, 12000);
+      if (!cancelled) setLoading(false);
+    }, 10000);
 
     const syncSessionState = (nextSession: Session | null) => {
       if (cancelled) return;
-
       setSession(nextSession);
       setUser(nextSession?.user ?? null);
 
@@ -34,44 +32,17 @@ export const useAuth = () => {
       setLoading(false);
     };
 
-    // Set up auth state listener FIRST
+    // 1. Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, nextSession) => {
-        // Ignore transient null session while processing OAuth hash tokens
-        if (isProcessingOAuthRef.current && !nextSession) return;
         syncSessionState(nextSession);
       }
     );
 
+    // 2. Check for existing session
     const initializeAuth = async () => {
       try {
-        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
-        const accessToken = hashParams.get('access_token');
-        const refreshToken = hashParams.get('refresh_token');
-        const hasHashTokens = !!accessToken;
-
-        if (accessToken && refreshToken) {
-          isProcessingOAuthRef.current = true;
-          const { error } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          });
-
-          if (error && !cancelled) {
-            setLoading(false);
-          }
-        }
-
-        if (hasHashTokens) {
-          window.history.replaceState(
-            null,
-            '',
-            `${window.location.pathname}${window.location.search}`
-          );
-        }
-
         const { data: { session } } = await supabase.auth.getSession();
-
         if (!cancelled) {
           syncSessionState(session ?? null);
         }
@@ -79,8 +50,6 @@ export const useAuth = () => {
         if (!cancelled) {
           syncSessionState(null);
         }
-      } finally {
-        isProcessingOAuthRef.current = false;
       }
     };
 
@@ -128,9 +97,7 @@ export const useAuth = () => {
   };
 
   const sendOtp = async (phone: string) => {
-    const { error } = await supabase.auth.signInWithOtp({
-      phone,
-    });
+    const { error } = await supabase.auth.signInWithOtp({ phone });
     if (error) {
       toast({
         title: 'Error',
@@ -147,11 +114,7 @@ export const useAuth = () => {
   };
 
   const verifyOtp = async (phone: string, token: string) => {
-    const { error } = await supabase.auth.verifyOtp({
-      phone,
-      token,
-      type: 'sms',
-    });
+    const { error } = await supabase.auth.verifyOtp({ phone, token, type: 'sms' });
     if (error) {
       toast({
         title: 'Error',
@@ -187,16 +150,13 @@ export const useAuth = () => {
       }
 
       const response = await supabase.functions.invoke('delete-account', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
+        headers: { Authorization: `Bearer ${session.access_token}` },
       });
 
       if (response.error) {
         throw new Error(response.error.message || 'Failed to delete account');
       }
 
-      // Clear local state
       await supabase.auth.signOut();
 
       toast({
