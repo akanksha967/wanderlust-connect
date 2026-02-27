@@ -39,8 +39,18 @@ export const useAuth = () => {
 
     const initializeSession = async () => {
       setLoading(true);
+
+      // Safety timeout to prevent indefinite hang
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Session initialization timeout')), 8000)
+      );
+
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await Promise.race([
+          supabase.auth.getSession(),
+          timeoutPromise as Promise<{ data: { session: Session | null } }>
+        ]);
+
         setSession(session ?? null);
         setUser(session?.user ?? null);
 
@@ -51,6 +61,7 @@ export const useAuth = () => {
         }
       } catch (error) {
         console.error('Error initializing session:', error);
+        // On error or timeout, we still need to stop loading
         setSession(null);
         setUser(null);
         setProfileId(null);

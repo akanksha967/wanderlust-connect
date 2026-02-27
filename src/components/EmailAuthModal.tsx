@@ -24,15 +24,23 @@ const EmailAuthModal = ({ isOpen, onClose, onSuccess }: EmailAuthModalProps) => 
     setLoading(true);
     setError('');
 
+    // Safety timeout to prevent indefinite hang
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Authentication service timeout')), 10000)
+    );
+
     try {
       if (isSignUp) {
-        const { error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: window.location.origin,
-          },
-        });
+        const { error: signUpError } = await Promise.race([
+          supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              emailRedirectTo: window.location.origin,
+            },
+          }),
+          timeoutPromise as Promise<{ data: any; error: any }>
+        ]);
 
         if (signUpError) {
           if (signUpError.message.includes('already registered')) {
@@ -44,10 +52,13 @@ const EmailAuthModal = ({ isOpen, onClose, onSuccess }: EmailAuthModalProps) => 
           return;
         }
       } else {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+        const { error: signInError } = await Promise.race([
+          supabase.auth.signInWithPassword({
+            email,
+            password,
+          }),
+          timeoutPromise as Promise<{ data: any; error: any }>
+        ]);
 
         if (signInError) {
           if (signInError.message.includes('Invalid login credentials')) {

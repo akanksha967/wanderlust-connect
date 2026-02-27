@@ -32,7 +32,15 @@ const useAccessControlBase = (user: User | null, authLoading: boolean) => {
       setLoading(true);
 
       try {
-        const { data, error } = await supabase.rpc('check_user_access');
+        // Safety timeout for the RPC call
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Access check timeout')), 8000)
+        );
+
+        const { data, error } = await Promise.race([
+          supabase.rpc('check_user_access'),
+          timeoutPromise as Promise<{ data: any; error: any }>
+        ]);
 
         if (error) throw error;
 
