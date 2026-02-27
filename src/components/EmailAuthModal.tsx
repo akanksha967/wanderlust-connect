@@ -30,7 +30,7 @@ const EmailAuthModal = ({ isOpen, onClose, onSuccess }: EmailAuthModalProps) => 
           email,
           password,
           options: {
-            emailRedirectTo: `https://roammate.co.in/auth/callback`,
+            emailRedirectTo: window.location.origin,
           },
         });
 

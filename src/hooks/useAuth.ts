@@ -59,19 +59,17 @@ export const useAuth = () => {
   };
 
   const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `https://roammate.co.in/auth/callback`,
-        queryParams: {
-          prompt: 'select_account',
-        },
+    const { lovable } = await import('@/integrations/lovable/index');
+    const result = await lovable.auth.signInWithOAuth('google', {
+      redirect_uri: window.location.origin,
+      extraParams: {
+        prompt: 'select_account',
       },
     });
-    if (error) {
+    if (result?.error) {
       toast({
         title: 'Error',
-        description: error.message,
+        description: result.error.message || 'Failed to sign in with Google',
         variant: 'destructive',
       });
     }
