@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 function getParamsFromUrl(): Record<string, string> {
@@ -13,7 +12,6 @@ function getParamsFromUrl(): Record<string, string> {
 }
 
 const AuthCallback = () => {
-  const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -24,7 +22,7 @@ const AuthCallback = () => {
 
       if (params.error || params.error_description) {
         setError(params.error_description || params.error || "Sign-in failed");
-        if (!cancelled) setTimeout(() => navigate("/login", { replace: true }), 3000);
+        if (!cancelled) setTimeout(() => window.location.replace(`${window.location.origin}/login`), 3000);
         return;
       }
 
@@ -53,19 +51,19 @@ const AuthCallback = () => {
         const { data } = await supabase.auth.getSession();
         if (data?.session) {
           window.history.replaceState(null, "", window.location.pathname);
-          navigate("/login", { replace: true });
+          window.location.replace(`${window.location.origin}/login`);
           return;
         }
         await new Promise((r) => setTimeout(r, 100));
       }
 
       window.history.replaceState(null, "", window.location.pathname);
-      navigate("/login", { replace: true });
+      window.location.replace(`${window.location.origin}/login`);
     };
 
     run();
     return () => { cancelled = true; };
-  }, [navigate]);
+  }, []);
 
   if (error) {
     return (
