@@ -1,6 +1,6 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
-import { pathToScreen, ScreenType } from '@/lib/navigation';
+import { pathToScreen, ScreenType } from "@/lib/navigation";
 
 export interface UserProfile {
   id: string;
@@ -25,7 +25,7 @@ interface AppState {
   matches: UserProfile[];
   showMatch: boolean;
   hasCompletedProfile: boolean;
-  setScreen: (screen: AppState['currentScreen']) => void;
+  setScreen: (screen: AppState["currentScreen"]) => void;
   setUserProfile: (profile: Partial<UserProfile>) => void;
   setTravelDetails: (details: TravelDetails) => void;
   setMatchedUser: (user: UserProfile | null) => void;
@@ -37,10 +37,10 @@ interface AppState {
 }
 
 const STORAGE_KEYS = {
-  currentScreen: 'currentScreen',
-  lastScreen: 'lastScreen',
-  travelDetails: 'travelDetails',
-  matchedUser: 'matchedUser',
+  currentScreen: "currentScreen",
+  lastScreen: "lastScreen",
+  travelDetails: "travelDetails",
+  matchedUser: "matchedUser",
 } as const;
 
 const safeJsonParse = <T,>(value: string | null): T | null => {
@@ -54,31 +54,24 @@ const safeJsonParse = <T,>(value: string | null): T | null => {
 
 // Persist screen to localStorage so it survives closing the tab/browser
 const getInitialScreen = (): ScreenType => {
-  if (typeof window !== 'undefined') {
-    // 1. First priority: The actual current URL path
+  if (typeof window !== "undefined") {
     const screenFromUrl = pathToScreen[window.location.pathname];
     if (screenFromUrl) return screenFromUrl;
 
-    // 2. Second priority: localStorage
+    // ✅ REMOVE the lastScreen logic entirely — it causes the routing to start
+    // on a protected screen before auth resolves, triggering redirect loops.
+    // Index.tsx will route the user to the right screen after auth loads.
     const saved = localStorage.getItem(STORAGE_KEYS.currentScreen);
-    const last = localStorage.getItem(STORAGE_KEYS.lastScreen);
-    const allowed = ['login', 'profile', 'travel', 'swipe', 'chat', 'account', 'matches', 'access', 'admin'];
-
-    // If we have a last non-login screen, prefer it over "login" so users return
-    // to where they left off (Index.tsx will still route to login if unauthenticated).
-    if (saved === 'login' && last && allowed.includes(last)) {
-      return last as ScreenType;
-    }
+    const allowed = ["login", "profile", "travel", "swipe", "chat", "account", "matches", "access", "admin"];
 
     if (saved && allowed.includes(saved)) {
       return saved as ScreenType;
     }
   }
-  return 'login';
+  return "login";
 };
-
 const getInitialTravelDetails = (): TravelDetails | null => {
-  if (typeof window === 'undefined') return null;
+  if (typeof window === "undefined") return null;
   const parsed = safeJsonParse<TravelDetails>(localStorage.getItem(STORAGE_KEYS.travelDetails));
   if (!parsed) return null;
   if (!parsed.destination || !parsed.startDate || !parsed.endDate) return null;
@@ -86,7 +79,7 @@ const getInitialTravelDetails = (): TravelDetails | null => {
 };
 
 const getInitialMatchedUser = (): UserProfile | null => {
-  if (typeof window === 'undefined') return null;
+  if (typeof window === "undefined") return null;
   const parsed = safeJsonParse<UserProfile>(localStorage.getItem(STORAGE_KEYS.matchedUser));
   if (!parsed?.id || !parsed?.name) return null;
   return parsed;
@@ -101,37 +94,40 @@ export const useAppStore = create<AppState>((set) => ({
   showMatch: false,
   hasCompletedProfile: false,
   setScreen: (screen) => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       localStorage.setItem(STORAGE_KEYS.currentScreen, screen);
-      if (screen !== 'login') {
+      if (screen !== "login") {
         localStorage.setItem(STORAGE_KEYS.lastScreen, screen);
       }
     }
     set({ currentScreen: screen });
   },
-  setUserProfile: (profile) => set((state) => ({
-    userProfile: { ...state.userProfile, ...profile }
-  })),
+  setUserProfile: (profile) =>
+    set((state) => ({
+      userProfile: { ...state.userProfile, ...profile },
+    })),
   setTravelDetails: (details) => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       localStorage.setItem(STORAGE_KEYS.travelDetails, JSON.stringify(details));
     }
     set({ travelDetails: details });
   },
   setMatchedUser: (user) => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       if (user) localStorage.setItem(STORAGE_KEYS.matchedUser, JSON.stringify(user));
       else localStorage.removeItem(STORAGE_KEYS.matchedUser);
     }
     set({ matchedUser: user });
   },
   setMatches: (matches) => set({ matches }),
-  addMatch: (user) => set((state) => ({
-    matches: state.matches.some(m => m.id === user.id) ? state.matches : [...state.matches, user]
-  })),
-  removeMatch: (userId) => set((state) => ({
-    matches: state.matches.filter(m => m.id !== userId)
-  })),
+  addMatch: (user) =>
+    set((state) => ({
+      matches: state.matches.some((m) => m.id === user.id) ? state.matches : [...state.matches, user],
+    })),
+  removeMatch: (userId) =>
+    set((state) => ({
+      matches: state.matches.filter((m) => m.id !== userId),
+    })),
   setShowMatch: (show) => set({ showMatch: show }),
   setHasCompletedProfile: (completed) => set({ hasCompletedProfile: completed }),
 }));
