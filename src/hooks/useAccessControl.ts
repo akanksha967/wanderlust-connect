@@ -18,29 +18,83 @@ const useAccessControlBase = (user: User | null, authLoading: boolean) => {
   const [checkedUserId, setCheckedUserId] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+
     const checkAccess = async () => {
       if (authLoading) return;
+
       if (!user) {
-        setAccessStatus({ hasAccess: false, status: "none" });
-        setLoading(false);
-        setCheckedUserId(null);
+        if (!cancelled) {
+          setAccessStatus({ hasAccess: false, status: "none" });
+          setLoading(false);
+          setCheckedUserId(null);
+        }
         return;
       }
 
+      const currentUserId = user.id;
       setLoading(true);
-      setCheckedUserId(user.id); // ✅ MOVE THIS HERE — eliminates the isStale race window
+      setCheckedUserId(currentUserId);
 
       try {
-        // ... rest unchanged
+        const { data, error } = await supabase.rpc("check_user_access");
+        if (error) throw error;
+
+        const result = (data ?? {}) as { has_access?: boolean; status?: string };
+        const status =
+          result.status === "approved" ||
+          result.status === "pending" ||
+          result.status === "rejected" ||
+          result.status === "admin"
+            ? result.status
+            : "none";
+
+        if (!cancelled) {
+          setAccessStatus({
+            hasAccess: Boolean(result.has_access),
+            status,
+          });
+        }
       } catch (error) {
         console.error("Error checking access:", error);
-        setAccessStatus({ hasAccess: false, status: "none" });
+
+        // Fallback to direct table lookup if RPC fails
+        try {
+          const { data } = await supabase
+            .from("access_requests")
+            .select("status")
+            .eq("user_id", currentUserId)
+            .maybeSingle();
+
+          const fallbackStatus =
+            data?.status === "approved" || data?.status === "pending" || data?.status === "rejected"
+              ? data.status
+              : "none";
+
+          if (!cancelled) {
+            setAccessStatus({
+              hasAccess: fallbackStatus === "approved",
+              status: fallbackStatus,
+            });
+          }
+        } catch (fallbackError) {
+          console.error("Fallback access check failed:", fallbackError);
+          if (!cancelled) {
+            setAccessStatus({ hasAccess: false, status: "none" });
+          }
+        }
       } finally {
-        setLoading(false);
-        // remove setCheckedUserId(user.id) from here
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
-    checkAccess();
+
+    void checkAccess();
+
+    return () => {
+      cancelled = true;
+    };
   }, [user?.id, authLoading]);
   // Treat as loading if user changed but check hasn't completed yet
   const isStale = !!user && checkedUserId !== user.id;
