@@ -5,9 +5,13 @@ function getParamsFromUrl(): Record<string, string> {
   const params: Record<string, string> = {};
   const url = new URL(window.location.href);
   if (url.hash && url.hash.startsWith("#")) {
-    new URLSearchParams(url.hash.slice(1)).forEach((v, k) => { params[k] = v; });
+    new URLSearchParams(url.hash.slice(1)).forEach((v, k) => {
+      params[k] = v;
+    });
   }
-  url.searchParams.forEach((v, k) => { params[k] = v; });
+  url.searchParams.forEach((v, k) => {
+    params[k] = v;
+  });
   return params;
 }
 
@@ -16,7 +20,6 @@ const AuthCallback = () => {
 
   useEffect(() => {
     let cancelled = false;
-
     const run = async () => {
       const params = getParamsFromUrl();
 
@@ -42,6 +45,7 @@ const AuthCallback = () => {
       } catch (e) {
         console.error("Auth callback error:", e);
         if (!cancelled) setError(e instanceof Error ? e.message : "Failed to sign in");
+        return; // ✅ also add this so we don't fall through to the redirect loop below
       }
 
       if (cancelled) return;
@@ -51,18 +55,21 @@ const AuthCallback = () => {
         const { data } = await supabase.auth.getSession();
         if (data?.session) {
           window.history.replaceState(null, "", window.location.pathname);
-          window.location.replace(`${window.location.origin}/login`);
+          window.location.replace(`${window.location.origin}/`); // ✅ redirect to home/dashboard
           return;
         }
         await new Promise((r) => setTimeout(r, 100));
       }
 
+      // Session never confirmed — send to login as fallback
       window.history.replaceState(null, "", window.location.pathname);
-      window.location.replace(`${window.location.origin}/login`);
+      window.location.replace(`${window.location.origin}/login`); // ✅ this one stays as /login (timeout/failure case)
     };
 
     run();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   if (error) {
@@ -74,11 +81,7 @@ const AuthCallback = () => {
     );
   }
 
-  return (
-    <div className="h-[100dvh] flex items-center justify-center text-muted-foreground">
-      Redirecting...
-    </div>
-  );
+  return <div className="h-[100dvh] flex items-center justify-center text-muted-foreground">Redirecting...</div>;
 };
 
 export default AuthCallback;
