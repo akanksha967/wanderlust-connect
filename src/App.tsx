@@ -2,25 +2,12 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AuthCallback from "./pages/AuthCallback";
 
 const queryClient = new QueryClient();
-
-function RootRedirect() {
-  const navigate = useNavigate();
-  useEffect(() => {
-    navigate("/login", { replace: true });
-  }, [navigate]);
-  return (
-    <div className="h-[100dvh] flex items-center justify-center text-muted-foreground">
-      Redirecting...
-    </div>
-  );
-}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -29,7 +16,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<RootRedirect />} />
+          <Route path="/" element={<Index />} />
           <Route path="/login" element={<Index />} />
           <Route path="/profile" element={<Index />} />
           <Route path="/travel" element={<Index />} />
