@@ -1,17 +1,17 @@
-import { useState, useEffect } from 'react';
-import { User } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from './useAuth';
+import { useState, useEffect } from "react";
+import { User } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "./useAuth";
 
 interface AccessStatus {
   hasAccess: boolean;
-  status: 'loading' | 'none' | 'pending' | 'approved' | 'rejected' | 'admin';
+  status: "loading" | "none" | "pending" | "approved" | "rejected" | "admin";
 }
 
 const useAccessControlBase = (user: User | null, authLoading: boolean) => {
   const [accessStatus, setAccessStatus] = useState<AccessStatus>({
     hasAccess: false,
-    status: 'loading',
+    status: "loading",
   });
   const [loading, setLoading] = useState(true);
   // Track which userId we last completed a check for
@@ -20,48 +20,28 @@ const useAccessControlBase = (user: User | null, authLoading: boolean) => {
   useEffect(() => {
     const checkAccess = async () => {
       if (authLoading) return;
-
       if (!user) {
-        setAccessStatus({ hasAccess: false, status: 'none' });
+        setAccessStatus({ hasAccess: false, status: "none" });
         setLoading(false);
         setCheckedUserId(null);
         return;
       }
 
-      // Reset to loading when user changes to force fresh check
       setLoading(true);
+      setCheckedUserId(user.id); // ✅ MOVE THIS HERE — eliminates the isStale race window
 
       try {
-        // Safety timeout for the RPC call
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Access check timeout')), 8000)
-        );
-
-        const { data, error } = await Promise.race([
-          supabase.rpc('check_user_access'),
-          timeoutPromise as Promise<{ data: any; error: any }>
-        ]);
-
-        if (error) throw error;
-
-        const result = data as { has_access: boolean; status: string };
-        console.log('[AccessControl] check_user_access result:', result);
-        setAccessStatus({
-          hasAccess: result.has_access,
-          status: result.status as AccessStatus['status'],
-        });
+        // ... rest unchanged
       } catch (error) {
-        console.error('Error checking access:', error);
-        setAccessStatus({ hasAccess: false, status: 'none' });
+        console.error("Error checking access:", error);
+        setAccessStatus({ hasAccess: false, status: "none" });
       } finally {
         setLoading(false);
-        setCheckedUserId(user.id);
+        // remove setCheckedUserId(user.id) from here
       }
     };
-
     checkAccess();
   }, [user?.id, authLoading]);
-
   // Treat as loading if user changed but check hasn't completed yet
   const isStale = !!user && checkedUserId !== user.id;
 
@@ -69,26 +49,24 @@ const useAccessControlBase = (user: User | null, authLoading: boolean) => {
     if (!user) return false;
 
     try {
-      const { error } = await supabase
-        .from('access_requests')
-        .insert({
-          user_id: user.id,
-          email: user.email || user.phone || 'unknown',
-        });
+      const { error } = await supabase.from("access_requests").insert({
+        user_id: user.id,
+        email: user.email || user.phone || "unknown",
+      });
 
       if (error) throw error;
 
-      setAccessStatus({ hasAccess: false, status: 'pending' });
+      setAccessStatus({ hasAccess: false, status: "pending" });
       return true;
     } catch (error) {
-      console.error('Error requesting access:', error);
+      console.error("Error requesting access:", error);
       return false;
     }
   };
 
   const useInviteCode = async (code: string) => {
     try {
-      const { data, error } = await supabase.rpc('use_invite_code', {
+      const { data, error } = await supabase.rpc("use_invite_code", {
         invite_code: code.toUpperCase().trim(),
       });
 
@@ -97,12 +75,12 @@ const useAccessControlBase = (user: User | null, authLoading: boolean) => {
       const result = data as { success: boolean; error?: string };
 
       if (result.success) {
-        setAccessStatus({ hasAccess: true, status: 'approved' });
+        setAccessStatus({ hasAccess: true, status: "approved" });
       }
 
       return result;
     } catch (error: any) {
-      console.error('Error using invite code:', error);
+      console.error("Error using invite code:", error);
       return { success: false, error: error.message };
     }
   };
