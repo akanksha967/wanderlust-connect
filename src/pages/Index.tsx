@@ -1,24 +1,24 @@
-import { useEffect, useState, lazy, Suspense } from 'react';
-import { motion } from 'framer-motion';
-import { useLocation, useNavigate } from 'react-router-dom';
-import MatchPopup from '@/components/MatchPopup';
-import LoginScreen from '@/screens/LoginScreen';
-import { useAppStore } from '@/store/useAppStore';
-import { useAuth } from '@/hooks/useAuth';
-import { useAccessControlFromAuth } from '@/hooks/useAccessControl';
-import { supabase } from '@/integrations/supabase/client';
+import { useEffect, useState, lazy, Suspense } from "react";
+import { motion } from "framer-motion";
+import { useLocation, useNavigate } from "react-router-dom";
+import MatchPopup from "@/components/MatchPopup";
+import LoginScreen from "@/screens/LoginScreen";
+import { useAppStore } from "@/store/useAppStore";
+import { useAuth } from "@/hooks/useAuth";
+import { useAccessControlFromAuth } from "@/hooks/useAccessControl";
+import { supabase } from "@/integrations/supabase/client";
 
 // Lazy-load heavy screens
-const ProfileScreen = lazy(() => import('@/screens/ProfileScreen'));
-const TravelScreen = lazy(() => import('@/screens/TravelScreen'));
-const SwipeScreen = lazy(() => import('@/screens/SwipeScreen'));
-const ChatScreen = lazy(() => import('@/screens/ChatScreen'));
-const AccountScreen = lazy(() => import('@/screens/AccountScreen'));
-const MatchesListScreen = lazy(() => import('@/screens/MatchesListScreen'));
-const AccessRequestScreen = lazy(() => import('@/screens/AccessRequestScreen'));
-const AdminPanelScreen = lazy(() => import('@/screens/AdminPanelScreen'));
+const ProfileScreen = lazy(() => import("@/screens/ProfileScreen"));
+const TravelScreen = lazy(() => import("@/screens/TravelScreen"));
+const SwipeScreen = lazy(() => import("@/screens/SwipeScreen"));
+const ChatScreen = lazy(() => import("@/screens/ChatScreen"));
+const AccountScreen = lazy(() => import("@/screens/AccountScreen"));
+const MatchesListScreen = lazy(() => import("@/screens/MatchesListScreen"));
+const AccessRequestScreen = lazy(() => import("@/screens/AccessRequestScreen"));
+const AdminPanelScreen = lazy(() => import("@/screens/AdminPanelScreen"));
 
-import { pathToScreen, screenToPath, ScreenType } from '@/lib/navigation';
+import { pathToScreen, screenToPath, ScreenType } from "@/lib/navigation";
 
 const Index = () => {
   const location = useLocation();
@@ -29,19 +29,20 @@ const Index = () => {
   const { user, loading: authLoading } = useAuth();
   const { hasAccess, status: accessStatus, loading: accessLoading } = useAccessControlFromAuth(user, authLoading);
 
-  // Single source of truth for profile completion status
-  const [profileStatus, setProfileStatus] = useState<'loading' | 'complete' | 'incomplete'>('loading');
+  const [profileStatus, setProfileStatus] = useState<"loading" | "complete" | "incomplete">("loading");
   const [checkedUserId, setCheckedUserId] = useState<string | null>(null);
 
   const userId = user?.id ?? null;
 
   // Sync screen state → URL (one-way: screen drives URL)
+  // ✅ FIXED: don't sync URL while auth is still loading — prevents premature /login redirect
   useEffect(() => {
+    if (authLoading || accessLoading || profileStatus === "loading") return;
     const expectedPath = screenToPath[currentScreen];
     if (expectedPath && location.pathname !== expectedPath) {
       navigate({ pathname: expectedPath, search: location.search }, { replace: true });
     }
-  }, [currentScreen, navigate, location.pathname, location.search]);
+  }, [currentScreen, navigate, location.pathname, location.search, authLoading, accessLoading, profileStatus]);
 
   // Check profile completion status from database
   useEffect(() => {
@@ -50,7 +51,7 @@ const Index = () => {
     const checkProfileCompletion = async () => {
       if (!userId) {
         if (!cancelled) {
-          setProfileStatus('incomplete');
+          setProfileStatus("incomplete");
           setHasCompletedProfile(false);
           setCheckedUserId(null);
         }
@@ -59,41 +60,41 @@ const Index = () => {
 
       if (checkedUserId === userId) return;
 
-      setProfileStatus('loading');
+      setProfileStatus("loading");
 
       try {
         const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('id, name, age, photos(id)')
-          .eq('user_id', userId)
+          .from("profiles")
+          .select("id, name, age, photos(id)")
+          .eq("user_id", userId)
           .maybeSingle();
 
         if (profileError) throw profileError;
 
         if (profile) {
           const p = profile as any;
-          const nameTrimmed = (p.name ?? '').trim();
-          const hasRealName = nameTrimmed.length > 0 && nameTrimmed !== 'Traveler';
-          const hasValidAge = typeof p.age === 'number' && p.age >= 18;
+          const nameTrimmed = (p.name ?? "").trim();
+          const hasRealName = nameTrimmed.length > 0 && nameTrimmed !== "Traveler";
+          const hasValidAge = typeof p.age === "number" && p.age >= 18;
           const hasPhoto = (p.photos?.length ?? 0) > 0;
           const isComplete = hasRealName && hasValidAge && hasPhoto;
 
           if (!cancelled) {
-            setProfileStatus(isComplete ? 'complete' : 'incomplete');
+            setProfileStatus(isComplete ? "complete" : "incomplete");
             setHasCompletedProfile(isComplete);
             setCheckedUserId(userId);
           }
         } else {
           if (!cancelled) {
-            setProfileStatus('incomplete');
+            setProfileStatus("incomplete");
             setHasCompletedProfile(false);
             setCheckedUserId(userId);
           }
         }
       } catch (e) {
-        console.error('Error checking profile completion:', e);
+        console.error("Error checking profile completion:", e);
         if (!cancelled) {
-          setProfileStatus('incomplete');
+          setProfileStatus("incomplete");
           setHasCompletedProfile(false);
           setCheckedUserId(userId);
         }
@@ -101,67 +102,56 @@ const Index = () => {
     };
 
     checkProfileCompletion();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [userId, setHasCompletedProfile, checkedUserId]);
 
   // ROUTING LOGIC: single effect that decides which screen to show
   useEffect(() => {
-    // Wait for all async checks to finish
-    if (authLoading || accessLoading || profileStatus === 'loading') {
-      return;
-    }
+    if (authLoading || accessLoading || profileStatus === "loading") return;
 
-    // --- Not authenticated → login ---
     if (!user) {
-      if (currentScreen !== 'login') {
-        setScreen('login');
-      }
+      if (currentScreen !== "login") setScreen("login");
       return;
     }
 
-    // --- Authenticated ---
-
-    // If on login screen, route forward
-    if (currentScreen === 'login') {
-      if (!hasAccess && accessStatus !== 'admin') {
-        setScreen('access');
-      } else if (profileStatus === 'complete') {
-        setScreen('travel');
+    if (currentScreen === "login") {
+      if (!hasAccess && accessStatus !== "admin") {
+        setScreen("access");
+      } else if (profileStatus === "complete") {
+        setScreen("travel");
       } else {
-        setScreen('profile');
+        setScreen("profile");
       }
       return;
     }
 
-    // If on access screen and now has access, move forward
-    if (currentScreen === 'access') {
-      if (hasAccess || accessStatus === 'admin') {
-        if (profileStatus === 'complete') {
-          setScreen('travel');
+    if (currentScreen === "access") {
+      if (hasAccess || accessStatus === "admin") {
+        if (profileStatus === "complete") {
+          setScreen("travel");
         } else {
-          setScreen('profile');
+          setScreen("profile");
         }
       }
       return;
     }
 
-    // Block protected screens if no access
-    const protectedScreens: ScreenType[] = ['travel', 'swipe', 'chat', 'account', 'matches', 'admin'];
-    if (!hasAccess && accessStatus !== 'admin' && protectedScreens.includes(currentScreen)) {
-      setScreen('access');
+    const protectedScreens: ScreenType[] = ["travel", "swipe", "chat", "account", "matches", "admin"];
+    if (!hasAccess && accessStatus !== "admin" && protectedScreens.includes(currentScreen)) {
+      setScreen("access");
       return;
     }
 
-    // Block core screens if profile incomplete (but allow profile screen itself)
-    const profileRequiredScreens: ScreenType[] = ['travel', 'swipe', 'chat', 'matches', 'account'];
-    if (profileStatus !== 'complete' && profileRequiredScreens.includes(currentScreen)) {
-      setScreen('profile');
+    const profileRequiredScreens: ScreenType[] = ["travel", "swipe", "chat", "matches", "account"];
+    if (profileStatus !== "complete" && profileRequiredScreens.includes(currentScreen)) {
+      setScreen("profile");
       return;
     }
 
-    // If profile is complete and user is on profile screen, send to travel
-    if (currentScreen === 'profile' && profileStatus === 'complete') {
-      setScreen('travel');
+    if (currentScreen === "profile" && profileStatus === "complete") {
+      setScreen("travel");
       return;
     }
   }, [user, authLoading, accessLoading, hasAccess, accessStatus, currentScreen, profileStatus, setScreen]);
@@ -170,18 +160,18 @@ const Index = () => {
   const [showLoadingSlowly, setShowLoadingSlowly] = useState(false);
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (authLoading || accessLoading || (user && profileStatus === 'loading')) {
+      if (authLoading || accessLoading || (user && profileStatus === "loading")) {
         setShowLoadingSlowly(true);
       }
     }, 8000);
 
     const forceFallbackTimer = setTimeout(() => {
-      if (authLoading || accessLoading || (user && profileStatus === 'loading')) {
-        console.warn('Initialization timed out. Forcing fallback.');
+      if (authLoading || accessLoading || (user && profileStatus === "loading")) {
+        console.warn("Initialization timed out. Forcing fallback.");
         if (!user) {
-          if (currentScreen !== 'login') setScreen('login');
+          if (currentScreen !== "login") setScreen("login");
         } else {
-          if (currentScreen === 'login') setScreen('profile');
+          if (currentScreen === "login") setScreen("profile");
         }
       }
     }, 15000);
@@ -192,8 +182,7 @@ const Index = () => {
     };
   }, [authLoading, accessLoading, user, profileStatus, currentScreen, setScreen]);
 
-  // Loading screen
-  if (authLoading || accessLoading || (user && profileStatus === 'loading')) {
+  if (authLoading || accessLoading || (user && profileStatus === "loading")) {
     return (
       <div className="h-[100dvh] overflow-hidden flex flex-col items-center justify-center relative">
         <div
@@ -231,23 +220,23 @@ const Index = () => {
 
   const renderScreen = () => {
     switch (currentScreen) {
-      case 'login':
+      case "login":
         return <LoginScreen />;
-      case 'access':
+      case "access":
         return <AccessRequestScreen />;
-      case 'profile':
+      case "profile":
         return <ProfileScreen />;
-      case 'travel':
+      case "travel":
         return <TravelScreen />;
-      case 'swipe':
+      case "swipe":
         return <SwipeScreen />;
-      case 'chat':
+      case "chat":
         return <ChatScreen />;
-      case 'account':
+      case "account":
         return <AccountScreen />;
-      case 'matches':
+      case "matches":
         return <MatchesListScreen />;
-      case 'admin':
+      case "admin":
         return <AdminPanelScreen />;
       default:
         return <LoginScreen />;
@@ -256,9 +245,7 @@ const Index = () => {
 
   return (
     <div className="h-[100dvh] overflow-hidden bg-background">
-      <Suspense fallback={null}>
-        {renderScreen()}
-      </Suspense>
+      <Suspense fallback={null}>{renderScreen()}</Suspense>
       <MatchPopup />
     </div>
   );
