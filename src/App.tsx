@@ -10,32 +10,11 @@ import AuthCallback from "./pages/AuthCallback";
 
 const queryClient = new QueryClient();
 
-function hasAuthParams(href: string): boolean {
-  try {
-    const url = new URL(href);
-    const hash = url.hash ? new URLSearchParams(url.hash.startsWith("#") ? url.hash.slice(1) : url.hash) : null;
-    if (hash && (hash.has("access_token") || hash.has("code"))) return true;
-    if (url.searchParams.has("access_token") || url.searchParams.has("code")) return true;
-  } catch {
-    // ignore
-  }
-  return false;
-}
-
 function RootRedirect() {
   const navigate = useNavigate();
-
   useEffect(() => {
-    if (hasAuthParams(window.location.href)) {
-      const origin = window.location.origin;
-      const search = window.location.search || "";
-      const hash = window.location.hash || "";
-      window.location.replace(`${origin}/auth/callback${search}${hash}`);
-      return;
-    }
     navigate("/login", { replace: true });
   }, [navigate]);
-
   return (
     <div className="h-[100dvh] flex items-center justify-center text-muted-foreground">
       Redirecting...
