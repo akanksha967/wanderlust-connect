@@ -20,6 +20,7 @@ const AuthCallback = () => {
 
   useEffect(() => {
     let cancelled = false;
+
     const run = async () => {
       const params = getParamsFromUrl();
 
@@ -45,7 +46,7 @@ const AuthCallback = () => {
       } catch (e) {
         console.error("Auth callback error:", e);
         if (!cancelled) setError(e instanceof Error ? e.message : "Failed to sign in");
-        return; // ✅ also add this so we don't fall through to the redirect loop below
+        return;
       }
 
       if (cancelled) return;
@@ -55,7 +56,7 @@ const AuthCallback = () => {
         const { data } = await supabase.auth.getSession();
         if (data?.session) {
           window.history.replaceState(null, "", window.location.pathname);
-          window.location.replace(`${window.location.origin}/`); // ✅ redirect to home/dashboard
+          window.location.replace(`${window.location.origin}/travel`); // ✅ FIXED: was "/"
           return;
         }
         await new Promise((r) => setTimeout(r, 100));
@@ -63,7 +64,7 @@ const AuthCallback = () => {
 
       // Session never confirmed — send to login as fallback
       window.history.replaceState(null, "", window.location.pathname);
-      window.location.replace(`${window.location.origin}/login`); // ✅ this one stays as /login (timeout/failure case)
+      window.location.replace(`${window.location.origin}/login`);
     };
 
     run();
