@@ -33,7 +33,13 @@ const Index = () => {
   const [checkedUserId, setCheckedUserId] = useState<string | null>(null);
 
   const userId = user?.id ?? null;
-
+  // Handle OAuth hash tokens when landing directly on root URL
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash && hash.includes("access_token")) {
+      window.location.replace(`${window.location.origin}/auth/callback${hash}`);
+    }
+  }, []);
   // Sync screen state → URL (one-way: screen drives URL)
   // ✅ FIXED: don't sync URL while auth is still loading — prevents premature /login redirect
   useEffect(() => {
