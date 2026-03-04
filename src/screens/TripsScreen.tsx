@@ -4,7 +4,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { useTrips, Trip } from '@/hooks/useTrips';
 import { useAuth } from '@/hooks/useAuth';
 import { ArrowLeft, Plus, MapPin, Calendar, Users, DollarSign, Compass, Loader2, X } from 'lucide-react';
-import { NotificationBell } from '@/components/NotificationBell';
+
 import { format } from 'date-fns';
 
 const glassStyle = {
@@ -213,7 +213,7 @@ const TripsScreen = () => {
         <div className="flex-1">
           <h1 className="text-xl font-display text-white drop-shadow-lg">Trip Boards</h1>
         </div>
-        <NotificationBell />
+        
         <button onClick={() => setShowCreate(true)} className="w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-r from-sky-500 to-indigo-500 border border-white/30 shadow-lg">
           <Plus className="w-5 h-5 text-white" />
         </button>
