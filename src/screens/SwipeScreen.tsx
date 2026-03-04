@@ -291,6 +291,7 @@ const SwipeScreen = () => {
         style={{ backgroundImage: `url(${bgImage})` }}
       />
       <div className="absolute inset-0 bg-gradient-to-b from-sky-300/40 via-blue-200/35 to-indigo-300/40" />
+      <div className="absolute inset-0 backdrop-blur-[2px]" />
 
       {/* Header */}
       <div className="relative z-10 px-4 pt-12 pb-2 flex items-center justify-between shrink-0">

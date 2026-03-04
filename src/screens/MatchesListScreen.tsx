@@ -55,6 +55,7 @@ const MatchesListScreen = () => {
         style={{ backgroundImage: `url(https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&auto=format&fit=crop)` }}
       />
       <div className="fixed inset-0 bg-gradient-to-b from-sky-300/40 via-blue-200/35 to-indigo-300/40" />
+      <div className="fixed inset-0 backdrop-blur-[2px]" />
 
       {/* Header - no refresh button */}
       <div className="relative z-10 px-4 pt-12 pb-4 flex items-center gap-4 border-b border-white/20">
