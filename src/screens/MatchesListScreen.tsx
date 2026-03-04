@@ -140,8 +140,15 @@ const MatchesListScreen = () => {
                   </div>
                 </div>
 
-                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 flex items-center justify-center shadow-lg border border-white/30">
-                  <MessageCircle className="w-5 h-5 text-white" />
+                <div 
+                  className="w-10 h-10 rounded-full backdrop-blur-xl flex items-center justify-center"
+                  style={{
+                    background: 'rgba(255,255,255,0.08)',
+                    border: '1.5px solid rgba(167,139,250,0.5)',
+                    boxShadow: '0 4px 16px rgba(139,92,246,0.2)',
+                  }}
+                >
+                  <MessageCircle className="w-4.5 h-4.5 text-violet-300" />
                 </div>
               </motion.button>
             ))}
@@ -164,8 +171,15 @@ const MatchesListScreen = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="flex flex-col items-center justify-center h-full text-center px-8"
           >
-            <div className="w-24 h-24 rounded-full bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 flex items-center justify-center mb-6 shadow-lg animate-float">
-              <Heart className="w-12 h-12 text-white" />
+            <div 
+              className="w-24 h-24 rounded-full backdrop-blur-xl flex items-center justify-center mb-6 shadow-lg animate-float"
+              style={{
+                background: 'rgba(255,255,255,0.08)',
+                border: '2px solid rgba(167,139,250,0.4)',
+                boxShadow: '0 8px 32px rgba(139,92,246,0.25), 0 0 40px rgba(167,139,250,0.15)',
+              }}
+            >
+              <Heart className="w-10 h-10 text-violet-300" strokeWidth={1.5} />
             </div>
             <h3 className="text-xl font-display text-white drop-shadow-lg mb-2">
               No matches yet
@@ -175,7 +189,12 @@ const MatchesListScreen = () => {
             </p>
             <button
               onClick={() => setScreen('swipe')}
-              className="px-6 py-3 rounded-full bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 text-white font-medium shadow-lg border border-white/30 transition-smooth hover:shadow-xl hover:scale-105"
+              className="px-6 py-3 rounded-full backdrop-blur-xl text-violet-200 font-medium shadow-lg transition-smooth hover:shadow-xl hover:scale-105"
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                border: '1.5px solid rgba(167,139,250,0.45)',
+                boxShadow: '0 8px 32px rgba(139,92,246,0.2)',
+              }}
             >
               Start Swiping
             </button>
