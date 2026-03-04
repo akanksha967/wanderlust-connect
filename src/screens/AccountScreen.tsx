@@ -24,7 +24,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfileSave } from "@/hooks/useProfileSave";
-
+import { useGoogleMapsKey } from "@/hooks/useGoogleMapsKey";
+import GoogleMapsDestinationPicker from "@/components/GoogleMapsDestinationPicker";
 const vibeOptions = [
   "Adventure",
   "Relaxation",
@@ -63,6 +64,7 @@ const AccountScreen = () => {
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const { apiKey, loading: loadingMapsKey } = useGoogleMapsKey();
 
   // Fetch profile data from database on mount
   useEffect(() => {
@@ -506,15 +508,26 @@ const AccountScreen = () => {
             <div className="p-5 rounded-[24px] bg-white/30 backdrop-blur-2xl border border-white/40 shadow-[0_30px_80px_rgba(0,0,0,0.15)] space-y-4">
               <div>
                 <label className="text-xs text-white/80 mb-1 block drop-shadow">Destination</label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                {loadingMapsKey ? (
                   <Input
                     value={destination}
-                    onChange={(e) => setDestination(e.target.value)}
-                    placeholder="Where are you going?"
-                    className="h-12 pl-10 rounded-xl bg-white/80 border border-white/50 text-gray-900 placeholder:text-gray-400"
+                    placeholder="Loading destination search..."
+                    disabled
+                    className="h-12 rounded-xl bg-white/80 border border-white/50 text-gray-900"
                   />
-                </div>
+                ) : apiKey ? (
+                  <GoogleMapsDestinationPicker apiKey={apiKey} value={destination} onChange={setDestination} />
+                ) : (
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                    <Input
+                      value={destination}
+                      onChange={(e) => setDestination(e.target.value)}
+                      placeholder="Where are you going?"
+                      className="h-12 pl-10 rounded-xl bg-white/80 border border-white/50 text-gray-900 placeholder:text-gray-400"
+                    />
+                  </div>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
