@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
@@ -20,6 +20,8 @@ export const useNotifications = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const { profileId } = useAuth();
+  const isClearing = useRef(false);
+  const refreshTimeout = useRef<number | null>(null);
 
   const fetchNotifications = useCallback(async () => {
     if (!profileId) {
@@ -29,12 +31,12 @@ export const useNotifications = () => {
 
     try {
       // Fetch non-like notifications (no limit needed)
-      const { data: otherData, error: otherError } = await supabase
+      const { data: otherData, error: otherError } = await (supabase
         .from('notifications')
         .select('*')
-        .eq('user_id', profileId)
+        .eq('user_id', profileId) as any)
         .neq('status', 'cleared')
-        .not('type', 'in', '("like","destination_match")')
+        .filter('type', 'not.in', '("like","destination_match")')
         .order('created_at', { ascending: false })
         .limit(20);
 
@@ -98,8 +100,14 @@ export const useNotifications = () => {
         },
         async (payload) => {
           console.log('[Realtime Notif]', payload.eventType);
-          // For any change, refreshing ensures we have the latest state with any linked profile data
-          await fetchNotifications();
+          if (isClearing.current) return;
+
+          // Debounce refresh to handle bulk updates gracefully
+          if (refreshTimeout.current) window.clearTimeout(refreshTimeout.current);
+          refreshTimeout.current = window.setTimeout(async () => {
+            await fetchNotifications();
+            refreshTimeout.current = null;
+          }, 500);
         }
       )
       .subscribe((status) => {
@@ -155,15 +163,16 @@ export const useNotifications = () => {
   };
 
   const clearAll = async () => {
-    if (!profileId) return;
+    if (!profileId || isClearing.current) return;
     try {
+      isClearing.current = true;
       // Optimistically clear local state
       const previousNotifications = [...notifications];
       setNotifications([]);
 
       const { error } = await supabase
         .from('notifications')
-        .update({ status: 'cleared' })
+        .update({ status: 'cleared' } as any)
         .eq('user_id', profileId)
         .neq('status', 'cleared');
 
@@ -175,6 +184,11 @@ export const useNotifications = () => {
       }
     } catch (error) {
       console.error('Error clearing notifications:', error);
+    } finally {
+      // Small delay to let DB catch up before re-enabling real-time refreshes
+      setTimeout(() => {
+        isClearing.current = false;
+      }, 1000);
     }
   };
 

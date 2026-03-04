@@ -292,9 +292,11 @@ const SwipeScreen = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setScreen('trips')}
-            className="w-11 h-11 flex items-center justify-center rounded-full bg-white/30 backdrop-blur-xl border border-white/40 shadow-lg transition-all hover:bg-white/40 active:scale-95"
+            className="group flex items-center gap-2 px-4 h-11 rounded-full bg-white/30 backdrop-blur-xl border border-white/40 shadow-lg transition-all hover:bg-white/40 active:scale-95"
           >
             <Compass className="w-5 h-5 text-white" />
+            <span className="text-xs font-bold text-white tracking-wider hidden sm:block">MY CREWS</span>
+            <div className="w-2 h-2 bg-sky-400 rounded-full border border-white animate-pulse" />
           </button>
           <NotificationBell />
           <button
@@ -407,26 +409,7 @@ const SwipeScreen = () => {
         </div>
       )}
 
-      {/* Floating My Crews Button */}
-      {!loading && (
-        <motion.button
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={() => setScreen('trips')}
-          className="fixed bottom-28 left-6 z-30 w-14 h-14 flex items-center justify-center rounded-2xl backdrop-blur-2xl shadow-2xl border border-white/40 bg-gradient-to-br from-indigo-500/40 to-purple-500/40"
-          title="My Crews"
-        >
-          <div className="relative">
-            <Compass className="w-7 h-7 text-white drop-shadow-lg" />
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-sky-400 rounded-full border-2 border-white animate-pulse" />
-          </div>
-          <span className="absolute -top-8 left-0 px-2 py-1 rounded-lg bg-black/40 backdrop-blur-md text-[10px] text-white font-bold tracking-wider opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-            MY CREWS
-          </span>
-        </motion.button>
-      )}
+      {/* Floating My Crews Button removed and merged into header */}
 
       <ReportBlockDialog
         isOpen={showReportDialog}
