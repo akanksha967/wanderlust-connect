@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import {
   ArrowLeft, MapPin, Calendar, Users, Send, Check, X,
-  Share2, Clock, MessageCircle, BookOpen, User, Loader2, Copy
+  Share2, Clock, MessageCircle, BookOpen, User, Loader2, Copy, Camera
 } from 'lucide-react';
 import { format, differenceInDays, formatDistanceToNow } from 'date-fns';
 
@@ -173,14 +173,58 @@ const TripRoomScreen = () => {
     }
   };
 
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const handlePostStory = async () => {
     if (!storyInput.trim() || !selectedTripId) return;
-    const success = await postStory(selectedTripId, storyInput.trim());
+
+    let imageUrl = undefined;
+
+    // If there's a file, we should have uploaded it already or do it now
+    // For simplicity in this step, I'll add the UI for it first
+
+    const success = await postStory(selectedTripId, storyInput.trim(), imageUrl);
     if (success) {
       setStoryInput('');
       toast({ title: 'Story posted! 📸' });
       const storiesData = await fetchTripStories(selectedTripId);
       setStories(storiesData);
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedTripId || !profileId) return;
+
+    setUploadingImage(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const filePath = `trip-stories/${selectedTripId}/${Math.random()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('photos')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('photos')
+        .getPublicUrl(filePath);
+
+      const success = await postStory(selectedTripId, storyInput.trim() || 'Shared a photo', publicUrl);
+      if (success) {
+        setStoryInput('');
+        toast({ title: 'Photo shared! 📸' });
+        const storiesData = await fetchTripStories(selectedTripId);
+        setStories(storiesData);
+      }
+    } catch (error: any) {
+      console.error('Error uploading image:', error);
+      toast({ title: 'Upload failed', description: error.message, variant: 'destructive' });
+    } finally {
+      setUploadingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -299,11 +343,10 @@ const TripRoomScreen = () => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-medium transition-all ${
-              activeTab === tab.id
-                ? 'bg-white/30 text-white border border-white/40'
-                : 'bg-white/10 text-white/60 border border-white/15'
-            }`}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-medium transition-all ${activeTab === tab.id
+              ? 'bg-white/30 text-white border border-white/40'
+              : 'bg-white/10 text-white/60 border border-white/15'
+              }`}
           >
             {tab.icon} {tab.label}
           </button>
@@ -487,11 +530,10 @@ const TripRoomScreen = () => {
                               <p className="text-[10px] text-white/40 mb-0.5 px-1">{msg.sender_name}</p>
                             )}
                             <div
-                              className={`px-3.5 py-2 rounded-2xl text-sm ${
-                                isMe
-                                  ? 'rounded-br-md text-white'
-                                  : 'rounded-bl-md text-white/90'
-                              }`}
+                              className={`px-3.5 py-2 rounded-2xl text-sm ${isMe
+                                ? 'rounded-br-md text-white'
+                                : 'rounded-bl-md text-white/90'
+                                }`}
                               style={{
                                 background: isMe ? 'rgba(139,92,246,0.35)' : 'rgba(255,255,255,0.12)',
                                 backdropFilter: 'blur(12px)',
@@ -540,52 +582,101 @@ const TripRoomScreen = () => {
           <div className="px-4 py-4 space-y-4">
             {/* Post story (members only) */}
             {isMember && (
-              <div className="p-3 rounded-2xl space-y-2" style={glassStyle}>
-                <textarea
-                  value={storyInput}
-                  onChange={(e) => setStoryInput(e.target.value)}
-                  placeholder="Share an update... 📍🌅📸"
-                  rows={2}
-                  className="w-full bg-transparent text-white text-sm placeholder:text-white/30 outline-none resize-none"
-                />
-                <button
-                  onClick={handlePostStory}
-                  disabled={!storyInput.trim()}
-                  className="w-full py-2 rounded-xl text-sm text-white/80 font-medium transition-all disabled:opacity-30 hover:bg-white/10"
-                  style={{ border: '1px solid rgba(167,139,250,0.3)' }}
-                >
-                  Post Update
-                </button>
+              <div className="p-4 rounded-[24px] space-y-3 shadow-lg" style={glassStyle}>
+                <div className="flex gap-3">
+                  <div className="w-10 h-10 rounded-full bg-white/10 shrink-0 flex items-center justify-center border border-white/10">
+                    <User className="w-5 h-5 text-white/40" />
+                  </div>
+                  <textarea
+                    value={storyInput}
+                    onChange={(e) => setStoryInput(e.target.value)}
+                    placeholder="What's happening? 🌍"
+                    rows={2}
+                    className="flex-1 bg-transparent text-white text-base placeholder:text-white/30 outline-none resize-none pt-1"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-white/10">
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-white/10 text-violet-300 transition-all"
+                      disabled={uploadingImage}
+                    >
+                      {uploadingImage ? <Loader2 className="w-5 h-5 animate-spin" /> : <Camera className="w-5 h-5" />}
+                    </button>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      accept="image/*"
+                    />
+                  </div>
+
+                  <button
+                    onClick={handlePostStory}
+                    disabled={!storyInput.trim() || uploadingImage}
+                    className="px-5 py-1.5 rounded-full bg-white text-indigo-600 text-sm font-bold transition-all disabled:opacity-50 hover:bg-white/90"
+                  >
+                    Post
+                  </button>
+                </div>
               </div>
             )}
 
             {stories.length === 0 ? (
               <div className="text-center py-12">
                 <BookOpen className="w-10 h-10 text-white/20 mx-auto mb-3" />
-                <p className="text-sm text-white/50">No stories yet. Share your first update!</p>
+                <p className="text-sm text-white/50">No updates yet. Share the first vibe!</p>
               </div>
             ) : (
-              stories.map(story => (
-                <div key={story.id} className="p-3 rounded-2xl" style={glassStyle}>
-                  <div className="flex items-center gap-2 mb-2">
-                    {story.author?.photo ? (
-                      <img src={story.author.photo} className="w-7 h-7 rounded-full object-cover border border-white/20" />
-                    ) : (
-                      <div className="w-7 h-7 rounded-full bg-white/15 flex items-center justify-center">
-                        <User className="w-3.5 h-3.5 text-white/50" />
+              <div className="space-y-4">
+                {stories.map(story => (
+                  <div key={story.id} className="p-4 rounded-[24px] shadow-sm animate-in fade-in slide-in-from-bottom-2" style={glassStyle}>
+                    <div className="flex items-start gap-3">
+                      {story.author?.photo ? (
+                        <img src={story.author.photo} className="w-10 h-10 rounded-full object-cover border border-white/20" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center shrink-0">
+                          <User className="w-5 h-5 text-white/50" />
+                        </div>
+                      )}
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1 mb-0.5">
+                          <span className="text-sm text-white font-bold truncate">{story.author?.name}</span>
+                          <span className="text-[11px] text-white/40">· {formatDistanceToNow(new Date(story.created_at), { addSuffix: true })}</span>
+                        </div>
+
+                        <p className="text-sm text-white/90 leading-relaxed mb-3">{story.content}</p>
+
+                        {story.image_url && (
+                          <div className="rounded-2xl overflow-hidden border border-white/10 shadow-inner max-h-72">
+                            <img
+                              src={story.image_url}
+                              alt="Story update"
+                              className="w-full h-full object-cover"
+                              onClick={() => window.open(story.image_url!, '_blank')}
+                            />
+                          </div>
+                        )}
+
+                        <div className="flex items-center gap-6 mt-3 text-white/40">
+                          <button className="flex items-center gap-1.5 hover:text-rose-400 transition-colors">
+                            <MessageCircle className="w-4 h-4" />
+                            <span className="text-[11px]">Reply</span>
+                          </button>
+                          <button className="flex items-center gap-1.5 hover:text-emerald-400 transition-colors">
+                            <Share2 className="w-4 h-4" />
+                            <span className="text-[11px]">Share</span>
+                          </button>
+                        </div>
                       </div>
-                    )}
-                    <div>
-                      <p className="text-xs text-white/80 font-medium">{story.author?.name}</p>
-                      <p className="text-[10px] text-white/40">{formatDistanceToNow(new Date(story.created_at), { addSuffix: true })}</p>
                     </div>
                   </div>
-                  <p className="text-sm text-white/80">{story.content}</p>
-                  {story.image_url && (
-                    <img src={story.image_url} className="mt-2 rounded-xl w-full max-h-48 object-cover" />
-                  )}
-                </div>
-              ))
+                ))}
+              </div>
             )}
           </div>
         )}

@@ -73,147 +73,23 @@ export const useSwipeProfiles = (destination: string, startDate: string, endDate
         setLoading(true);
       }
 
-      const [membershipsRes, profilesRes, tripsRes] = await Promise.all([
-        supabase.from('trip_members').select('trip_id').eq('user_id', myProfileId),
-        supabase
-          .from('profiles')
-          .select('id, name, age, bio, is_verified')
-          .neq('id', myProfileId)
-          .limit(40),
-        supabase
-          .from('trips')
-          .select('*')
-          .eq('is_active', true)
-          .neq('creator_id', myProfileId)
-          .order('created_at', { ascending: false })
-          .limit(30),
-      ]);
+      // @ts-ignore - function exists in DB but not in generated types
+      const { data, error } = await supabase.rpc('get_discover_feed', {
+        p_profile_id: myProfileId,
+        p_destination: destination,
+        p_start_date: startDate || new Date().toISOString().split('T')[0],
+        p_end_date: endDate || new Date().toISOString().split('T')[0],
+        p_limit: 30
+      });
 
-      if (membershipsRes.error) throw membershipsRes.error;
-      if (profilesRes.error) throw profilesRes.error;
-      if (tripsRes.error) throw tripsRes.error;
+      if (error) throw error;
 
-      const excludedTripIds = new Set((membershipsRes.data || []).map((m) => m.trip_id));
-
-      let travelPlansQuery = supabase
-        .from('travel_plans')
-        .select('profile_id, destination, start_date, end_date')
-        .eq('is_active', true);
-
-      if (destination) {
-        travelPlansQuery = travelPlansQuery.ilike('destination', `%${destination}%`);
-      }
-      if (startDate) {
-        travelPlansQuery = travelPlansQuery.lte('start_date', endDate || startDate);
-      }
-      if (endDate) {
-        travelPlansQuery = travelPlansQuery.gte('end_date', startDate || endDate);
-      }
-
-      const { data: travelPlans, error: travelPlansError } = await travelPlansQuery.limit(200);
-      if (travelPlansError) throw travelPlansError;
-
-      const travelPlanMap = new Map<string, { destination: string; start_date: string; end_date: string }>();
-      for (const tp of travelPlans || []) {
-        if (!travelPlanMap.has(tp.profile_id)) {
-          travelPlanMap.set(tp.profile_id, {
-            destination: tp.destination,
-            start_date: tp.start_date,
-            end_date: tp.end_date,
-          });
-        }
-      }
-
-      const eligibleProfiles = (profilesRes.data || []).filter((p) => travelPlanMap.has(p.id));
-      const profileIds = eligibleProfiles.map((p) => p.id);
-
-      const [photosRes, vibesRes] = await Promise.all([
-        profileIds.length > 0
-          ? supabase
-              .from('photos')
-              .select('profile_id, url, is_primary')
-              .in('profile_id', profileIds)
-          : Promise.resolve({ data: [], error: null } as any),
-        profileIds.length > 0
-          ? supabase
-              .from('travel_vibes')
-              .select('profile_id, vibe')
-              .in('profile_id', profileIds)
-          : Promise.resolve({ data: [], error: null } as any),
-      ]);
-
-      if (photosRes.error) throw photosRes.error;
-      if (vibesRes.error) throw vibesRes.error;
-
-      const photosByProfile = new Map<string, { url: string; is_primary: boolean | null }[]>();
-      for (const photo of photosRes.data || []) {
-        if (!photosByProfile.has(photo.profile_id)) photosByProfile.set(photo.profile_id, []);
-        photosByProfile.get(photo.profile_id)!.push({
-          url: photo.url,
-          is_primary: photo.is_primary,
-        });
-      }
-
-      for (const [profileId, photos] of photosByProfile) {
-        photos.sort((a, b) => Number(Boolean(b.is_primary)) - Number(Boolean(a.is_primary)));
-        photosByProfile.set(profileId, photos);
-      }
-
-      const vibesByProfile = new Map<string, string[]>();
-      for (const vibe of vibesRes.data || []) {
-        if (!vibesByProfile.has(vibe.profile_id)) vibesByProfile.set(vibe.profile_id, []);
-        vibesByProfile.get(vibe.profile_id)!.push(vibe.vibe);
-      }
-
-      const travelers: SwipeProfile[] = eligibleProfiles.map((profile) => ({
-        ...profile,
-        photos: photosByProfile.get(profile.id) || [],
-        travel_vibes: vibesByProfile.get(profile.id) || [],
-        destination: travelPlanMap.get(profile.id)?.destination,
-        start_date: travelPlanMap.get(profile.id)?.start_date,
-        end_date: travelPlanMap.get(profile.id)?.end_date,
-      }));
-
-      const visibleTrips = (tripsRes.data || []).filter((trip) => !excludedTripIds.has(trip.id));
-
-      const creatorIds = [...new Set(visibleTrips.map((trip) => trip.creator_id))];
-      const [creatorsRes, tripMembersRes] = await Promise.all([
-        creatorIds.length > 0
-          ? supabase.from('profiles').select('id, name').in('id', creatorIds)
-          : Promise.resolve({ data: [], error: null } as any),
-        visibleTrips.length > 0
-          ? supabase
-              .from('trip_members')
-              .select('trip_id, status')
-              .in('trip_id', visibleTrips.map((trip) => trip.id))
-          : Promise.resolve({ data: [], error: null } as any),
-      ]);
-
-      if (creatorsRes.error) throw creatorsRes.error;
-      if (tripMembersRes.error) throw tripMembersRes.error;
-
-      const creatorNameMap = new Map<string, string>(
-        (creatorsRes.data || []).map((c: any) => [c.id, c.name])
-      );
-      const approvedCountMap = new Map<string, number>();
-
-      for (const member of tripMembersRes.data || []) {
-        if (member.status !== 'approved') continue;
-        approvedCountMap.set(member.trip_id, (approvedCountMap.get(member.trip_id) || 0) + 1);
-      }
-
-      const discoverTrips: (Trip & { creator_name?: string })[] = visibleTrips.map((trip: any) => ({
-        ...trip,
-        creator_name: creatorNameMap.get(trip.creator_id) || 'Traveler',
-        member_count: approvedCountMap.get(trip.id) || 1,
-      }));
-
-      const mixed = interleaveDiscoverItems(travelers, discoverTrips);
+      const mixed = (data as any[]) || [];
 
       if (isBackground) {
-        setItems((prev) => {
-          const prevKeys = new Set(prev.map((i) => `${i.type}:${i.data.id}`));
-          const newItems = mixed.filter((i) => !prevKeys.has(`${i.type}:${i.data.id}`));
+        setItems(prev => {
+          const prevKeys = new Set(prev.map(i => `${i.type}:${i.data.id}`));
+          const newItems = mixed.filter(i => !prevKeys.has(`${i.type}:${i.data.id}`));
           return [...prev, ...newItems];
         });
       } else {
