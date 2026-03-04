@@ -1,4 +1,4 @@
-export type ScreenType = "login" | "profile" | "travel" | "swipe" | "chat" | "account" | "matches" | "access" | "admin" | "trips";
+export type ScreenType = "login" | "profile" | "travel" | "swipe" | "chat" | "account" | "matches" | "access" | "admin" | "trips" | "tripRoom";
 
 export const pathToScreen: Record<string, ScreenType> = {
   "/": "login",
@@ -12,6 +12,7 @@ export const pathToScreen: Record<string, ScreenType> = {
   "/admin": "admin",
   "/access": "access",
   "/trips": "trips",
+  "/trip": "tripRoom",
 };
 
 export const screenToPath: Record<ScreenType, string> = {
@@ -25,4 +26,5 @@ export const screenToPath: Record<ScreenType, string> = {
   admin: "/admin",
   access: "/access",
   trips: "/trips",
+  tripRoom: "/trip",
 };
