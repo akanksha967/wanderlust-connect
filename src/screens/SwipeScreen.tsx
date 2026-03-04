@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { AIItineraryAssistant } from '@/components/AIItineraryAssistant';
 import { supabase } from '@/integrations/supabase/client';
 import { NotificationBell } from '@/components/NotificationBell';
-import { DailyLikesIndicator } from '@/components/DailyLikesIndicator';
+
 import { useDailyLikes } from '@/hooks/useDailyLikes';
 import SwipeTripCard from '@/components/SwipeTripCard';
 import { useTrips } from '@/hooks/useTrips';
@@ -200,10 +200,15 @@ const SwipeScreen = () => {
     if (currentItem.type === 'traveler') {
       const currentProfile = currentItem.data;
       if (direction === 'right') {
-        if (isExhausted) return;
+        if (isExhausted) {
+          // Still move past the card but inform user
+          setCurrentIndex((prev) => prev + 1);
+          return;
+        }
         if (user) {
           const result = await createLike(currentProfile.id);
           if (!result.success) {
+            // Move past card even on failure
             setCurrentIndex((prev) => prev + 1);
             return;
           }
@@ -239,7 +244,6 @@ const SwipeScreen = () => {
           await requestToJoin(currentTrip.id);
         }
       }
-      // Record trip "swipe" is handled by the member request or just skipping
     }
 
     setCurrentIndex((prev) => prev + 1);
@@ -371,29 +375,36 @@ const SwipeScreen = () => {
 
       {/* Action buttons */}
       {!loading && !likesLoading && remainingItems.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-20 px-4 pb-8 pt-4 flex justify-center items-center gap-8 bg-gradient-to-t from-black/20 to-transparent">
+        <div className="fixed bottom-0 left-0 right-0 z-20 px-4 pb-8 pt-4 flex justify-center items-center gap-6 bg-gradient-to-t from-black/20 to-transparent">
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => handleButtonSwipe('left')}
-            className="w-16 h-16 flex items-center justify-center rounded-full bg-white/20 backdrop-blur-xl border border-white/30 shadow-lg transition-all"
+            className="w-14 h-14 flex items-center justify-center rounded-full backdrop-blur-xl shadow-lg transition-all"
+            style={{
+              background: 'rgba(255,255,255,0.08)',
+              border: '1.5px solid rgba(255,255,255,0.25)',
+              boxShadow: '0 8px 32px -8px rgba(0,0,0,0.2)',
+            }}
           >
-            <X className="w-8 h-8 text-white" strokeWidth={2.5} />
+            <X className="w-6 h-6 text-white/80" strokeWidth={2} />
           </motion.button>
 
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => handleButtonSwipe('right')}
-            className={`w-16 h-16 flex items-center justify-center rounded-full border border-white/30 shadow-lg transition-all ${remainingItems[0]?.type === 'trip'
-                ? 'bg-gradient-to-r from-emerald-500 to-teal-500'
-                : 'bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500'
-              }`}
+            className="w-14 h-14 flex items-center justify-center rounded-full backdrop-blur-xl shadow-lg transition-all"
+            style={{
+              background: 'rgba(255,255,255,0.08)',
+              border: '1.5px solid rgba(167,139,250,0.5)',
+              boxShadow: '0 8px 32px -8px rgba(139,92,246,0.25), 0 0 20px rgba(167,139,250,0.15)',
+            }}
           >
             {remainingItems[0]?.type === 'trip' ? (
-              <Compass className="w-8 h-8 text-white" strokeWidth={2.5} />
+              <Compass className="w-6 h-6 text-violet-300" strokeWidth={2} />
             ) : (
-              <Heart className="w-8 h-8 text-white" strokeWidth={2.5} />
+              <Heart className="w-6 h-6 text-violet-300" strokeWidth={2} />
             )}
           </motion.button>
         </div>
@@ -407,7 +418,7 @@ const SwipeScreen = () => {
         userName={selectedProfile?.name || ''}
       />
 
-      <DailyLikesIndicator />
+      
       <AIItineraryAssistant destination={destination} />
     </div>
   );

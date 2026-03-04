@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, X, Heart, Globe, Plane, Users, ChevronRight } from 'lucide-react';
 import { useNotifications, Notification } from '@/hooks/useNotifications';
+import { useDailyLikes } from '@/hooks/useDailyLikes';
 import { formatDistanceToNow } from 'date-fns';
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -71,6 +72,7 @@ export const NotificationBell = () => {
   const [isOpen, setIsOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const { notifications, unreadCount, loading, revealLike, dismissNotification, clearAll } = useNotifications();
+  const { likesRemaining, maxLikes, loading: likesLoading } = useDailyLikes();
 
   // Close on click outside
   useEffect(() => {
@@ -120,14 +122,22 @@ export const NotificationBell = () => {
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.1]">
               <h3 className="text-sm font-semibold text-white">Notifications</h3>
-              {notifications.length > 0 && (
-                <button
-                  onClick={clearAll}
-                  className="text-xs text-white/40 hover:text-white/70 transition-colors"
-                >
-                  Clear all
-                </button>
-              )}
+              <div className="flex items-center gap-3">
+                {!likesLoading && (
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.08] border border-white/[0.1]">
+                    <Heart className="w-3 h-3 text-violet-300" />
+                    <span className="text-[11px] text-white/60">{likesRemaining}/{maxLikes}</span>
+                  </div>
+                )}
+                {notifications.length > 0 && (
+                  <button
+                    onClick={clearAll}
+                    className="text-xs text-white/40 hover:text-white/70 transition-colors"
+                  >
+                    Clear all
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Notifications list */}
