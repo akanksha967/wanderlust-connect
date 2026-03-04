@@ -318,7 +318,7 @@ const SwipeScreen = () => {
                 <div className="w-20 h-20 rounded-full bg-white/30 backdrop-blur-xl border border-white/40 flex items-center justify-center mb-4 shadow-lg">
                   <Loader2 className="w-10 h-10 text-white animate-spin" />
                 </div>
-                <p className="text-sm text-white drop-shadow-lg">Finding matches...</p>
+                <p className="text-sm text-white drop-shadow-lg">Scanning the globe for your crew ✈️</p>
               </motion.div>
             ) : remainingItems.length > 0 ? (
               remainingItems.slice(0, 2).reverse().map((item, index) => {
@@ -355,7 +355,7 @@ const SwipeScreen = () => {
               >
                 <Compass className="w-10 h-10 text-white/25 mb-3" />
                 <p className="text-sm text-white/60 max-w-xs mb-4">
-                  No more matches right now. Try expanding your search or check back later.
+                  You've seen everyone nearby 🌍 Check back soon — new travelers join every day!
                 </p>
                 <button
                   onClick={() => refresh()}
