@@ -24,25 +24,22 @@ export const useNotifications = () => {
   const refreshTimeout = useRef<number | null>(null);
 
   const fetchNotifications = useCallback(async () => {
-    if (!profileId) {
-      setLoading(false);
-      return;
-    }
+    if (!profileId || isClearing.current) return;
 
     try {
-      // Fetch non-like notifications (no limit needed)
+      // Fetch non-like notifications
       const { data: otherData, error: otherError } = await (supabase
         .from('notifications')
         .select('*')
         .eq('user_id', profileId) as any)
         .neq('status', 'cleared')
-        .filter('type', 'not.in', '("like","destination_match")')
+        .not('type', 'in', '("like","destination_match")')
         .order('created_at', { ascending: false })
         .limit(20);
 
       if (otherError) throw otherError;
 
-      // Fetch unread like/destination_match notifications — backend-limited to 3
+      // Fetch unread like/destination_match notifications
       const { data: unreadLikes, error: likesError } = await supabase
         .from('notifications')
         .select('*')
@@ -65,6 +62,8 @@ export const useNotifications = () => {
         .limit(10);
 
       if (readError) throw readError;
+
+      if (isClearing.current) return;
 
       const all = [
         ...((otherData as any[]) || []),
@@ -105,7 +104,9 @@ export const useNotifications = () => {
           // Debounce refresh to handle bulk updates gracefully
           if (refreshTimeout.current) window.clearTimeout(refreshTimeout.current);
           refreshTimeout.current = window.setTimeout(async () => {
-            await fetchNotifications();
+            if (!isClearing.current) {
+              await fetchNotifications();
+            }
             refreshTimeout.current = null;
           }, 500);
         }
@@ -116,6 +117,7 @@ export const useNotifications = () => {
 
     return () => {
       supabase.removeChannel(channel);
+      if (refreshTimeout.current) window.clearTimeout(refreshTimeout.current);
     };
   }, [profileId, fetchNotifications]);
 
@@ -166,6 +168,13 @@ export const useNotifications = () => {
     if (!profileId || isClearing.current) return;
     try {
       isClearing.current = true;
+
+      // Cancel any pending debounced refresh
+      if (refreshTimeout.current) {
+        window.clearTimeout(refreshTimeout.current);
+        refreshTimeout.current = null;
+      }
+
       // Optimistically clear local state
       const previousNotifications = [...notifications];
       setNotifications([]);
@@ -185,10 +194,10 @@ export const useNotifications = () => {
     } catch (error) {
       console.error('Error clearing notifications:', error);
     } finally {
-      // Small delay to let DB catch up before re-enabling real-time refreshes
+      // Longer delay to ensure all real-time events have processed
       setTimeout(() => {
         isClearing.current = false;
-      }, 1000);
+      }, 2000);
     }
   };
 

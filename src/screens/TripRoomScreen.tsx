@@ -7,8 +7,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import {
   ArrowLeft, MapPin, Calendar, Users, Send, Check, X,
-  Share2, Clock, MessageCircle, BookOpen, User, Loader2, Copy, Camera
+  Share2, Clock, MessageCircle, BookOpen, User, Loader2, Copy, Camera, Trash2
 } from 'lucide-react';
+import UserProfileModal from '@/components/UserProfileModal';
 import { format, differenceInDays, formatDistanceToNow } from 'date-fns';
 
 const glassStyle = {
@@ -31,7 +32,7 @@ interface TripMessage {
 const TripRoomScreen = () => {
   const { setScreen, selectedTripId } = useAppStore();
   const { profileId } = useAuth();
-  const { fetchTripMembers, manageMember, fetchTripStories, postStory, requestToJoin } = useTrips();
+  const { fetchTripMembers, manageMember, removeMember, fetchTripStories, postStory, requestToJoin } = useTrips();
   const { toast } = useToast();
 
   const [trip, setTrip] = useState<Trip | null>(null);
@@ -44,6 +45,7 @@ const TripRoomScreen = () => {
   const [storyInput, setStoryInput] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
+  const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const isCreator = trip?.creator_id === profileId;
@@ -257,6 +259,15 @@ const TripRoomScreen = () => {
     }
   };
 
+  const handleRemoveMember = async (memberId: string, memberName: string) => {
+    if (!window.confirm(`Are you sure you want to remove ${memberName} from this crew?`)) return;
+    const success = await removeMember(memberId);
+    if (success) {
+      const membersData = await fetchTripMembers(selectedTripId!);
+      setMembers(membersData);
+    }
+  };
+
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center relative">
@@ -315,12 +326,13 @@ const TripRoomScreen = () => {
       <div className="relative z-10 px-4 py-2 flex items-center gap-2 overflow-x-auto scrollbar-hide bg-white/5 backdrop-blur-sm border-b border-white/10">
         <div className="flex -space-x-2 mr-1">
           {approvedMembers.slice(0, 5).map((member, i) => (
-            <motion.div
+            <motion.button
               key={member.id}
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: i * 0.1 }}
-              className="w-8 h-8 rounded-full border-2 border-indigo-400 bg-white/20 overflow-hidden shadow-lg"
+              onClick={() => setSelectedProfileId(member.user_id)}
+              className="w-8 h-8 rounded-full border-2 border-indigo-400 bg-white/20 overflow-hidden shadow-lg hover:scale-110 hover:z-30 transition-all"
             >
               {member.profile?.photos?.[0]?.url ? (
                 <img src={member.profile.photos[0].url} className="w-full h-full object-cover" />
@@ -329,7 +341,7 @@ const TripRoomScreen = () => {
                   <User className="w-4 h-4 text-white/40" />
                 </div>
               )}
-            </motion.div>
+            </motion.button>
           ))}
           {approvedMembers.length > 5 && (
             <div className="w-8 h-8 rounded-full border-2 border-indigo-400 bg-indigo-500 flex items-center justify-center text-[10px] text-white font-bold shadow-lg">
@@ -483,20 +495,39 @@ const TripRoomScreen = () => {
                 </div>
               </div>
               {approvedMembers.filter(m => m.user_id !== trip.creator_id).map(member => (
-                <div key={member.id} className="flex items-center gap-3 p-3 rounded-xl" style={glassStyle}>
-                  {member.profile?.photos?.[0]?.url ? (
-                    <img src={member.profile.photos[0].url} className="w-9 h-9 rounded-full object-cover border border-white/20" />
-                  ) : (
-                    <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center border border-white/20">
-                      <User className="w-4 h-4 text-white/60" />
-                    </div>
-                  )}
-                  <div className="flex-1">
-                    <p className="text-sm text-white/90">{member.profile?.name}</p>
+                <div key={member.id} className="flex items-center gap-3 p-3 rounded-xl group" style={glassStyle}>
+                  <button
+                    onClick={() => setSelectedProfileId(member.user_id)}
+                    className="flex-shrink-0"
+                  >
+                    {member.profile?.photos?.[0]?.url ? (
+                      <img src={member.profile.photos[0].url} className="w-9 h-9 rounded-full object-cover border border-white/20 hover:border-violet-300 transition-all" />
+                    ) : (
+                      <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center border border-white/20">
+                        <User className="w-4 h-4 text-white/60" />
+                      </div>
+                    )}
+                  </button>
+                  <div className="flex-1 min-w-0">
+                    <button
+                      onClick={() => setSelectedProfileId(member.user_id)}
+                      className="text-sm text-white/90 hover:text-violet-300 transition-all text-left truncate w-full font-medium"
+                    >
+                      {member.profile?.name}
+                    </button>
                     {member.joined_at && (
                       <p className="text-xs text-white/40">Joined {formatDistanceToNow(new Date(member.joined_at), { addSuffix: true })}</p>
                     )}
                   </div>
+                  {isCreator && (
+                    <button
+                      onClick={() => handleRemoveMember(member.id, member.profile?.name || 'this traveler')}
+                      className="w-8 h-8 rounded-full flex items-center justify-center bg-red-500/10 text-red-400 opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500/20"
+                      title="Remove member"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               ))}
 
@@ -745,6 +776,11 @@ const TripRoomScreen = () => {
           </div>
         )}
       </div>
+      <UserProfileModal
+        profileId={selectedProfileId}
+        isOpen={!!selectedProfileId}
+        onClose={() => setSelectedProfileId(null)}
+      />
     </div>
   );
 };

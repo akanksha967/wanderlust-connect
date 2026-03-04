@@ -200,6 +200,24 @@ export const useTrips = () => {
     }
   };
 
+  const removeMember = async (memberId: string) => {
+    try {
+      const { error } = await supabase
+        .from('trip_members')
+        .delete()
+        .eq('id', memberId);
+
+      if (error) throw error;
+      toast({ title: 'Member removed from crew' });
+      await fetchTrips();
+      return true;
+    } catch (error) {
+      console.error('Error removing member:', error);
+      toast({ title: 'Error', description: 'Failed to remove member', variant: 'destructive' });
+      return false;
+    }
+  };
+
   const fetchTripMembers = async (tripId: string): Promise<TripMember[]> => {
     try {
       const { data, error } = await supabase
@@ -290,6 +308,7 @@ export const useTrips = () => {
     createTrip,
     requestToJoin,
     manageMember,
+    removeMember,
     fetchTripMembers,
     fetchTripStories,
     postStory,
