@@ -23,6 +23,7 @@ import InviteFriendsCard from "@/components/InviteFriendsCard";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useProfileSave } from "@/hooks/useProfileSave";
 
 const vibeOptions = [
   "Adventure",
@@ -41,6 +42,7 @@ const AccountScreen = () => {
   const { setScreen, userProfile, travelDetails, setTravelDetails, setUserProfile } = useAppStore();
   const { signOut, user } = useAuth();
   const { toast } = useToast();
+  const { saveProfile: saveProfileToDB, saveTravelPlan, saving: savingToDB } = useProfileSave();
   const [loading, setLoading] = useState(true);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showPhotoSourceDialog, setShowPhotoSourceDialog] = useState(false);
@@ -159,13 +161,13 @@ const AccountScreen = () => {
     setScreen("login");
   };
 
-  const handleSaveTravel = () => {
-    setTravelDetails({
-      destination,
-      startDate,
-      endDate,
-    });
-    setEditingTravel(false);
+  const handleSaveTravel = async () => {
+    const success = await saveTravelPlan({ destination, startDate, endDate });
+    if (success) {
+      setTravelDetails({ destination, startDate, endDate });
+      setEditingTravel(false);
+      toast({ title: "Travel plan updated!" });
+    }
   };
 
   const handlePhotoClick = (index: number) => {
@@ -227,15 +229,19 @@ const AccountScreen = () => {
     }
   };
 
-  const handleSaveProfile = () => {
-    setUserProfile({
+  const handleSaveProfile = async () => {
+    const success = await saveProfileToDB({
       name,
       age: parseInt(age),
       bio,
       photos,
       travelVibes: selectedVibes,
     });
-    setEditingProfile(false);
+    if (success) {
+      setUserProfile({ name, age: parseInt(age), bio, photos, travelVibes: selectedVibes });
+      setEditingProfile(false);
+      toast({ title: "Profile updated!" });
+    }
   };
 
   const handleCancelProfileEdit = () => {
