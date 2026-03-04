@@ -98,7 +98,7 @@ export const useTrips = () => {
 
       const tripsWithCounts = tripsData.map(trip => ({
         ...trip,
-        member_count: (memberCountMap.get(trip.id) || 0) + 1, // +1 for creator
+        member_count: memberCountMap.get(trip.id) || 0, // Creator is already in trip_members
         creator: creatorMap.get(trip.creator_id),
         recent_members: (recentMembersMap.get(trip.id) || [])
           .sort((a, b) => new Date(b.joined_at).getTime() - new Date(a.joined_at).getTime())

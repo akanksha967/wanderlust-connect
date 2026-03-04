@@ -21,7 +21,7 @@ const NotificationItem = ({
   onReveal: (id: string) => void;
   onDismiss: (id: string) => void;
 }) => {
-  const isUnrevealed = (notification.type === 'like' || notification.type === 'destination_match') && 
+  const isUnrevealed = (notification.type === 'like' || notification.type === 'destination_match') &&
     !notification.metadata?.revealed && notification.status === 'unread';
 
   return (
@@ -30,11 +30,10 @@ const NotificationItem = ({
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20, height: 0 }}
-      className={`flex items-start gap-3 p-4 rounded-2xl transition-all cursor-pointer ${
-        notification.status === 'unread'
+      className={`flex items-start gap-3 p-4 rounded-2xl transition-all cursor-pointer ${notification.status === 'unread'
           ? 'bg-white/[0.12] border border-white/20'
           : 'bg-white/[0.06] border border-white/10'
-      }`}
+        }`}
       onClick={() => {
         if (isUnrevealed) onReveal(notification.id);
       }}
@@ -123,12 +122,6 @@ export const NotificationBell = () => {
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.1]">
               <h3 className="text-sm font-semibold text-white">Notifications</h3>
               <div className="flex items-center gap-3">
-                {!likesLoading && (
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.08] border border-white/[0.1]">
-                    <Heart className="w-3 h-3 text-violet-300" />
-                    <span className="text-[11px] text-white/60">{likesRemaining}/{maxLikes}</span>
-                  </div>
-                )}
                 {notifications.length > 0 && (
                   <button
                     onClick={clearAll}

@@ -222,7 +222,7 @@ const TripsScreen = () => {
           <ArrowLeft className="w-5 h-5 text-white" />
         </button>
         <div className="flex-1">
-          <h1 className="text-xl font-display text-white drop-shadow-lg">Trip Boards</h1>
+          <h1 className="text-xl font-display text-white drop-shadow-lg">Trips</h1>
         </div>
 
         <button onClick={() => setShowCreate(true)} className="w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-r from-sky-500 to-indigo-500 border border-white/30 shadow-lg">
@@ -241,7 +241,7 @@ const TripsScreen = () => {
               : 'bg-white/10 text-white/60 border border-white/15'
               }`}
           >
-            {tab === 'discover' ? 'Discover' : tab === 'my' ? 'My Boards' : 'My Crews 🎒'}
+            {tab === 'discover' ? 'Discover' : tab === 'my' ? 'My Trips' : 'My Crews 🎒'}
           </button>
         ))}
       </div>
@@ -267,7 +267,7 @@ const TripsScreen = () => {
             <Compass className="w-10 h-10 text-white/25 mb-3" />
             <p className="text-sm text-white/60">
               {activeTab === 'my'
-                ? 'You haven\'t created any trips yet. Tap + to create your first trip board!'
+                ? 'You haven\'t created any trips yet. Tap + to create your first trip!'
                 : activeTab === 'crews'
                   ? 'You haven\'t joined any crews yet. Discover trips and request to join!'
                   : 'No trips available right now. Be the first to create one!'}

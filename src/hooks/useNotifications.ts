@@ -155,11 +155,13 @@ export const useNotifications = () => {
   };
 
   const clearAll = async () => {
+    if (!profileId) return;
     try {
       const { error } = await supabase
         .from('notifications')
         .update({ status: 'cleared' })
-        .eq('user_id', profileId!);
+        .eq('user_id', profileId)
+        .neq('status', 'cleared');
       if (error) throw error;
       setNotifications([]);
     } catch (error) {

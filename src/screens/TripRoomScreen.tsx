@@ -51,7 +51,8 @@ const TripRoomScreen = () => {
   const hasPendingRequest = members.some(m => m.user_id === profileId && m.status === 'pending');
   const approvedMembers = members.filter(m => m.status === 'approved');
   const pendingMembers = members.filter(m => m.status === 'pending');
-  const spotsLeft = (trip?.max_travelers || 5) - (approvedMembers.length + 1); // +1 for creator
+  // Creator is already in approvedMembers due to DB trigger
+  const spotsLeft = (trip?.max_travelers || 5) - (approvedMembers.length);
   const isFull = spotsLeft <= 0;
 
   const daysUntilStart = trip ? differenceInDays(new Date(trip.start_date), new Date()) : 0;
@@ -302,12 +303,49 @@ const TripRoomScreen = () => {
             <span>{trip.destination}</span>
             <span>·</span>
             <Users className="w-3 h-3" />
-            <span>{approvedMembers.length + 1} travelers</span>
+            <span>{approvedMembers.length} travelers</span>
           </div>
         </div>
         <button onClick={() => setShowShareMenu(!showShareMenu)} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/30 backdrop-blur-xl border border-white/40 shadow-lg">
           <Share2 className="w-5 h-5 text-white" />
         </button>
+      </div>
+
+      {/* Crew Avatars Row */}
+      <div className="relative z-10 px-4 py-2 flex items-center gap-2 overflow-x-auto scrollbar-hide bg-white/5 backdrop-blur-sm border-b border-white/10">
+        <div className="flex -space-x-2 mr-1">
+          {approvedMembers.slice(0, 5).map((member, i) => (
+            <motion.div
+              key={member.id}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: i * 0.1 }}
+              className="w-8 h-8 rounded-full border-2 border-indigo-400 bg-white/20 overflow-hidden shadow-lg"
+            >
+              {member.profile?.photos?.[0]?.url ? (
+                <img src={member.profile.photos[0].url} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <User className="w-4 h-4 text-white/40" />
+                </div>
+              )}
+            </motion.div>
+          ))}
+          {approvedMembers.length > 5 && (
+            <div className="w-8 h-8 rounded-full border-2 border-indigo-400 bg-indigo-500 flex items-center justify-center text-[10px] text-white font-bold shadow-lg">
+              +{approvedMembers.length - 5}
+            </div>
+          )}
+        </div>
+        <div className="flex-1">
+          <p className="text-[10px] text-white/70 font-display uppercase tracking-wider">Active Crew</p>
+          <div className="flex flex-wrap gap-1">
+            {approvedMembers.slice(0, 3).map(m => (
+              <span key={m.id} className="text-[11px] text-white/90">{m.profile?.name}{approvedMembers.indexOf(m) < Math.min(approvedMembers.length - 1, 2) ? ',' : ''}</span>
+            ))}
+            {approvedMembers.length > 3 && <span className="text-[11px] text-white/40">& {approvedMembers.length - 3} others</span>}
+          </div>
+        </div>
       </div>
 
       {/* Share dropdown */}
@@ -401,7 +439,7 @@ const TripRoomScreen = () => {
               )}
               <div className="flex items-center gap-2 text-sm">
                 <Users className="w-4 h-4 text-violet-300" />
-                <span className="text-white/80">{approvedMembers.length + 1}/{trip.max_travelers || 5} travelers</span>
+                <span className="text-white/80">{approvedMembers.length}/{trip.max_travelers || 5} travelers</span>
                 <span className="text-xs ml-1">
                   {isFull ? (
                     <span className="text-amber-300">Trip full</span>
