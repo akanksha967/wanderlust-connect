@@ -25,6 +25,7 @@ interface AppState {
   matches: UserProfile[];
   showMatch: boolean;
   hasCompletedProfile: boolean;
+  selectedTripId: string | null;
   setScreen: (screen: AppState["currentScreen"]) => void;
   setUserProfile: (profile: Partial<UserProfile>) => void;
   setTravelDetails: (details: TravelDetails) => void;
@@ -34,6 +35,7 @@ interface AppState {
   removeMatch: (userId: string) => void;
   setShowMatch: (show: boolean) => void;
   setHasCompletedProfile: (completed: boolean) => void;
+  setSelectedTripId: (id: string | null) => void;
 }
 
 const STORAGE_KEYS = {
@@ -60,7 +62,7 @@ const getInitialScreen = (): ScreenType => {
     if (screenFromUrl) return screenFromUrl;
 
     const saved = localStorage.getItem(STORAGE_KEYS.currentScreen);
-    const allowed = ["login", "profile", "travel", "swipe", "chat", "account", "matches", "access", "admin", "trips"];
+    const allowed = ["login", "profile", "travel", "swipe", "chat", "account", "matches", "access", "admin", "trips", "tripRoom"];
 
     if (saved && allowed.includes(saved)) {
       return saved as ScreenType;
@@ -98,6 +100,7 @@ export const useAppStore = create<AppState>((set) => ({
   matches: [],
   showMatch: false,
   hasCompletedProfile: false,
+  selectedTripId: null,
   setScreen: (screen) => {
     if (typeof window !== "undefined") {
       localStorage.setItem(STORAGE_KEYS.currentScreen, screen);
@@ -139,4 +142,5 @@ export const useAppStore = create<AppState>((set) => ({
     })),
   setShowMatch: (show) => set({ showMatch: show }),
   setHasCompletedProfile: (completed) => set({ hasCompletedProfile: completed }),
+  setSelectedTripId: (id) => set({ selectedTripId: id }),
 }));

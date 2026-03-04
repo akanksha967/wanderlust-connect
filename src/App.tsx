@@ -27,6 +27,7 @@ const App = () => (
           <Route path="/admin" element={<Index />} />
           <Route path="/access" element={<Index />} />
           <Route path="/trips" element={<Index />} />
+          <Route path="/trip" element={<Index />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

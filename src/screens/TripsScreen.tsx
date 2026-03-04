@@ -15,16 +15,18 @@ const glassStyle = {
   boxShadow: '0 10px 40px rgba(0,0,0,0.25)',
 };
 
-const TripCard = ({ trip, onJoin, myProfileId }: { trip: Trip; onJoin: (id: string) => void; myProfileId: string | null }) => {
+const TripCard = ({ trip, onJoin, onOpen, myProfileId }: { trip: Trip; onJoin: (id: string) => void; onOpen: (id: string) => void; myProfileId: string | null }) => {
   const isCreator = trip.creator_id === myProfileId;
   const isFull = (trip.member_count || 1) >= (trip.max_travelers || 5);
+  const spotsLeft = (trip.max_travelers || 5) - (trip.member_count || 1);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-4 rounded-[20px] transition-all"
+      className="p-4 rounded-[20px] transition-all cursor-pointer active:scale-[0.98]"
       style={glassStyle}
+      onClick={() => onOpen(trip.id)}
     >
       <div className="flex items-start justify-between mb-2">
         <h3 className="text-lg font-display text-white drop-shadow">{trip.title}</h3>
@@ -188,7 +190,7 @@ const CreateTripModal = ({ isOpen, onClose, onCreate }: {
 };
 
 const TripsScreen = () => {
-  const { setScreen, travelDetails } = useAppStore();
+  const { setScreen, setSelectedTripId, travelDetails } = useAppStore();
   const { profileId } = useAuth();
   const { trips, loading, createTrip, requestToJoin } = useTrips();
   const [showCreate, setShowCreate] = useState(false);
@@ -263,7 +265,7 @@ const TripsScreen = () => {
           </div>
         ) : (
           displayTrips.map((trip) => (
-            <TripCard key={trip.id} trip={trip} onJoin={requestToJoin} myProfileId={profileId} />
+            <TripCard key={trip.id} trip={trip} onJoin={(id) => { requestToJoin(id); }} onOpen={(id) => { setSelectedTripId(id); setScreen('tripRoom'); }} myProfileId={profileId} />
           ))
         )}
       </div>
