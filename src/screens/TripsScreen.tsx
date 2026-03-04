@@ -15,7 +15,7 @@ const glassStyle = {
   boxShadow: '0 10px 40px rgba(0,0,0,0.25)',
 };
 
-const TripCard = ({ trip, onJoin, onOpen, myProfileId }: { trip: Trip; onJoin: (id: string) => void; onOpen: (id: string) => void; myProfileId: string | null }) => {
+const TripCard = ({ trip, onJoin, onOpen, myProfileId }: { trip: Trip; onJoin: (id: string) => Promise<void> | void; onOpen: (id: string) => void; myProfileId: string | null }) => {
   const isCreator = trip.creator_id === myProfileId;
   const isFull = (trip.member_count || 1) >= (trip.max_travelers || 5);
   const spotsLeft = (trip.max_travelers || 5) - (trip.member_count || 1);
@@ -66,7 +66,10 @@ const TripCard = ({ trip, onJoin, onOpen, myProfileId }: { trip: Trip; onJoin: (
         <span className="text-xs text-white/50">by {trip.creator?.name || 'Traveler'}</span>
         {!isCreator && !isFull && (
           <button
-            onClick={() => onJoin(trip.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              void onJoin(trip.id);
+            }}
             className="px-4 py-1.5 rounded-full bg-gradient-to-r from-sky-500 to-indigo-500 text-white text-xs font-medium border border-white/30 shadow-lg hover:scale-105 transition-transform active:scale-95"
           >
             Request to Join
@@ -199,7 +202,7 @@ const TripsScreen = () => {
   const matchingTrips = trips.filter(t => 
     travelDetails?.destination && t.destination.toLowerCase().includes(travelDetails.destination.toLowerCase())
   );
-  const displayTrips = activeTab === 'my' ? trips.filter(t => t.creator_id === profileId) : trips;
+  const displayTrips = activeTab === 'my' ? trips.filter(t => t.creator_id === profileId) : trips.filter(t => t.creator_id !== profileId);
 
   return (
     <div className="h-full flex flex-col relative overflow-hidden">
@@ -265,7 +268,7 @@ const TripsScreen = () => {
           </div>
         ) : (
           displayTrips.map((trip) => (
-            <TripCard key={trip.id} trip={trip} onJoin={(id) => { requestToJoin(id); }} onOpen={(id) => { setSelectedTripId(id); setScreen('tripRoom'); }} myProfileId={profileId} />
+            <TripCard key={trip.id} trip={trip} onJoin={async (id) => { await requestToJoin(id); }} onOpen={(id) => { setSelectedTripId(id); setScreen('tripRoom'); }} myProfileId={profileId} />
           ))
         )}
       </div>
