@@ -22,7 +22,7 @@ export const useMatches = () => {
 
   const refresh = useCallback(async (isManualRefresh = false) => {
     if (!profileId) {
-      setMatches([]);
+      // Don't clear matches when profileId isn't loaded yet - keep cached data visible
       setLoading(false);
       return;
     }
