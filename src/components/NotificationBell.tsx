@@ -29,38 +29,38 @@ const NotificationItem = ({
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20, height: 0 }}
-      className={`flex items-start gap-3 p-3 rounded-xl transition-all cursor-pointer ${
+      className={`flex items-start gap-3 p-4 rounded-2xl transition-all cursor-pointer ${
         notification.status === 'unread'
-          ? 'bg-white/20 border border-white/30'
-          : 'bg-white/10 border border-white/15'
+          ? 'bg-white/[0.12] border border-white/20'
+          : 'bg-white/[0.06] border border-white/10'
       }`}
       onClick={() => {
         if (isUnrevealed) onReveal(notification.id);
       }}
     >
-      <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+      <div className="w-9 h-9 rounded-full bg-white/[0.12] backdrop-blur-sm flex items-center justify-center shrink-0">
         {iconMap[notification.icon || '❤️'] || <Bell className="w-4 h-4 text-white/70" />}
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm text-white font-medium leading-snug">{notification.title}</p>
         {notification.body && (
-          <p className="text-xs text-white/60 mt-0.5">{notification.body}</p>
+          <p className="text-xs text-white/50 mt-1">{notification.body}</p>
         )}
-        <p className="text-xs text-white/40 mt-1">
+        <p className="text-xs text-white/30 mt-1.5">
           {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
         </p>
       </div>
-      <div className="flex gap-1 shrink-0">
+      <div className="flex gap-1.5 shrink-0">
         {isUnrevealed && (
-          <div className="w-7 h-7 rounded-full bg-white/15 flex items-center justify-center">
-            <ChevronRight className="w-3.5 h-3.5 text-white/70" />
+          <div className="w-7 h-7 rounded-full bg-white/[0.1] flex items-center justify-center">
+            <ChevronRight className="w-3.5 h-3.5 text-white/60" />
           </div>
         )}
         <button
           onClick={(e) => { e.stopPropagation(); onDismiss(notification.id); }}
-          className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-all"
+          className="w-7 h-7 rounded-full bg-white/[0.08] flex items-center justify-center hover:bg-white/[0.15] transition-all"
         >
-          <X className="w-3.5 h-3.5 text-white/50" />
+          <X className="w-3.5 h-3.5 text-white/40" />
         </button>
       </div>
     </motion.div>
@@ -108,15 +108,22 @@ export const NotificationBell = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute right-0 top-14 w-[320px] max-h-[420px] rounded-2xl bg-black/60 backdrop-blur-2xl border border-white/20 shadow-2xl overflow-hidden z-50"
+            className="absolute right-0 top-14 w-[320px] max-h-[420px] rounded-[20px] overflow-hidden z-50"
+            style={{
+              background: 'rgba(255,255,255,0.08)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              boxShadow: '0 10px 40px rgba(0,0,0,0.25)',
+            }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.1]">
               <h3 className="text-sm font-semibold text-white">Notifications</h3>
               {notifications.length > 0 && (
                 <button
                   onClick={clearAll}
-                  className="text-xs text-white/50 hover:text-white/80 transition-colors"
+                  className="text-xs text-white/40 hover:text-white/70 transition-colors"
                 >
                   Clear all
                 </button>
@@ -124,15 +131,15 @@ export const NotificationBell = () => {
             </div>
 
             {/* Notifications list */}
-            <div className="max-h-[350px] overflow-y-auto p-2 space-y-1.5">
+            <div className="max-h-[350px] overflow-y-auto p-4 space-y-3">
               {loading ? (
                 <div className="flex items-center justify-center py-8">
-                  <p className="text-sm text-white/50">Loading notifications...</p>
+                  <p className="text-sm text-white/40">Loading notifications...</p>
                 </div>
               ) : notifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8">
-                  <Bell className="w-8 h-8 text-white/20 mb-2" />
-                  <p className="text-sm text-white/40">No new notifications</p>
+                  <Bell className="w-8 h-8 text-white/15 mb-2" />
+                  <p className="text-sm text-white/30">No new notifications</p>
                 </div>
               ) : (
                 <AnimatePresence mode="popLayout">
