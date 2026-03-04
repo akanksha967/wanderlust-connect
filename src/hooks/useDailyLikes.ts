@@ -3,8 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
 export const useDailyLikes = () => {
-  const [likesRemaining, setLikesRemaining] = useState(10);
-  const [likesUsed, setLikesUsed] = useState(0);
+  const [likesRemaining, setLikesRemaining] = useState<number | null>(null);
+  const [likesUsed, setLikesUsed] = useState<number | null>(null);
   const [maxLikes, setMaxLikes] = useState(10);
   const [loading, setLoading] = useState(true);
   const { profileId } = useAuth();
@@ -20,6 +20,9 @@ export const useDailyLikes = () => {
       setMaxLikes(result.max_likes);
     } catch (error) {
       console.error('Error fetching daily likes:', error);
+      // Fallback to defaults on error
+      setLikesRemaining(10);
+      setLikesUsed(0);
     } finally {
       setLoading(false);
     }
@@ -38,7 +41,7 @@ export const useDailyLikes = () => {
       const result = data as any;
       if (result.success) {
         setLikesRemaining(result.likes_remaining);
-        setLikesUsed(prev => prev + 1);
+        setLikesUsed(prev => (prev ?? 0) + 1);
       }
       return result;
     } catch (error) {
@@ -48,12 +51,12 @@ export const useDailyLikes = () => {
   };
 
   return {
-    likesRemaining,
-    likesUsed,
+    likesRemaining: likesRemaining ?? 0,
+    likesUsed: likesUsed ?? 0,
     maxLikes,
     loading,
     createLike,
     refresh: fetchLimits,
-    isExhausted: likesRemaining <= 0,
+    isExhausted: !loading && (likesRemaining ?? 0) <= 0,
   };
 };
