@@ -400,18 +400,15 @@ export const AIItineraryAssistant = ({ destination }: AIItineraryAssistantProps)
                   <div className="w-16 h-16 rounded-full bg-white/30 backdrop-blur-xl flex items-center justify-center mb-4 border border-white/30">
                     <Sparkles className="w-8 h-8 text-white/80" />
                   </div>
-                  <h3 className="text-xl font-bold text-white/90 mb-2">Claim Your Free Spot</h3>
+                  <h3 className="text-xl font-bold text-white/90 mb-2">Try AI Travel Planner</h3>
                   <p className="text-white/70 mb-4">
-                    Be one of the first 50 users to experience our AI Planner for free!<br />
-                    <span className="text-sm px-2 py-1 bg-white/20 rounded-full mt-2 inline-block">
-                      {Math.max(0, 50 - globalCount)} spots remaining
-                    </span>
+                    Get a personalized itinerary crafted just for your adventure! ✨
                   </p>
                   <Button
                     onClick={claimAccess}
                     className="w-full bg-gradient-to-r from-indigo-400 to-purple-500 hover:from-indigo-500 hover:to-purple-600 text-white border-0"
                   >
-                    Claim Free Access
+                    Get Started Free
                   </Button>
                 </div>
               ) : (
