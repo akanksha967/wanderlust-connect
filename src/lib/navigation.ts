@@ -1,7 +1,7 @@
-export type ScreenType = "login" | "profile" | "travel" | "swipe" | "chat" | "account" | "matches" | "access" | "admin";
+export type ScreenType = "login" | "profile" | "travel" | "swipe" | "chat" | "account" | "matches" | "access" | "admin" | "trips";
 
 export const pathToScreen: Record<string, ScreenType> = {
-  "/": "login", // ✅ add this — prevents fallthrough to localStorage on fresh load
+  "/": "login",
   "/login": "login",
   "/profile": "profile",
   "/travel": "travel",
@@ -11,6 +11,7 @@ export const pathToScreen: Record<string, ScreenType> = {
   "/account": "account",
   "/admin": "admin",
   "/access": "access",
+  "/trips": "trips",
 };
 
 export const screenToPath: Record<ScreenType, string> = {
@@ -23,4 +24,5 @@ export const screenToPath: Record<ScreenType, string> = {
   account: "/account",
   admin: "/admin",
   access: "/access",
+  trips: "/trips",
 };

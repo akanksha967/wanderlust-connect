@@ -109,6 +109,38 @@ export type Database = {
           },
         ]
       }
+      daily_likes: {
+        Row: {
+          id: string
+          like_date: string
+          likes_used: number
+          max_likes: number
+          profile_id: string
+        }
+        Insert: {
+          id?: string
+          like_date?: string
+          likes_used?: number
+          max_likes?: number
+          profile_id: string
+        }
+        Update: {
+          id?: string
+          like_date?: string
+          likes_used?: number
+          max_likes?: number
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_likes_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invites: {
         Row: {
           code: string
@@ -226,6 +258,56 @@ export type Database = {
           {
             foreignKeyName: "messages_sender_id_fkey"
             columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          icon: string | null
+          id: string
+          metadata: Json | null
+          reference_id: string | null
+          reference_type: string | null
+          status: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          metadata?: Json | null
+          reference_id?: string | null
+          reference_type?: string | null
+          status?: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          metadata?: Json | null
+          reference_id?: string | null
+          reference_type?: string | null
+          status?: string
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -387,6 +469,7 @@ export type Database = {
           created_at: string
           direction: string
           id: string
+          revealed: boolean | null
           swiped_id: string
           swiper_id: string
         }
@@ -394,6 +477,7 @@ export type Database = {
           created_at?: string
           direction: string
           id?: string
+          revealed?: boolean | null
           swiped_id: string
           swiper_id: string
         }
@@ -401,6 +485,7 @@ export type Database = {
           created_at?: string
           direction?: string
           id?: string
+          revealed?: boolean | null
           swiped_id?: string
           swiper_id?: string
         }
@@ -491,6 +576,191 @@ export type Database = {
           },
         ]
       }
+      trip_members: {
+        Row: {
+          created_at: string
+          id: string
+          joined_at: string | null
+          status: string
+          trip_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          joined_at?: string | null
+          status?: string
+          trip_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          joined_at?: string | null
+          status?: string
+          trip_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_members_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trip_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          message_type: string | null
+          sender_id: string
+          trip_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          message_type?: string | null
+          sender_id: string
+          trip_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          message_type?: string | null
+          sender_id?: string
+          trip_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_messages_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trip_stories: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          image_url: string | null
+          trip_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          trip_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          trip_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_stories_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_stories_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trips: {
+        Row: {
+          budget: string | null
+          created_at: string
+          creator_id: string
+          description: string | null
+          destination: string
+          end_date: string
+          id: string
+          is_active: boolean | null
+          max_travelers: number | null
+          share_code: string | null
+          start_date: string
+          title: string
+          travel_style: string | null
+          updated_at: string
+        }
+        Insert: {
+          budget?: string | null
+          created_at?: string
+          creator_id: string
+          description?: string | null
+          destination: string
+          end_date: string
+          id?: string
+          is_active?: boolean | null
+          max_travelers?: number | null
+          share_code?: string | null
+          start_date: string
+          title: string
+          travel_style?: string | null
+          updated_at?: string
+        }
+        Update: {
+          budget?: string | null
+          created_at?: string
+          creator_id?: string
+          description?: string | null
+          destination?: string
+          end_date?: string
+          id?: string
+          is_active?: boolean | null
+          max_travelers?: number | null
+          share_code?: string | null
+          start_date?: string
+          title?: string
+          travel_style?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trips_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -517,7 +787,12 @@ export type Database = {
       check_ai_access: { Args: never; Returns: Json }
       check_and_increment_ai_usage: { Args: never; Returns: Json }
       check_user_access: { Args: never; Returns: Json }
+      create_like_with_limit: {
+        Args: { target_profile_id: string }
+        Returns: Json
+      }
       generate_invite_code: { Args: never; Returns: Json }
+      get_daily_likes_remaining: { Args: never; Returns: Json }
       get_my_active_travel_plan: {
         Args: never
         Returns: {
@@ -534,6 +809,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      reveal_like: { Args: { notification_id: string }; Returns: Json }
       use_invite_code: { Args: { invite_code: string }; Returns: Json }
       validate_invite_code: { Args: { invite_code: string }; Returns: Json }
     }
