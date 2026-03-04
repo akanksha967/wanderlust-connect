@@ -46,7 +46,7 @@ const TripCard = ({ trip, onJoin, myProfileId }: { trip: Trip; onJoin: (id: stri
         </div>
         <div className="flex items-center gap-2 text-sm text-white/80">
           <Users className="w-3.5 h-3.5" />
-          <span>{trip.member_count || 1}/{trip.max_travelers || 5} travelers</span>
+          <span>{trip.member_count || 1}/{trip.max_travelers || 5} travel buddies 🎒</span>
         </div>
         {trip.budget && (
           <div className="flex items-center gap-2 text-sm text-white/80">
@@ -160,7 +160,7 @@ const CreateTripModal = ({ isOpen, onClose, onCreate }: {
             </div>
             <div className="flex gap-3">
               <input value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="Budget (e.g. $1200)" className={`flex-1 ${inputClass}`} />
-              <input value={maxTravelers} onChange={(e) => setMaxTravelers(e.target.value)} type="number" min="2" max="20" placeholder="Max" className={`w-20 ${inputClass}`} />
+              <input value={maxTravelers} onChange={(e) => setMaxTravelers(e.target.value)} type="number" min="2" max="20" placeholder="Crew size 🎒" className={`w-28 ${inputClass}`} />
             </div>
             <select value={travelStyle} onChange={(e) => setTravelStyle(e.target.value)} className={inputClass}>
               <option value="">Travel style</option>
