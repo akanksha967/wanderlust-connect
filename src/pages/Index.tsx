@@ -27,6 +27,7 @@ const Index = () => {
   const currentScreen = useAppStore((state) => state.currentScreen);
   const setScreen = useAppStore((state) => state.setScreen);
   const setHasCompletedProfile = useAppStore((state) => state.setHasCompletedProfile);
+  const hasCompletedProfile = useAppStore((state) => state.hasCompletedProfile);
   const { user, loading: authLoading } = useAuth();
   const { hasAccess, status: accessStatus, loading: accessLoading } = useAccessControlFromAuth(user, authLoading);
 
@@ -196,17 +197,18 @@ const Index = () => {
       return;
     }
 
+    const profileReady = profileStatus === "complete" || hasCompletedProfile;
     const profileRequiredScreens: ScreenType[] = ["travel", "swipe", "chat", "matches", "account", "trips"];
-    if (profileStatus !== "complete" && profileRequiredScreens.includes(currentScreen)) {
+    if (!profileReady && profileRequiredScreens.includes(currentScreen)) {
       setScreen("profile");
       return;
     }
 
-    if (currentScreen === "profile" && profileStatus === "complete") {
+    if (currentScreen === "profile" && profileReady) {
       setScreen("travel");
       return;
     }
-  }, [user, authLoading, accessLoading, hasAccess, accessStatus, currentScreen, profileStatus, setScreen]);
+  }, [user, authLoading, accessLoading, hasAccess, accessStatus, currentScreen, profileStatus, hasCompletedProfile, setScreen]);
 
   // Safety timeout
   const [showLoadingSlowly, setShowLoadingSlowly] = useState(false);
