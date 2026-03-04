@@ -159,46 +159,24 @@ export const useTrips = () => {
   const requestToJoin = async (tripId: string) => {
     if (!profileId) return false;
     try {
-      // Check if trip is full
-      const trip = trips.find(t => t.id === tripId);
-      if (trip && trip.member_count && trip.max_travelers && trip.member_count >= trip.max_travelers) {
-        toast({ title: 'Trip full', description: 'This trip has no more spots available' });
-        return false;
-      }
-
-      const { error } = await supabase
-        .from('trip_members')
-        .insert({ trip_id: tripId, user_id: profileId, status: 'pending' });
+      const { data, error } = await supabase.rpc('handle_trip_join_request', {
+        p_trip_id: tripId,
+        p_requester_id: profileId,
+      });
 
       if (error) throw error;
 
-      // Create notification for trip creator
-      if (trip) {
-        try {
-          const { data: myProfile } = await supabase.from('profiles').select('name').eq('id', profileId).single();
-          await supabase.from('notifications').insert({
-            user_id: trip.creator_id,
-            type: 'trip_join_request',
-            reference_id: tripId,
-            reference_type: 'trip',
-            title: `${myProfile?.name || 'Someone'} wants to join your ${trip.title}`,
-            body: 'Tap to approve or decline',
-            icon: '✈️',
-            metadata: { requester_id: profileId, trip_id: tripId },
-          });
-        } catch {
-          // notifications insert may fail due to RLS, that's ok
-        }
+      const result = data as any;
+      if (!result.success) {
+        toast({ title: result.error === 'Already requested to join' ? 'Already requested' : result.error, variant: 'destructive' });
+        return false;
       }
 
       toast({ title: 'Request sent! ✈️', description: 'The trip creator will review your request' });
       return true;
     } catch (error: any) {
-      if (error.code === '23505') {
-        toast({ title: 'Already requested', description: 'You already requested to join this trip' });
-      } else {
-        toast({ title: 'Error', description: 'Failed to send request', variant: 'destructive' });
-      }
+      console.error('Error requesting to join:', error);
+      toast({ title: 'Error', description: 'Failed to send request', variant: 'destructive' });
       return false;
     }
   };

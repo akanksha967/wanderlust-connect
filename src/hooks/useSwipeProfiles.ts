@@ -115,13 +115,25 @@ export const useSwipeProfiles = (destination: string, startDate: string, endDate
         };
       });
 
-      // Fetch active trips (exclude own)
-      const { data: tripsData } = await supabase
+      // Fetch active trips (exclude own and already joined/requested)
+      const { data: myMemberships } = await supabase
+        .from('trip_members')
+        .select('trip_id')
+        .eq('user_id', myProfileId);
+      const myTripIds = (myMemberships || []).map(m => m.trip_id);
+
+      let tripsQuery = supabase
         .from('trips')
         .select('*')
         .eq('is_active', true)
         .neq('creator_id', myProfileId)
         .limit(10);
+
+      if (myTripIds.length > 0) {
+        tripsQuery = tripsQuery.not('id', 'in', `(${myTripIds.join(',')})`);
+      }
+
+      const { data: tripsData } = await tripsQuery;
 
       const tripItems: DiscoverItem[] = (tripsData || []).map(t => ({
         type: 'trip' as const,

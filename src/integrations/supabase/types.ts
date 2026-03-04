@@ -802,6 +802,10 @@ export type Database = {
         }[]
       }
       get_my_profile_id: { Args: never; Returns: string }
+      handle_trip_join_request: {
+        Args: { p_requester_id: string; p_trip_id: string }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
