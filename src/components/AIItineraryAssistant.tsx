@@ -22,6 +22,7 @@ export const AIItineraryAssistant = ({ destination }: AIItineraryAssistantProps)
   const [isComplete, setIsComplete] = useState(false);
   const [itinerary, setItinerary] = useState('');
   const [budget, setBudget] = useState('');
+  const [currency, setCurrency] = useState('INR');
   const [days, setDays] = useState('5');
   const [preferences, setPreferences] = useState('');
   const contentRef = useRef<HTMLDivElement>(null);
@@ -238,7 +239,8 @@ export const AIItineraryAssistant = ({ destination }: AIItineraryAssistantProps)
           },
           body: JSON.stringify({
             destination,
-            budget: budget || 'moderate',
+            budget: budget ? `${budget} ${currency}` : 'moderate',
+            currency,
             days: parseInt(days) || 5,
             preferences,
           }),
@@ -421,12 +423,24 @@ export const AIItineraryAssistant = ({ destination }: AIItineraryAssistantProps)
 
                     <div className="grid grid-cols-2 gap-3">
                       <div className="relative flex items-center">
-                        <span className="absolute left-3 text-gray-500 text-sm font-medium">₹</span>
+                        <select
+                          value={currency}
+                          onChange={(e) => setCurrency(e.target.value)}
+                          className="absolute left-1 z-10 bg-transparent text-gray-600 text-xs font-medium appearance-none cursor-pointer pr-1 pl-2 py-1 rounded-lg hover:bg-white/50 transition-colors focus:outline-none w-12"
+                        >
+                          <option value="INR">₹</option>
+                          <option value="USD">$</option>
+                          <option value="EUR">€</option>
+                          <option value="GBP">£</option>
+                          <option value="JPY">¥</option>
+                          <option value="AUD">A$</option>
+                          <option value="THB">฿</option>
+                        </select>
                         <Input
-                          placeholder="e.g. 50,000"
+                          placeholder={currency === 'INR' ? 'e.g. 50,000' : currency === 'USD' ? 'e.g. 2,000' : 'e.g. 1,500'}
                           value={budget}
                           onChange={(e) => setBudget(e.target.value)}
-                          className="pl-8 rounded-xl bg-white/80 backdrop-blur-xl border-white/30 text-gray-900 placeholder:text-gray-500 h-10"
+                          className="pl-12 rounded-xl bg-white/80 backdrop-blur-xl border-white/30 text-gray-900 placeholder:text-gray-500 h-10"
                         />
                       </div>
                       <div className="relative flex items-center">

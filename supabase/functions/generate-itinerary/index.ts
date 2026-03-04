@@ -60,42 +60,53 @@ serve(async (req) => {
       );
     }
 
-    const { destination, budget, days, preferences } = await req.json();
+    const { destination, budget, currency, days, preferences } = await req.json();
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `You are an expert travel planner. Create detailed, practical travel itineraries that are:
-- Well-organized by day
-- Budget-conscious based on the user's specified budget
+    const currencySymbol = {
+      'INR': '₹', 'USD': '$', 'EUR': '€', 'GBP': '£', 'JPY': '¥', 'AUD': 'A$', 'THB': '฿'
+    }[currency || 'INR'] || currency || '₹';
+
+    const numDays = parseInt(days) || 5;
+    const budgetStr = budget && budget !== 'moderate' 
+      ? `${budget} (in ${currency || 'INR'})` 
+      : 'moderate';
+
+    const systemPrompt = `You are an expert travel planner. Create detailed, practical travel itineraries that STRICTLY follow the user's specifications:
+- MUST match the exact number of days requested
+- MUST stay within the specified budget
+- MUST reflect the user's travel preferences/vibes
+- Well-organized day-by-day
 - Include specific recommendations for attractions, restaurants, and activities
 - Consider travel time between locations
-- Include estimated costs for activities
+- Include estimated costs for activities in ${currency || 'INR'} (${currencySymbol})
 - Provide local tips and insights
 
 Format your response in clear markdown with:
-- Day-by-day breakdown
+- Day-by-day breakdown (exactly ${numDays} days)
 - Morning, afternoon, and evening activities
-- Estimated costs in local currency and USD
+- Estimated costs in ${currency || 'INR'} (${currencySymbol})
 - Pro tips for each day
-- Total estimated budget at the end`;
+- Total estimated budget breakdown at the end in ${currency || 'INR'} (${currencySymbol})`;
 
-    const userPrompt = `Create a ${days || 5}-day travel itinerary for ${destination}.
+    const userPrompt = `Create a ${numDays}-day travel itinerary for ${destination}.
 
-Budget: ${budget || "moderate"} (per person, excluding flights)
-${preferences ? `Preferences: ${preferences}` : ""}
+Budget: ${budgetStr} per person (excluding flights). All costs MUST be shown in ${currency || 'INR'} (${currencySymbol}).
+${preferences ? `Travel vibe/preferences: ${preferences} — tailor the entire itinerary to match this mood and style.` : ""}
 
 Please include:
-1. Day-by-day activities with times
-2. Restaurant recommendations for each meal
+1. Exactly ${numDays} days of activities with times
+2. Restaurant recommendations for each meal (within budget)
 3. Must-see attractions
-4. Hidden gems and local favorites
+4. Hidden gems and local favorites${preferences ? ` that match the "${preferences}" vibe` : ''}
 5. Transportation tips
-6. Estimated costs for each activity
+6. Estimated costs for each activity in ${currencySymbol}
 7. Best times to visit each location
-8. Total budget breakdown`;
+8. Total budget breakdown showing the trip fits within ${budgetStr}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
