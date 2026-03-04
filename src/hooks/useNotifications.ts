@@ -157,13 +157,22 @@ export const useNotifications = () => {
   const clearAll = async () => {
     if (!profileId) return;
     try {
+      // Optimistically clear local state
+      const previousNotifications = [...notifications];
+      setNotifications([]);
+
       const { error } = await supabase
         .from('notifications')
         .update({ status: 'cleared' })
         .eq('user_id', profileId)
         .neq('status', 'cleared');
-      if (error) throw error;
-      setNotifications([]);
+
+      if (error) {
+        console.error('Error clearing notifications:', error);
+        // Rollback on error
+        setNotifications(previousNotifications);
+        throw error;
+      }
     } catch (error) {
       console.error('Error clearing notifications:', error);
     }

@@ -26,6 +26,7 @@ interface Report {
   reporter_photo?: string;
   reported_name?: string;
   reported_photo?: string;
+  reported_is_banned?: boolean;
 }
 
 const AdminPanelScreen = () => {
@@ -93,17 +94,18 @@ const AdminPanelScreen = () => {
       if (error) throw error;
 
       const reportsList = data || [];
-      
+
       // Fetch profile names and photos for reporters and reported users
       const profileIds = [...new Set(reportsList.flatMap(r => [r.reporter_id, r.reported_id]))];
-      
+
       if (profileIds.length > 0) {
         const [profilesRes, photosRes] = await Promise.all([
-          supabase.from('profiles').select('id, name').in('id', profileIds),
+          (supabase.from('profiles').select('id, name, is_banned' as any) as any).in('id', profileIds),
           supabase.from('photos').select('profile_id, url').in('profile_id', profileIds).eq('is_primary', true),
         ]);
 
-        const nameMap = new Map((profilesRes.data || []).map(p => [p.id, p.name]));
+        const nameMap = new Map((profilesRes.data as any[] || []).map(p => [p.id, p.name]));
+        const banMap = new Map((profilesRes.data as any[] || []).map(p => [p.id, p.is_banned]));
         const photoMap = new Map((photosRes.data || []).map(p => [p.profile_id, p.url]));
 
         setReports(reportsList.map(r => ({
@@ -112,6 +114,7 @@ const AdminPanelScreen = () => {
           reporter_photo: photoMap.get(r.reporter_id),
           reported_name: nameMap.get(r.reported_id) || 'Unknown',
           reported_photo: photoMap.get(r.reported_id),
+          reported_is_banned: banMap.get(r.reported_id) || false,
         })));
       } else {
         setReports(reportsList);
@@ -140,6 +143,23 @@ const AdminPanelScreen = () => {
       setRequests(prev => prev.map(r => r.id === requestId ? { ...r, status: newStatus } : r));
     } catch (error: any) {
       toast({ title: 'Error', description: error.message || 'Failed to update status.', variant: 'destructive' });
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const handleBanUser = async (userId: string) => {
+    if (!confirm('Are you sure you want to permanently ban this user? This will block their access to the entire platform.')) return;
+
+    setProcessing(userId);
+    try {
+      const { error } = await (supabase.rpc as any)('ban_user', { target_user_id: userId });
+      if (error) throw error;
+
+      toast({ title: 'User banned permanently 🛡️' });
+      fetchReports();
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } finally {
       setProcessing(null);
     }
@@ -197,7 +217,7 @@ const AdminPanelScreen = () => {
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden flex flex-col">
       {/* Background */}
-      <div 
+      <div
         className="fixed inset-0 bg-cover bg-center"
         style={{ backgroundImage: `url(https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80)` }}
       />
@@ -205,12 +225,12 @@ const AdminPanelScreen = () => {
       <div className="fixed inset-0 backdrop-blur-sm" />
 
       {/* Header */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         className="absolute top-6 left-6 right-6 z-50 flex items-center gap-3"
       >
-        <button 
+        <button
           onClick={() => setScreen('account')}
           className="h-11 w-11 rounded-full bg-white/40 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-lg transition-all hover:bg-white/50"
         >
@@ -228,22 +248,20 @@ const AdminPanelScreen = () => {
         <div className="flex gap-2 mb-5">
           <button
             onClick={() => setActiveTab('access')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-2xl text-sm font-medium transition-all ${
-              activeTab === 'access'
-                ? 'bg-white/40 backdrop-blur-xl border border-white/50 text-white shadow-lg'
-                : 'bg-white/15 backdrop-blur-md border border-white/20 text-white/60'
-            }`}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-2xl text-sm font-medium transition-all ${activeTab === 'access'
+              ? 'bg-white/40 backdrop-blur-xl border border-white/50 text-white shadow-lg'
+              : 'bg-white/15 backdrop-blur-md border border-white/20 text-white/60'
+              }`}
           >
             <Users className="w-4 h-4" />
             Access
           </button>
           <button
             onClick={() => setActiveTab('reports')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-2xl text-sm font-medium transition-all relative ${
-              activeTab === 'reports'
-                ? 'bg-white/40 backdrop-blur-xl border border-white/50 text-white shadow-lg'
-                : 'bg-white/15 backdrop-blur-md border border-white/20 text-white/60'
-            }`}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-2xl text-sm font-medium transition-all relative ${activeTab === 'reports'
+              ? 'bg-white/40 backdrop-blur-xl border border-white/50 text-white shadow-lg'
+              : 'bg-white/15 backdrop-blur-md border border-white/20 text-white/60'
+              }`}
           >
             <AlertTriangle className="w-4 h-4" />
             Reports
@@ -278,11 +296,10 @@ const AdminPanelScreen = () => {
                 <button
                   key={f}
                   onClick={() => setFilter(f)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
-                    filter === f
-                      ? 'bg-white/40 backdrop-blur-xl text-white shadow-lg border border-white/50'
-                      : 'bg-white/15 text-white/60 hover:bg-white/25 border border-white/20'
-                  }`}
+                  className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${filter === f
+                    ? 'bg-white/40 backdrop-blur-xl text-white shadow-lg border border-white/50'
+                    : 'bg-white/15 text-white/60 hover:bg-white/25 border border-white/20'
+                    }`}
                 >
                   {f.charAt(0).toUpperCase() + f.slice(1)}
                 </button>
@@ -344,11 +361,10 @@ const AdminPanelScreen = () => {
                 <button
                   key={f}
                   onClick={() => setReportFilter(f)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
-                    reportFilter === f
-                      ? 'bg-white/40 backdrop-blur-xl text-white shadow-lg border border-white/50'
-                      : 'bg-white/15 text-white/60 hover:bg-white/25 border border-white/20'
-                  }`}
+                  className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${reportFilter === f
+                    ? 'bg-white/40 backdrop-blur-xl text-white shadow-lg border border-white/50'
+                    : 'bg-white/15 text-white/60 hover:bg-white/25 border border-white/20'
+                    }`}
                 >
                   {f.charAt(0).toUpperCase() + f.slice(1)}
                 </button>
@@ -379,14 +395,20 @@ const AdminPanelScreen = () => {
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-white drop-shadow text-sm">{report.reported_name}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-white drop-shadow text-sm">{report.reported_name}</p>
+                          {report.reported_is_banned && (
+                            <span className="px-1.5 py-0.5 rounded-md bg-red-500/20 text-red-400 text-[10px] font-bold border border-red-500/30">
+                              BANNED
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs text-white/50">Reported user</p>
                       </div>
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        report.status === 'pending' 
-                          ? 'bg-amber-500/20 text-amber-300' 
-                          : 'bg-white/15 text-white/50'
-                      }`}>
+                      <span className={`px-2 py-1 rounded-full text-xs ${report.status === 'pending'
+                        ? 'bg-amber-500/20 text-amber-300'
+                        : 'bg-white/15 text-white/50'
+                        }`}>
                         {report.status}
                       </span>
                     </div>
@@ -425,10 +447,20 @@ const AdminPanelScreen = () => {
                           variant="outline"
                           className="flex-1 h-9 rounded-xl bg-white/10 hover:bg-white/20 border-white/20 text-white/80"
                           onClick={() => handleDismissReport(report.id)}
-                          disabled={processing === report.id}
+                          disabled={processing === report.id || processing === report.reported_id}
                         >
                           {processing === report.id ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Dismiss'}
                         </Button>
+                        {!report.reported_is_banned && (
+                          <Button
+                            size="sm"
+                            className="flex-1 h-9 rounded-xl bg-red-500 hover:bg-red-600 text-white font-medium"
+                            onClick={() => handleBanUser(report.reported_id)}
+                            disabled={processing === report.reported_id}
+                          >
+                            {processing === report.reported_id ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Ban Permanently'}
+                          </Button>
+                        )}
                       </div>
                     )}
                   </div>
