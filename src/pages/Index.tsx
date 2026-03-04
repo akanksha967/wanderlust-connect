@@ -51,11 +51,11 @@ const Index = () => {
     }
   }, [currentScreen, navigate, location.pathname, location.search, authLoading, accessLoading, profileStatus]);
 
-  // Check profile completion status from database
+  // Check profile completion status and hydrate full data from database
   useEffect(() => {
     let cancelled = false;
 
-    const checkProfileCompletion = async () => {
+    const hydrateUserData = async () => {
       if (!userId) {
         if (!cancelled) {
           setProfileStatus("incomplete");
@@ -65,14 +65,14 @@ const Index = () => {
         return;
       }
 
-      if (checkedUserId === userId) return;
-
+      const { setUserProfile, setTravelDetails } = useAppStore.getState();
       setProfileStatus("loading");
 
       try {
+        // 1. Fetch profile first to get profile_id
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
-          .select("id, name, age, photos(id)")
+          .select("id, name, age, bio")
           .eq("user_id", userId)
           .maybeSingle();
 
@@ -80,16 +80,61 @@ const Index = () => {
 
         if (profile) {
           const p = profile as any;
+
+          // 2. Fetch photos and vibes using profile_id
+          const [{ data: photos }, { data: vibes }] = await Promise.all([
+            supabase
+              .from("photos")
+              .select("url, is_primary")
+              .eq("profile_id", p.id),
+            supabase
+              .from("travel_vibes")
+              .select("vibe")
+              .eq("profile_id", p.id),
+          ]);
+
           const nameTrimmed = (p.name ?? "").trim();
           const hasRealName = nameTrimmed.length > 0 && nameTrimmed !== "Traveler";
           const hasValidAge = typeof p.age === "number" && p.age >= 18;
-          const hasPhoto = (p.photos?.length ?? 0) > 0;
+
+          const sortedPhotos = (photos || [])
+            .sort((a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0))
+            .map(p => p.url);
+
+          const hasPhoto = sortedPhotos.length > 0;
           const isComplete = hasRealName && hasValidAge && hasPhoto;
 
           if (!cancelled) {
+            // Update global store with full data
+            setUserProfile({
+              id: p.id,
+              name: p.name || 'Traveler',
+              age: p.age || 0,
+              bio: p.bio || '',
+              photos: sortedPhotos.length ? sortedPhotos : [],
+              travelVibes: (vibes || []).map(v => v.vibe)
+            });
+
             setProfileStatus(isComplete ? "complete" : "incomplete");
             setHasCompletedProfile(isComplete);
             setCheckedUserId(userId);
+
+            // 3. Fetch the most recent travel plan
+            const { data: travelPlan } = await supabase
+              .from("travel_plans")
+              .select("destination, start_date, end_date")
+              .eq("profile_id", p.id)
+              .order("created_at", { ascending: false })
+              .limit(1)
+              .maybeSingle();
+
+            if (travelPlan && !cancelled) {
+              setTravelDetails({
+                destination: travelPlan.destination,
+                startDate: travelPlan.start_date,
+                endDate: travelPlan.end_date
+              });
+            }
           }
         } else {
           if (!cancelled) {
@@ -99,7 +144,7 @@ const Index = () => {
           }
         }
       } catch (e) {
-        console.error("Error checking profile completion:", e);
+        console.error("Error hydrating user data:", e);
         if (!cancelled) {
           setProfileStatus("incomplete");
           setHasCompletedProfile(false);
@@ -108,11 +153,11 @@ const Index = () => {
       }
     };
 
-    checkProfileCompletion();
+    hydrateUserData();
     return () => {
       cancelled = true;
     };
-  }, [userId, setHasCompletedProfile, checkedUserId]);
+  }, [userId, setHasCompletedProfile]);
 
   // ROUTING LOGIC: single effect that decides which screen to show
   useEffect(() => {

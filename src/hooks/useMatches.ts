@@ -162,29 +162,20 @@ export const useMatches = () => {
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "*",
           schema: "public",
           table: "matches",
         },
         (payload) => {
-          const row = payload.new as MatchRow;
-          // Check if this match involves our profile
-          if (row.profile1_id === profileId || row.profile2_id === profileId) {
-            // Refresh to get full profile data
+          const isRelevant =
+            (payload.new as MatchRow)?.profile1_id === profileId ||
+            (payload.new as MatchRow)?.profile2_id === profileId ||
+            (payload.old as MatchRow)?.profile1_id === profileId ||
+            (payload.old as MatchRow)?.profile2_id === profileId;
+
+          if (isRelevant) {
             refresh(false);
           }
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "DELETE",
-          schema: "public",
-          table: "matches",
-        },
-        () => {
-          // Refresh when any match is deleted (could be ours)
-          refresh(false);
         }
       )
       .subscribe();
