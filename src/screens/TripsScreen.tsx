@@ -7,6 +7,14 @@ import { ArrowLeft, Plus, MapPin, Calendar, Users, DollarSign, Compass, Loader2,
 import { NotificationBell } from '@/components/NotificationBell';
 import { format } from 'date-fns';
 
+const glassStyle = {
+  background: 'rgba(255,255,255,0.08)',
+  backdropFilter: 'blur(20px)',
+  WebkitBackdropFilter: 'blur(20px)',
+  border: '1px solid rgba(255,255,255,0.15)',
+  boxShadow: '0 10px 40px rgba(0,0,0,0.25)',
+};
+
 const TripCard = ({ trip, onJoin, myProfileId }: { trip: Trip; onJoin: (id: string) => void; myProfileId: string | null }) => {
   const isCreator = trip.creator_id === myProfileId;
   const isFull = (trip.member_count || 1) >= (trip.max_travelers || 5);
@@ -16,13 +24,7 @@ const TripCard = ({ trip, onJoin, myProfileId }: { trip: Trip; onJoin: (id: stri
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="p-4 rounded-[20px] transition-all"
-      style={{
-        background: 'rgba(255,255,255,0.08)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255,255,255,0.15)',
-        boxShadow: '0 10px 40px rgba(0,0,0,0.25)',
-      }}
+      style={glassStyle}
     >
       <div className="flex items-start justify-between mb-2">
         <h3 className="text-lg font-display text-white drop-shadow">{trip.title}</h3>
@@ -105,10 +107,14 @@ const CreateTripModal = ({ isOpen, onClose, onCreate }: {
       max_travelers: parseInt(maxTravelers) || 5,
     });
     setSubmitting(false);
+    setTitle(''); setDestination(''); setStartDate(''); setEndDate('');
+    setBudget(''); setTravelStyle(''); setDescription(''); setMaxTravelers('5');
     onClose();
   };
 
   if (!isOpen) return null;
+
+  const inputClass = "w-full px-4 py-3 rounded-xl bg-white/80 border border-white/40 text-gray-900 placeholder:text-gray-400 text-sm focus:outline-none focus:border-white/60 focus:ring-2 focus:ring-white/20 transition-all";
 
   return (
     <AnimatePresence>
@@ -116,36 +122,47 @@ const CreateTripModal = ({ isOpen, onClose, onCreate }: {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end justify-center"
+        className="fixed inset-0 z-50 flex items-center justify-center px-4"
         onClick={onClose}
       >
+        {/* Backdrop */}
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+        
+        {/* Modal */}
         <motion.div
-          initial={{ y: '100%' }}
-          animate={{ y: 0 }}
-          exit={{ y: '100%' }}
-          transition={{ type: 'spring', damping: 25 }}
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           onClick={(e) => e.stopPropagation()}
-          className="w-full max-w-md rounded-t-3xl bg-black/80 backdrop-blur-2xl border-t border-white/20 p-6 max-h-[85vh] overflow-y-auto"
+          className="relative w-full max-w-md rounded-[24px] p-6 max-h-[85vh] overflow-y-auto"
+          style={{
+            background: 'rgba(255,255,255,0.12)',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
+            border: '1px solid rgba(255,255,255,0.25)',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+          }}
         >
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-display text-white">Create Trip</h2>
-            <button onClick={onClose} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+            <h2 className="text-xl font-display text-white drop-shadow">Create Trip</h2>
+            <button onClick={onClose} className="w-8 h-8 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center hover:bg-white/25 transition-all border border-white/20">
               <X className="w-4 h-4 text-white" />
             </button>
           </div>
 
-          <div className="space-y-4">
-            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Trip title" className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-white/40" />
-            <input value={destination} onChange={(e) => setDestination(e.target.value)} placeholder="Destination" className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-white/40" />
+          <div className="space-y-3">
+            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Trip title" className={inputClass} />
+            <input value={destination} onChange={(e) => setDestination(e.target.value)} placeholder="Destination" className={inputClass} />
             <div className="flex gap-3">
-              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="flex-1 px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:border-white/40 [color-scheme:dark]" />
-              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="flex-1 px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:border-white/40 [color-scheme:dark]" />
+              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className={`flex-1 ${inputClass}`} />
+              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className={`flex-1 ${inputClass}`} />
             </div>
             <div className="flex gap-3">
-              <input value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="Budget (e.g. $1200)" className="flex-1 px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-white/40" />
-              <input value={maxTravelers} onChange={(e) => setMaxTravelers(e.target.value)} type="number" min="2" max="20" className="w-20 px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:border-white/40" />
+              <input value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="Budget (e.g. $1200)" className={`flex-1 ${inputClass}`} />
+              <input value={maxTravelers} onChange={(e) => setMaxTravelers(e.target.value)} type="number" min="2" max="20" placeholder="Max" className={`w-20 ${inputClass}`} />
             </div>
-            <select value={travelStyle} onChange={(e) => setTravelStyle(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:border-white/40 [color-scheme:dark]">
+            <select value={travelStyle} onChange={(e) => setTravelStyle(e.target.value)} className={inputClass}>
               <option value="">Travel style</option>
               <option value="Backpacking">Backpacking</option>
               <option value="Luxury">Luxury</option>
@@ -154,7 +171,7 @@ const CreateTripModal = ({ isOpen, onClose, onCreate }: {
               <option value="Cultural">Cultural</option>
               <option value="Road Trip">Road Trip</option>
             </select>
-            <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe your trip..." rows={3} className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-white/40 resize-none" />
+            <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe your trip..." rows={3} className={`${inputClass} resize-none`} />
             
             <button
               onClick={handleSubmit}
@@ -177,11 +194,9 @@ const TripsScreen = () => {
   const [showCreate, setShowCreate] = useState(false);
   const [activeTab, setActiveTab] = useState<'discover' | 'my'>('discover');
 
-  // Categorize trips
   const matchingTrips = trips.filter(t => 
     travelDetails?.destination && t.destination.toLowerCase().includes(travelDetails.destination.toLowerCase())
   );
-  const trendingTrips = trips.sort((a, b) => (b.member_count || 0) - (a.member_count || 0));
   const displayTrips = activeTab === 'my' ? trips.filter(t => t.creator_id === profileId) : trips;
 
   return (
@@ -238,28 +253,13 @@ const TripsScreen = () => {
             <p className="text-sm text-white/60">Loading trips...</p>
           </div>
         ) : displayTrips.length === 0 ? (
-          <div className="flex items-center justify-center h-64">
-            <div
-              className="max-w-[420px] w-full p-6 rounded-[20px] flex flex-col items-center text-center"
-              style={{
-                background: 'rgba(255,255,255,0.08)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255,255,255,0.15)',
-                boxShadow: '0 10px 40px rgba(0,0,0,0.25)',
-              }}
-            >
-              <Compass className="w-12 h-12 text-white/30 mb-3" />
-              <h3 className="text-lg font-display text-white/80 mb-1">
-                {activeTab === 'my' ? 'No trips yet' : 'No trips available'}
-              </h3>
-              <p className="text-sm text-white/50 mb-4">
-                {activeTab === 'my' ? 'Create your first trip board!' : 'Be the first to create one!'}
-              </p>
-              <button onClick={() => setShowCreate(true)} className="px-5 py-2 rounded-full bg-gradient-to-r from-sky-500 to-indigo-500 text-white text-sm font-medium border border-white/30 shadow-lg">
-                Create Trip
-              </button>
-            </div>
+          <div className="flex flex-col items-center justify-center h-64 text-center px-4">
+            <Compass className="w-10 h-10 text-white/25 mb-3" />
+            <p className="text-sm text-white/60">
+              {activeTab === 'my' 
+                ? 'You haven\'t created any trips yet. Tap + to create your first trip board!'
+                : 'No trips available right now. Be the first to create one!'}
+            </p>
           </div>
         ) : (
           displayTrips.map((trip) => (
