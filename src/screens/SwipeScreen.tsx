@@ -187,10 +187,11 @@ const SwipeScreen = () => {
 
   // Auto-refresh when getting low
   useEffect(() => {
-    if (remainingItems.length === 2 && !loading) {
-      // Just a hint that we're low, maybe we could fetch more in the background
+    if (remainingItems.length <= 3 && remainingItems.length > 0 && !loading) {
+      console.log('[Swipe] Low on items, fetching more in background...');
+      refresh(true); // true for background refresh
     }
-  }, [remainingItems.length, loading]);
+  }, [remainingItems.length, loading, refresh]);
 
   const handleSwipe = async (direction: 'left' | 'right') => {
     if (remainingItems.length === 0) return;
@@ -419,7 +420,7 @@ const SwipeScreen = () => {
         userName={selectedProfile?.name || ''}
       />
 
-      
+
       <AIItineraryAssistant destination={destination} />
     </div>
   );
