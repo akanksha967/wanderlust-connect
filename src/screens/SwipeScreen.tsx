@@ -201,14 +201,14 @@ const SwipeScreen = () => {
       const currentProfile = currentItem.data;
       if (direction === 'right') {
         if (isExhausted) {
-          // Still move past the card but inform user
           setCurrentIndex((prev) => prev + 1);
           return;
         }
         if (user) {
           const result = await createLike(currentProfile.id);
+          console.log('[Swipe] Like result:', result);
           if (!result.success) {
-            // Move past card even on failure
+            console.warn('[Swipe] Like failed:', result.error);
             setCurrentIndex((prev) => prev + 1);
             return;
           }
@@ -241,7 +241,8 @@ const SwipeScreen = () => {
       const currentTrip = currentItem.data;
       if (direction === 'right') {
         if (user) {
-          await requestToJoin(currentTrip.id);
+          const result = await requestToJoin(currentTrip.id);
+          console.log('[Swipe] Join trip result:', result);
         }
       }
     }
