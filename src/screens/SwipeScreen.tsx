@@ -213,13 +213,8 @@ const SwipeScreen = () => {
             setCurrentIndex((prev) => prev + 1);
             return;
           }
-          const { data: match } = await supabase
-            .from('matches')
-            .select('id')
-            .or(`and(profile1_id.eq.${myProfileId},profile2_id.eq.${currentProfile.id}),and(profile1_id.eq.${currentProfile.id},profile2_id.eq.${myProfileId})`)
-            .maybeSingle();
 
-          if (match) {
+          if (result.matched) {
             const matchedUser = {
               id: currentProfile.id,
               name: currentProfile.name,
@@ -410,6 +405,27 @@ const SwipeScreen = () => {
             )}
           </motion.button>
         </div>
+      )}
+
+      {/* Floating My Crews Button */}
+      {!loading && (
+        <motion.button
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={() => setScreen('trips')}
+          className="fixed bottom-28 right-6 z-30 w-14 h-14 flex items-center justify-center rounded-2xl backdrop-blur-2xl shadow-2xl border border-white/40 bg-gradient-to-br from-indigo-500/40 to-purple-500/40"
+          title="My Crews"
+        >
+          <div className="relative">
+            <Compass className="w-7 h-7 text-white drop-shadow-lg" />
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-sky-400 rounded-full border-2 border-white animate-pulse" />
+          </div>
+          <span className="absolute -top-8 right-0 px-2 py-1 rounded-lg bg-black/40 backdrop-blur-md text-[10px] text-white font-bold tracking-wider opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+            MY CREWS
+          </span>
+        </motion.button>
       )}
 
       <ReportBlockDialog

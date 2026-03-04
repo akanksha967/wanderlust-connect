@@ -45,6 +45,7 @@ export interface TripStory {
 export const useTrips = () => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [myTrips, setMyTrips] = useState<Trip[]>([]);
+  const [joinedTrips, setJoinedTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const { profileId } = useAuth();
   const { toast } = useToast();
@@ -63,14 +64,17 @@ export const useTrips = () => {
       const tripIds = tripsData.map(t => t.id);
       const creatorIds = [...new Set(tripsData.map(t => t.creator_id))];
 
-      // Batch fetch member counts and creator info
-      const [membersRes, creatorsRes] = await Promise.all([
+      // Batch fetch member counts, creator info, and memberships
+      const [membersRes, creatorsRes, myMembershipsRes] = await Promise.all([
         tripIds.length > 0
           ? supabase.from('trip_members').select('trip_id, user_id, joined_at, status').in('trip_id', tripIds).eq('status', 'approved')
           : { data: [] },
         creatorIds.length > 0
           ? supabase.from('profiles').select('id, name').in('id', creatorIds)
           : { data: [] },
+        profileId
+          ? supabase.from('trip_members').select('trip_id, status').eq('user_id', profileId).eq('status', 'approved')
+          : { data: [] }
       ]);
 
       const memberCountMap = new Map<string, number>();
@@ -82,6 +86,7 @@ export const useTrips = () => {
       }
 
       const creatorMap = new Map((creatorsRes.data || []).map(c => [c.id, c]));
+      const myApprovedTripIds = new Set((myMembershipsRes.data || []).map(m => m.trip_id));
 
       // Get recent member names
       const allRecentUserIds = [...new Set([...recentMembersMap.values()].flat().map(m => m.user_id))];
@@ -104,6 +109,7 @@ export const useTrips = () => {
       setTrips(tripsWithCounts);
       if (profileId) {
         setMyTrips(tripsWithCounts.filter(t => t.creator_id === profileId));
+        setJoinedTrips(tripsWithCounts.filter(t => t.creator_id !== profileId && myApprovedTripIds.has(t.id)));
       }
     } catch (error) {
       console.error('Error fetching trips:', error);
@@ -279,6 +285,7 @@ export const useTrips = () => {
   return {
     trips,
     myTrips,
+    joinedTrips,
     loading,
     createTrip,
     requestToJoin,

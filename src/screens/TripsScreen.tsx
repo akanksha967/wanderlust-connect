@@ -195,17 +195,20 @@ const CreateTripModal = ({ isOpen, onClose, onCreate }: {
 const TripsScreen = () => {
   const { setScreen, setSelectedTripId, travelDetails } = useAppStore();
   const { profileId } = useAuth();
-  const { trips, loading, createTrip, requestToJoin } = useTrips();
+  const { trips, joinedTrips, loading, createTrip, requestToJoin } = useTrips();
   const [showCreate, setShowCreate] = useState(false);
-  const [activeTab, setActiveTab] = useState<'discover' | 'my'>('discover');
+  const [activeTab, setActiveTab] = useState<'discover' | 'my' | 'crews'>('discover');
 
   const matchingTrips = trips.filter(t =>
     travelDetails?.destination && t.destination.toLowerCase().includes(travelDetails.destination.toLowerCase())
     && t.creator_id !== profileId
   );
+
   const displayTrips = activeTab === 'my'
     ? trips.filter(t => t.creator_id === profileId)
-    : trips.filter(t => t.creator_id !== profileId);
+    : activeTab === 'crews'
+      ? joinedTrips
+      : trips.filter(t => t.creator_id !== profileId);
 
   return (
     <div className="h-full flex flex-col relative overflow-hidden">
@@ -228,17 +231,17 @@ const TripsScreen = () => {
       </div>
 
       {/* Tabs */}
-      <div className="relative z-10 flex px-4 pt-3 gap-2">
-        {(['discover', 'my'] as const).map(tab => (
+      <div className="relative z-10 flex px-4 pt-3 gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        {(['discover', 'my', 'crews'] as const).map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${activeTab === tab
-                ? 'bg-white/30 text-white border border-white/40'
-                : 'bg-white/10 text-white/60 border border-white/15'
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${activeTab === tab
+              ? 'bg-white/30 text-white border border-white/40'
+              : 'bg-white/10 text-white/60 border border-white/15'
               }`}
           >
-            {tab === 'discover' ? 'Discover' : 'My Trips'}
+            {tab === 'discover' ? 'Discover' : tab === 'my' ? 'My Boards' : 'My Crews 🎒'}
           </button>
         ))}
       </div>
@@ -265,7 +268,9 @@ const TripsScreen = () => {
             <p className="text-sm text-white/60">
               {activeTab === 'my'
                 ? 'You haven\'t created any trips yet. Tap + to create your first trip board!'
-                : 'No trips available right now. Be the first to create one!'}
+                : activeTab === 'crews'
+                  ? 'You haven\'t joined any crews yet. Discover trips and request to join!'
+                  : 'No trips available right now. Be the first to create one!'}
             </p>
           </div>
         ) : (
