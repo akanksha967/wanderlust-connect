@@ -3,13 +3,15 @@ import { motion, useMotionValue, useTransform, PanInfo, AnimatePresence } from '
 import { useAppStore } from '@/store/useAppStore';
 import { X, MapPin, MessageCircle, User, Heart, Shield, MoreVertical, Loader2, Compass } from 'lucide-react';
 import ReportBlockDialog from '@/components/ReportBlockDialog';
-import { useSwipeProfiles, SwipeProfile } from '@/hooks/useSwipeProfiles';
+import { useSwipeProfiles, DiscoverItem } from '@/hooks/useSwipeProfiles';
 import { useAuth } from '@/hooks/useAuth';
 import { AIItineraryAssistant } from '@/components/AIItineraryAssistant';
 import { supabase } from '@/integrations/supabase/client';
 import { NotificationBell } from '@/components/NotificationBell';
 import { DailyLikesIndicator } from '@/components/DailyLikesIndicator';
 import { useDailyLikes } from '@/hooks/useDailyLikes';
+import SwipeTripCard from '@/components/SwipeTripCard';
+import { useTrips } from '@/hooks/useTrips';
 
 const destinationImages: Record<string, string> = {
   'Bali': 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=1200&auto=format&fit=crop',
@@ -23,19 +25,19 @@ const destinationImages: Record<string, string> = {
 };
 
 interface SwipeCardProps {
-  profile: SwipeProfile;
+  profile: any;
   destination: string;
   onSwipe: (direction: 'left' | 'right') => void;
   onOpenMenu: () => void;
   isTop: boolean;
 }
 
-const SwipeCard = ({ 
-  profile, 
+const SwipeCard = ({
+  profile,
   destination,
   onSwipe,
   onOpenMenu,
-  isTop 
+  isTop
 }: SwipeCardProps) => {
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-25, 25]);
@@ -51,7 +53,7 @@ const SwipeCard = ({
     }
   };
 
-  const photos = profile.photos.slice(0, 3);
+  const photos = (profile.photos || []).slice(0, 3);
   const currentPhoto = photos[currentPhotoIndex]?.url || photos[0]?.url;
 
   const handlePhotoTap = (e: React.MouseEvent) => {
@@ -75,24 +77,23 @@ const SwipeCard = ({
       onDragEnd={handleDragEnd}
       initial={{ scale: isTop ? 1 : 0.95, y: isTop ? 0 : 10 }}
       animate={{ scale: isTop ? 1 : 0.95, y: isTop ? 0 : 10 }}
-      exit={{ 
-        x: x.get() > 0 ? 300 : -300, 
+      exit={{
+        x: x.get() > 0 ? 300 : -300,
         opacity: 0,
         transition: { duration: 0.3 }
       }}
     >
-      <div 
+      <div
         className="relative w-full h-full rounded-[32px] overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.25)] bg-white/30 backdrop-blur-2xl border border-white/40"
         onClick={handlePhotoTap}
       >
         {photos.length > 1 && (
           <div className="absolute top-4 left-4 right-14 z-20 flex gap-1">
-            {photos.map((_, idx) => (
+            {photos.map((_, idx: number) => (
               <div
                 key={idx}
-                className={`h-1 flex-1 rounded-full transition-all ${
-                  idx === currentPhotoIndex ? 'bg-white' : 'bg-white/40'
-                }`}
+                className={`h-1 flex-1 rounded-full transition-all ${idx === currentPhotoIndex ? 'bg-white' : 'bg-white/40'
+                  }`}
               />
             ))}
           </div>
@@ -140,16 +141,16 @@ const SwipeCard = ({
               </div>
               <div className="flex items-center gap-1 text-white/90 text-sm mb-2">
                 <MapPin className="w-4 h-4" />
-                <span>{destination}</span>
+                <span>{profile.destination || destination}</span>
               </div>
               {profile.bio && (
                 <div className="mb-3 p-2 rounded-lg bg-white/10 backdrop-blur-sm max-h-16 overflow-y-auto">
                   <p className="text-white/80 text-sm break-words">{profile.bio}</p>
                 </div>
               )}
-              {profile.travel_vibes.length > 0 && (
+              {profile.travel_vibes && profile.travel_vibes.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
-                  {profile.travel_vibes.map((vibe) => (
+                  {profile.travel_vibes.map((vibe: string) => (
                     <span key={vibe} className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs text-white font-medium border border-white/20">
                       {vibe}
                     </span>
@@ -169,58 +170,78 @@ const SwipeScreen = () => {
   const { user, profileId: myProfileId } = useAuth();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showReportDialog, setShowReportDialog] = useState(false);
-  const [selectedProfile, setSelectedProfile] = useState<SwipeProfile | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<any>(null);
   const { createLike, isExhausted, loading: likesLoading } = useDailyLikes();
+  const { requestToJoin } = useTrips();
 
   const destination = travelDetails?.destination || '';
   const bgImage = destinationImages[destination] || destinationImages['default'];
 
-  const { profiles, loading, recordSwipe, blockUser, reportUser } = useSwipeProfiles(
+  const { items, loading, recordSwipe, blockUser, reportUser, refresh } = useSwipeProfiles(
     destination,
     travelDetails?.startDate || '',
     travelDetails?.endDate || ''
   );
 
-  const remainingProfiles = profiles.slice(currentIndex);
+  const remainingItems = items.slice(currentIndex);
+
+  // Auto-refresh when getting low
+  useEffect(() => {
+    if (remainingItems.length === 2 && !loading) {
+      // Just a hint that we're low, maybe we could fetch more in the background
+    }
+  }, [remainingItems.length, loading]);
 
   const handleSwipe = async (direction: 'left' | 'right') => {
-    if (remainingProfiles.length === 0) return;
-    const currentProfile = profiles[currentIndex];
-    if (!currentProfile) return;
+    if (remainingItems.length === 0) return;
+    const currentItem = items[currentIndex];
+    if (!currentItem) return;
 
-    if (direction === 'right') {
-      if (isExhausted) return;
-      if (user) {
-        const result = await createLike(currentProfile.id);
-        if (!result.success) {
-          setCurrentIndex((prev) => prev + 1);
-          return;
+    if (currentItem.type === 'traveler') {
+      const currentProfile = currentItem.data;
+      if (direction === 'right') {
+        if (isExhausted) return;
+        if (user) {
+          const result = await createLike(currentProfile.id);
+          if (!result.success) {
+            setCurrentIndex((prev) => prev + 1);
+            return;
+          }
+          const { data: match } = await supabase
+            .from('matches')
+            .select('id')
+            .or(`and(profile1_id.eq.${myProfileId},profile2_id.eq.${currentProfile.id}),and(profile1_id.eq.${currentProfile.id},profile2_id.eq.${myProfileId})`)
+            .maybeSingle();
+
+          if (match) {
+            const matchedUser = {
+              id: currentProfile.id,
+              name: currentProfile.name,
+              age: currentProfile.age || 0,
+              bio: currentProfile.bio || '',
+              photos: currentProfile.photos.map(p => p.url),
+              travelVibes: currentProfile.travel_vibes,
+            };
+            addMatch(matchedUser);
+            setMatchedUser(matchedUser);
+            setShowMatch(true);
+          }
         }
-        const { data: match } = await supabase
-          .from('matches')
-          .select('id')
-          .or(`and(profile1_id.eq.${myProfileId},profile2_id.eq.${currentProfile.id}),and(profile1_id.eq.${currentProfile.id},profile2_id.eq.${myProfileId})`)
-          .maybeSingle();
-
-        if (match) {
-          const matchedUser = {
-            id: currentProfile.id,
-            name: currentProfile.name,
-            age: currentProfile.age || 0,
-            bio: currentProfile.bio || '',
-            photos: currentProfile.photos.map(p => p.url),
-            travelVibes: currentProfile.travel_vibes,
-          };
-          addMatch(matchedUser);
-          setMatchedUser(matchedUser);
-          setShowMatch(true);
+      } else {
+        if (user) {
+          await recordSwipe(currentProfile.id, direction);
         }
       }
-    } else {
-      if (user) {
-        await recordSwipe(currentProfile.id, direction);
+    } else if (currentItem.type === 'trip') {
+      const currentTrip = currentItem.data;
+      if (direction === 'right') {
+        if (user) {
+          await requestToJoin(currentTrip.id);
+        }
       }
+      // Record trip "swipe" is handled by the member request or just skipping
     }
+
     setCurrentIndex((prev) => prev + 1);
   };
 
@@ -228,7 +249,7 @@ const SwipeScreen = () => {
     handleSwipe(direction);
   };
 
-  const handleOpenMenu = (profile: SwipeProfile) => {
+  const handleOpenMenu = (profile: any) => {
     setSelectedProfile(profile);
     setShowReportDialog(true);
   };
@@ -254,13 +275,13 @@ const SwipeScreen = () => {
 
       {/* Header */}
       <div className="relative z-10 px-4 pt-12 pb-2 flex items-center justify-between shrink-0">
-        <button 
+        <button
           onClick={() => setScreen('account')}
           className="w-11 h-11 flex items-center justify-center rounded-full bg-white/30 backdrop-blur-xl border border-white/40 shadow-lg transition-all hover:bg-white/40 active:scale-95"
         >
           <User className="w-5 h-5 text-white" />
         </button>
-        
+
         <motion.div className="text-center" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="text-xl font-display text-white drop-shadow-lg">
             {destination || 'Discover'}
@@ -268,14 +289,14 @@ const SwipeScreen = () => {
         </motion.div>
 
         <div className="flex items-center gap-2">
-          <button 
+          <button
             onClick={() => setScreen('trips')}
             className="w-11 h-11 flex items-center justify-center rounded-full bg-white/30 backdrop-blur-xl border border-white/40 shadow-lg transition-all hover:bg-white/40 active:scale-95"
           >
             <Compass className="w-5 h-5 text-white" />
           </button>
           <NotificationBell />
-          <button 
+          <button
             onClick={() => setScreen('matches')}
             className="w-11 h-11 flex items-center justify-center rounded-full bg-white/30 backdrop-blur-xl border border-white/40 shadow-lg transition-all hover:bg-white/40 active:scale-95"
           >
@@ -289,7 +310,7 @@ const SwipeScreen = () => {
         <div className="relative w-full h-full max-w-md mx-auto" style={{ aspectRatio: '3/4', maxHeight: 'calc(100% - 20px)' }}>
           <AnimatePresence>
             {loading || likesLoading ? (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 className="flex flex-col items-center justify-center h-full"
@@ -297,29 +318,51 @@ const SwipeScreen = () => {
                 <div className="w-20 h-20 rounded-full bg-white/30 backdrop-blur-xl border border-white/40 flex items-center justify-center mb-4 shadow-lg">
                   <Loader2 className="w-10 h-10 text-white animate-spin" />
                 </div>
-                <p className="text-sm text-white drop-shadow-lg">Finding travelers...</p>
+                <p className="text-sm text-white drop-shadow-lg">Finding matches...</p>
               </motion.div>
-            ) : remainingProfiles.length > 0 ? (
-              remainingProfiles.slice(0, 2).reverse().map((profile, index) => (
-                <SwipeCard
-                  key={profile.id}
-                  profile={profile}
-                  destination={destination}
-                  onSwipe={handleSwipe}
-                  onOpenMenu={() => handleOpenMenu(profile)}
-                  isTop={index === remainingProfiles.slice(0, 2).length - 1}
-                />
-              ))
+            ) : remainingItems.length > 0 ? (
+              remainingItems.slice(0, 2).reverse().map((item, index) => {
+                const isTop = index === remainingItems.slice(0, 2).length - 1;
+
+                if (item.type === 'traveler') {
+                  return (
+                    <SwipeCard
+                      key={item.data.id}
+                      profile={item.data}
+                      destination={destination}
+                      onSwipe={handleSwipe}
+                      onOpenMenu={() => handleOpenMenu(item.data)}
+                      isTop={isTop}
+                    />
+                  );
+                } else {
+                  return (
+                    <SwipeTripCard
+                      key={item.data.id}
+                      trip={item.data}
+                      onSwipe={handleSwipe}
+                      onViewDetails={() => { }} // Could open trip screen/details
+                      isTop={isTop}
+                    />
+                  );
+                }
+              })
             ) : (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="flex flex-col items-center justify-center h-full text-center px-4"
               >
-                <MapPin className="w-10 h-10 text-white/25 mb-3" />
-                <p className="text-sm text-white/60 max-w-xs">
-                  No more travelers right now. Adjust your travel dates or check back later.
+                <Compass className="w-10 h-10 text-white/25 mb-3" />
+                <p className="text-sm text-white/60 max-w-xs mb-4">
+                  No more matches right now. Try expanding your search or check back later.
                 </p>
+                <button
+                  onClick={() => refresh()}
+                  className="px-6 py-2 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white text-sm font-medium"
+                >
+                  Refresh Feed
+                </button>
               </motion.div>
             )}
           </AnimatePresence>
@@ -327,8 +370,8 @@ const SwipeScreen = () => {
       </div>
 
       {/* Action buttons */}
-      {!loading && !likesLoading && remainingProfiles.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-20 px-4 pb-8 pt-4 flex justify-center items-center gap-8 bg-gradient-to-t from-indigo-400/50 to-transparent">
+      {!loading && !likesLoading && remainingItems.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 z-20 px-4 pb-8 pt-4 flex justify-center items-center gap-8 bg-gradient-to-t from-black/20 to-transparent">
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
@@ -337,14 +380,21 @@ const SwipeScreen = () => {
           >
             <X className="w-8 h-8 text-white" strokeWidth={2.5} />
           </motion.button>
-          
+
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => handleButtonSwipe('right')}
-            className="w-16 h-16 flex items-center justify-center rounded-full bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 border border-white/30 shadow-lg transition-all"
+            className={`w-16 h-16 flex items-center justify-center rounded-full border border-white/30 shadow-lg transition-all ${remainingItems[0]?.type === 'trip'
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-500'
+                : 'bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500'
+              }`}
           >
-            <Heart className="w-8 h-8 text-white" strokeWidth={2.5} />
+            {remainingItems[0]?.type === 'trip' ? (
+              <Compass className="w-8 h-8 text-white" strokeWidth={2.5} />
+            ) : (
+              <Heart className="w-8 h-8 text-white" strokeWidth={2.5} />
+            )}
           </motion.button>
         </div>
       )}

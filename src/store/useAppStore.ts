@@ -41,6 +41,7 @@ const STORAGE_KEYS = {
   lastScreen: "lastScreen",
   travelDetails: "travelDetails",
   matchedUser: "matchedUser",
+  userProfile: "userProfile",
 } as const;
 
 const safeJsonParse = <T,>(value: string | null): T | null => {
@@ -58,9 +59,6 @@ const getInitialScreen = (): ScreenType => {
     const screenFromUrl = pathToScreen[window.location.pathname];
     if (screenFromUrl) return screenFromUrl;
 
-    // ✅ REMOVE the lastScreen logic entirely — it causes the routing to start
-    // on a protected screen before auth resolves, triggering redirect loops.
-    // Index.tsx will route the user to the right screen after auth loads.
     const saved = localStorage.getItem(STORAGE_KEYS.currentScreen);
     const allowed = ["login", "profile", "travel", "swipe", "chat", "account", "matches", "access", "admin", "trips"];
 
@@ -70,6 +68,13 @@ const getInitialScreen = (): ScreenType => {
   }
   return "login";
 };
+
+const getInitialUserProfile = (): Partial<UserProfile> => {
+  if (typeof window === "undefined") return {};
+  const saved = localStorage.getItem(STORAGE_KEYS.userProfile);
+  return safeJsonParse<Partial<UserProfile>>(saved) || {};
+};
+
 const getInitialTravelDetails = (): TravelDetails | null => {
   if (typeof window === "undefined") return null;
   const parsed = safeJsonParse<TravelDetails>(localStorage.getItem(STORAGE_KEYS.travelDetails));
@@ -87,7 +92,7 @@ const getInitialMatchedUser = (): UserProfile | null => {
 
 export const useAppStore = create<AppState>((set) => ({
   currentScreen: getInitialScreen(),
-  userProfile: {},
+  userProfile: getInitialUserProfile(),
   travelDetails: getInitialTravelDetails(),
   matchedUser: getInitialMatchedUser(),
   matches: [],
@@ -103,9 +108,13 @@ export const useAppStore = create<AppState>((set) => ({
     set({ currentScreen: screen });
   },
   setUserProfile: (profile) =>
-    set((state) => ({
-      userProfile: { ...state.userProfile, ...profile },
-    })),
+    set((state) => {
+      const newUserProfile = { ...state.userProfile, ...profile };
+      if (typeof window !== "undefined") {
+        localStorage.setItem(STORAGE_KEYS.userProfile, JSON.stringify(newUserProfile));
+      }
+      return { userProfile: newUserProfile };
+    }),
   setTravelDetails: (details) => {
     if (typeof window !== "undefined") {
       localStorage.setItem(STORAGE_KEYS.travelDetails, JSON.stringify(details));

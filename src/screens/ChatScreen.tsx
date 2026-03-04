@@ -30,28 +30,36 @@ const ChatScreen = () => {
   // Fetch match ID and messages
   useEffect(() => {
     const fetchMatchAndMessages = async () => {
-      if (!user || !matchedUser || !profileId) {
+      // If we don't have a profileId yet, wait for useAuth to finish
+      if (!profileId) return;
+
+      if (!matchedUser) {
         setLoading(false);
         return;
       }
 
       try {
+        setLoading(true);
         // Find the match between current user and matched user
-        const { data: matchData } = await supabase
+        const { data: matchData, error: matchError } = await supabase
           .from('matches')
           .select('id')
-          .or(`and(profile1_id.eq.${profileId},profile2_id.eq.${matchedUser.id}),and(profile1_id.eq.${matchedUser.id},profile2_id.eq.${profileId})`)
-          .single();
+          .or(`and(profile1_id.eq.${profileId},profile2_id.eq.${matchedUser.id}),and(profile2_id.eq.${profileId},profile1_id.eq.${matchedUser.id})`)
+          .maybeSingle();
+
+        if (matchError) throw matchError;
 
         if (matchData) {
           setMatchId(matchData.id);
 
           // Fetch messages for this match
-          const { data: messagesData } = await supabase
+          const { data: messagesData, error: msgError } = await supabase
             .from('messages')
             .select('*')
             .eq('match_id', matchData.id)
             .order('created_at', { ascending: true });
+
+          if (msgError) throw msgError;
 
           if (messagesData) {
             const formattedMessages: Message[] = messagesData.map((msg) => ({
@@ -62,12 +70,14 @@ const ChatScreen = () => {
             }));
             setMessages(formattedMessages);
           }
+        } else {
+          console.warn('No match found for chat', { myId: profileId, theirId: matchedUser.id });
         }
       } catch (error) {
         console.error('Error fetching messages:', error);
         toast({
           title: "Couldn't load chat",
-          description: "Failed to fetch previous messages.",
+          description: "There was a problem loading your messages. Please try again.",
           variant: "destructive",
         });
       } finally {
@@ -76,7 +86,7 @@ const ChatScreen = () => {
     };
 
     fetchMatchAndMessages();
-  }, [user, matchedUser, profileId]);
+  }, [matchedUser?.id, profileId]);
 
   // Subscribe to new messages
   useEffect(() => {

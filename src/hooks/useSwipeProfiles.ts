@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
+import { Trip } from './useTrips';
 
 export interface SwipeProfile {
   id: string;
@@ -11,107 +12,80 @@ export interface SwipeProfile {
   is_verified: boolean | null;
   photos: { url: string; is_primary: boolean | null }[];
   travel_vibes: string[];
+  destination?: string;
+  start_date?: string;
+  end_date?: string;
 }
 
+export type DiscoverItem =
+  | { type: 'traveler'; tier: number; data: SwipeProfile }
+  | { type: 'trip'; priority: number; data: Trip & { creator_name?: string } };
+
 export const useSwipeProfiles = (destination: string, startDate: string, endDate: string) => {
-  const [profiles, setProfiles] = useState<SwipeProfile[]>([]);
+  const [items, setItems] = useState<DiscoverItem[]>([]);
   const [loading, setLoading] = useState(true);
   const { user, profileId: myProfileId } = useAuth();
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (!user || !destination || !myProfileId) {
-      if (!user || !destination) setLoading(false);
+  const fetchDiscoverFeed = useCallback(async () => {
+    if (!user || !myProfileId) {
+      setLoading(false);
       return;
     }
 
-    const fetchProfiles = async () => {
-      try {
-        // 1. Get matching travel plans
-        const { data: travelPlans, error: travelError } = await supabase
-          .from('travel_plans')
-          .select('profile_id')
-          .eq('destination', destination)
-          .eq('is_active', true)
-          .lte('start_date', endDate)
-          .gte('end_date', startDate);
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.rpc('get_discover_feed' as any, {
+        p_profile_id: myProfileId,
+        p_destination: destination || 'Anywhere',
+        p_start_date: startDate || new Date().toISOString().split('T')[0],
+        p_end_date: endDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        p_limit: 20
+      });
 
-        if (travelError) throw travelError;
+      if (error) throw error;
 
-        if (!travelPlans || travelPlans.length === 0) {
-          setProfiles([]);
-          setLoading(false);
-          return;
+      const feedItems: DiscoverItem[] = (data as any[]) || [];
+
+      // Implement the mixed order: Traveler -> Traveler -> Trip -> Traveler -> Trip
+      // The RPC returns travelers first then trips. We should interleave them.
+      const travelers = feedItems.filter(item => item.type === 'traveler');
+      const trips = feedItems.filter(item => item.type === 'trip');
+
+      const mixedItems: DiscoverItem[] = [];
+      let tIdx = 0;
+      let trIdx = 0;
+
+      while (tIdx < travelers.length || trIdx < trips.length) {
+        // Traveler 1
+        if (tIdx < travelers.length) mixedItems.push(travelers[tIdx++]);
+        // Traveler 2
+        if (tIdx < travelers.length) mixedItems.push(travelers[tIdx++]);
+        // Trip 1
+        if (trIdx < trips.length) mixedItems.push(trips[trIdx++]);
+
+        // If travelers are low, take more trips
+        if (tIdx >= travelers.length && trIdx < trips.length) {
+          mixedItems.push(trips[trIdx++]);
         }
-
-        const potentialProfileIds = (travelPlans as any[])
-          .map(tp => tp.profile_id)
-          .filter(id => id !== myProfileId);
-
-        if (potentialProfileIds.length === 0) {
-          setProfiles([]);
-          setLoading(false);
-          return;
-        }
-
-        const [swipesRes, blocksRes] = await Promise.all([
-          supabase.from('swipes').select('swiped_id').eq('swiper_id', myProfileId),
-          supabase.from('blocks').select('blocked_id, blocker_id')
-            .or(`blocker_id.eq.${myProfileId},blocked_id.eq.${myProfileId}`)
-        ]) as [any, any];
-
-        const swipedIds = new Set((swipesRes.data as any[])?.map(s => s.swiped_id) || []);
-        const blockedIds = new Set((blocksRes.data as any[])?.flatMap(b => [b.blocked_id, b.blocker_id]) || []);
-
-        // Filter eligible IDs
-        const eligibleIds = [...new Set(potentialProfileIds)].filter(id =>
-          !swipedIds.has(id) && !blockedIds.has(id)
-        );
-
-        if (eligibleIds.length === 0) {
-          setProfiles([]);
-          setLoading(false);
-          return;
-        }
-
-        // 3. Fetch full profiles with photos and vibes in ONE joined query
-        const { data: profilesData, error: profilesError } = await supabase
-          .from('profiles')
-          .select(`
-            id, name, age, bio, is_verified,
-            photos (url, is_primary),
-            travel_vibes (vibe)
-          `)
-          .in('id', eligibleIds);
-
-        if (profilesError) throw profilesError;
-
-        // Combine data
-        const fullProfiles: SwipeProfile[] = (profilesData || []).map((profile: any) => ({
-          id: profile.id,
-          name: profile.name,
-          age: profile.age,
-          bio: profile.bio,
-          is_verified: profile.is_verified,
-          photos: (profile.photos || []).map((p: any) => ({ url: p.url, is_primary: p.is_primary })),
-          travel_vibes: (profile.travel_vibes || []).map((v: any) => v.vibe),
-        }));
-
-        setProfiles(fullProfiles);
-      } catch (error: any) {
-        console.error('Error fetching profiles:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load profiles',
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
       }
-    };
 
-    fetchProfiles();
-  }, [user, destination, startDate, endDate, toast]);
+      setItems(mixedItems);
+    } catch (error: any) {
+      console.error('Error fetching discover feed:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load discover feed',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [user, myProfileId, destination, startDate, endDate, toast]);
+
+  useEffect(() => {
+    fetchDiscoverFeed();
+  }, [fetchDiscoverFeed]);
 
   const recordSwipe = async (swipedId: string, direction: 'left' | 'right') => {
     if (!user || !myProfileId) return { matched: false };
@@ -132,7 +106,7 @@ export const useSwipeProfiles = (destination: string, startDate: string, endDate
           .from('matches')
           .select('id')
           .or(`and(profile1_id.eq.${myProfileId},profile2_id.eq.${swipedId}),and(profile1_id.eq.${swipedId},profile2_id.eq.${myProfileId})`)
-          .single();
+          .maybeSingle();
 
         return { matched: !!match };
       }
@@ -157,7 +131,7 @@ export const useSwipeProfiles = (destination: string, startDate: string, endDate
 
       if (error) throw error;
 
-      setProfiles(prev => prev.filter(p => p.id !== blockedId));
+      setItems(prev => prev.filter(item => item.type === 'traveler' ? item.data.id !== blockedId : true));
       toast({
         title: 'User blocked',
         description: 'You will no longer see this profile',
@@ -165,11 +139,6 @@ export const useSwipeProfiles = (destination: string, startDate: string, endDate
       return true;
     } catch (error: any) {
       console.error('Error blocking user:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to block user',
-        variant: 'destructive',
-      });
       return false;
     }
   };
@@ -196,20 +165,17 @@ export const useSwipeProfiles = (destination: string, startDate: string, endDate
       return true;
     } catch (error: any) {
       console.error('Error reporting user:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to submit report',
-        variant: 'destructive',
-      });
       return false;
     }
   };
 
   return {
-    profiles,
+    items,
+    profiles: items.filter(i => i.type === 'traveler').map(i => i.data), // for backward compatibility if needed
     loading,
     recordSwipe,
     blockUser,
     reportUser,
+    refresh: fetchDiscoverFeed
   };
 };

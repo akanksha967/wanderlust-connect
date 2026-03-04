@@ -26,7 +26,7 @@ export const useNotifications = () => {
       setLoading(false);
       return;
     }
-    
+
     try {
       // Fetch non-like notifications (no limit needed)
       const { data: otherData, error: otherError } = await supabase
@@ -96,8 +96,15 @@ export const useNotifications = () => {
           table: 'notifications',
           filter: `user_id=eq.${profileId}`,
         },
-        () => {
-          fetchNotifications();
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const newNotif = payload.new as Notification;
+            setNotifications(prev => [newNotif, ...prev].sort((a, b) =>
+              new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            ));
+          } else {
+            fetchNotifications();
+          }
         }
       )
       .subscribe();
