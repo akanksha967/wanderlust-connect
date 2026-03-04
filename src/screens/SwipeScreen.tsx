@@ -359,17 +359,28 @@ const SwipeScreen = () => {
               <motion.div 
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="flex flex-col items-center justify-center h-full text-center"
+                className="flex flex-col items-center justify-center h-full text-center px-4"
               >
-                <div className="w-20 h-20 rounded-full bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 flex items-center justify-center mb-4 shadow-lg">
-                  <MapPin className="w-10 h-10 text-white" />
+                <div
+                  className="max-w-[420px] w-full p-6 rounded-[20px] flex flex-col items-center"
+                  style={{
+                    background: 'rgba(255,255,255,0.08)',
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(255,255,255,0.15)',
+                    boxShadow: '0 10px 40px rgba(0,0,0,0.25)',
+                  }}
+                >
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 flex items-center justify-center mb-4 shadow-lg">
+                    <MapPin className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-display text-white drop-shadow-lg mb-2">
+                    No more travelers
+                  </h3>
+                  <p className="text-sm text-white/70 max-w-xs">
+                    Check back later or adjust your travel dates to find more companions.
+                  </p>
                 </div>
-                <h3 className="text-xl font-display text-white drop-shadow-lg mb-2">
-                  No more travelers
-                </h3>
-                <p className="text-sm text-white/90 max-w-xs drop-shadow-lg">
-                  Check back later or adjust your travel dates to find more companions
-                </p>
               </motion.div>
             )}
           </AnimatePresence>

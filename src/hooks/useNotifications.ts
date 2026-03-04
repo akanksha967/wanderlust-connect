@@ -22,19 +22,55 @@ export const useNotifications = () => {
   const { profileId } = useAuth();
 
   const fetchNotifications = useCallback(async () => {
-    if (!profileId) return;
+    if (!profileId) {
+      setLoading(false);
+      return;
+    }
     
     try {
-      const { data, error } = await supabase
+      // Fetch non-like notifications (no limit needed)
+      const { data: otherData, error: otherError } = await supabase
         .from('notifications')
         .select('*')
         .eq('user_id', profileId)
         .neq('status', 'cleared')
+        .not('type', 'in', '("like","destination_match")')
         .order('created_at', { ascending: false })
         .limit(20);
 
-      if (error) throw error;
-      setNotifications((data as any[]) || []);
+      if (otherError) throw otherError;
+
+      // Fetch unread like/destination_match notifications — backend-limited to 3
+      const { data: unreadLikes, error: likesError } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', profileId)
+        .in('type', ['like', 'destination_match'])
+        .eq('status', 'unread')
+        .order('created_at', { ascending: true })
+        .limit(3);
+
+      if (likesError) throw likesError;
+
+      // Fetch read like notifications for history
+      const { data: readLikes, error: readError } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', profileId)
+        .in('type', ['like', 'destination_match'])
+        .eq('status', 'read')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (readError) throw readError;
+
+      const all = [
+        ...((otherData as any[]) || []),
+        ...((unreadLikes as any[]) || []),
+        ...((readLikes as any[]) || []),
+      ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+      setNotifications(all);
     } catch (error) {
       console.error('Error fetching notifications:', error);
     } finally {
@@ -71,18 +107,8 @@ export const useNotifications = () => {
     };
   }, [profileId, fetchNotifications]);
 
+  // Count unread from fetched data only (already limited to 3 likes)
   const unreadCount = notifications.filter(n => n.status === 'unread').length;
-  
-  // Only show first 3 unread like notifications (queued system)
-  const visibleNotifications = (() => {
-    const likeNotifs = notifications.filter(n => (n.type === 'like' || n.type === 'destination_match') && n.status === 'unread');
-    const otherNotifs = notifications.filter(n => n.type !== 'like' && n.type !== 'destination_match');
-    const readLikeNotifs = notifications.filter(n => (n.type === 'like' || n.type === 'destination_match') && n.status === 'read');
-    
-    return [...otherNotifs, ...likeNotifs.slice(0, 3), ...readLikeNotifs].sort(
-      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    );
-  })();
 
   const revealLike = async (notificationId: string) => {
     try {
@@ -138,7 +164,7 @@ export const useNotifications = () => {
   };
 
   return {
-    notifications: visibleNotifications,
+    notifications,
     unreadCount,
     loading,
     revealLike,

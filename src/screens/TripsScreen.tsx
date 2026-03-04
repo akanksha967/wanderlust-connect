@@ -15,7 +15,14 @@ const TripCard = ({ trip, onJoin, myProfileId }: { trip: Trip; onJoin: (id: stri
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-4 rounded-2xl bg-white/25 backdrop-blur-xl border border-white/30 shadow-lg"
+      className="p-4 rounded-[20px] transition-all"
+      style={{
+        background: 'rgba(255,255,255,0.08)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255,255,255,0.15)',
+        boxShadow: '0 10px 40px rgba(0,0,0,0.25)',
+      }}
     >
       <div className="flex items-start justify-between mb-2">
         <h3 className="text-lg font-display text-white drop-shadow">{trip.title}</h3>
@@ -231,17 +238,28 @@ const TripsScreen = () => {
             <p className="text-sm text-white/60">Loading trips...</p>
           </div>
         ) : displayTrips.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-center">
-            <Compass className="w-12 h-12 text-white/30 mb-3" />
-            <h3 className="text-lg font-display text-white/80 mb-1">
-              {activeTab === 'my' ? 'No trips yet' : 'No trips available'}
-            </h3>
-            <p className="text-sm text-white/50 mb-4">
-              {activeTab === 'my' ? 'Create your first trip board!' : 'Be the first to create one!'}
-            </p>
-            <button onClick={() => setShowCreate(true)} className="px-5 py-2 rounded-full bg-gradient-to-r from-sky-500 to-indigo-500 text-white text-sm font-medium border border-white/30 shadow-lg">
-              Create Trip
-            </button>
+          <div className="flex items-center justify-center h-64">
+            <div
+              className="max-w-[420px] w-full p-6 rounded-[20px] flex flex-col items-center text-center"
+              style={{
+                background: 'rgba(255,255,255,0.08)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255,255,255,0.15)',
+                boxShadow: '0 10px 40px rgba(0,0,0,0.25)',
+              }}
+            >
+              <Compass className="w-12 h-12 text-white/30 mb-3" />
+              <h3 className="text-lg font-display text-white/80 mb-1">
+                {activeTab === 'my' ? 'No trips yet' : 'No trips available'}
+              </h3>
+              <p className="text-sm text-white/50 mb-4">
+                {activeTab === 'my' ? 'Create your first trip board!' : 'Be the first to create one!'}
+              </p>
+              <button onClick={() => setShowCreate(true)} className="px-5 py-2 rounded-full bg-gradient-to-r from-sky-500 to-indigo-500 text-white text-sm font-medium border border-white/30 shadow-lg">
+                Create Trip
+              </button>
+            </div>
           </div>
         ) : (
           displayTrips.map((trip) => (
