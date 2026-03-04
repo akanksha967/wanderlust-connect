@@ -35,42 +35,113 @@ export const useSwipeProfiles = (destination: string, startDate: string, endDate
 
     try {
       setLoading(true);
-      const { data, error } = await supabase.rpc('get_discover_feed' as any, {
-        p_profile_id: myProfileId,
-        p_destination: destination || 'Anywhere',
-        p_start_date: startDate || new Date().toISOString().split('T')[0],
-        p_end_date: endDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        p_limit: 20
-      });
+
+      // Get already swiped profile IDs
+      const { data: swipedData } = await supabase
+        .from('swipes')
+        .select('swiped_id')
+        .eq('swiper_id', myProfileId);
+      const swipedIds = (swipedData || []).map(s => s.swiped_id);
+
+      // Get blocked IDs
+      const { data: blockedData } = await supabase
+        .from('blocks')
+        .select('blocked_id, blocker_id')
+        .or(`blocker_id.eq.${myProfileId},blocked_id.eq.${myProfileId}`);
+      const blockedIds = (blockedData || []).flatMap(b =>
+        b.blocker_id === myProfileId ? [b.blocked_id] : [b.blocker_id]
+      );
+
+      const excludeIds = [...new Set([myProfileId, ...swipedIds, ...blockedIds])];
+
+      // Fetch profiles with overlapping travel plans
+      const { data: profiles, error } = await supabase
+        .from('profiles')
+        .select('id, name, age, bio, is_verified')
+        .not('id', 'in', `(${excludeIds.join(',')})`)
+        .limit(20);
 
       if (error) throw error;
 
-      const feedItems: DiscoverItem[] = (data as any[]) || [];
+      // Fetch photos and vibes for these profiles
+      const profileIds = (profiles || []).map(p => p.id);
 
-      // Implement the mixed order: Traveler -> Traveler -> Trip -> Traveler -> Trip
-      // The RPC returns travelers first then trips. We should interleave them.
-      const travelers = feedItems.filter(item => item.type === 'traveler');
-      const trips = feedItems.filter(item => item.type === 'trip');
+      const [photosRes, vibesRes, plansRes] = await Promise.all([
+        profileIds.length > 0
+          ? supabase.from('photos').select('profile_id, url, is_primary').in('profile_id', profileIds)
+          : { data: [] },
+        profileIds.length > 0
+          ? supabase.from('travel_vibes').select('profile_id, vibe').in('profile_id', profileIds)
+          : { data: [] },
+        profileIds.length > 0
+          ? supabase.from('travel_plans').select('profile_id, destination, start_date, end_date').in('profile_id', profileIds).eq('is_active', true)
+          : { data: [] },
+      ]);
 
-      const mixedItems: DiscoverItem[] = [];
-      let tIdx = 0;
-      let trIdx = 0;
+      const photosMap = new Map<string, { url: string; is_primary: boolean | null }[]>();
+      for (const p of (photosRes.data || [])) {
+        if (!photosMap.has(p.profile_id)) photosMap.set(p.profile_id, []);
+        photosMap.get(p.profile_id)!.push({ url: p.url, is_primary: p.is_primary });
+      }
 
-      while (tIdx < travelers.length || trIdx < trips.length) {
-        // Traveler 1
-        if (tIdx < travelers.length) mixedItems.push(travelers[tIdx++]);
-        // Traveler 2
-        if (tIdx < travelers.length) mixedItems.push(travelers[tIdx++]);
-        // Trip 1
-        if (trIdx < trips.length) mixedItems.push(trips[trIdx++]);
+      const vibesMap = new Map<string, string[]>();
+      for (const v of (vibesRes.data || [])) {
+        if (!vibesMap.has(v.profile_id)) vibesMap.set(v.profile_id, []);
+        vibesMap.get(v.profile_id)!.push(v.vibe);
+      }
 
-        // If travelers are low, take more trips
-        if (tIdx >= travelers.length && trIdx < trips.length) {
-          mixedItems.push(trips[trIdx++]);
+      const plansMap = new Map<string, { destination: string; start_date: string; end_date: string }>();
+      for (const tp of (plansRes.data || [])) {
+        plansMap.set(tp.profile_id, tp);
+      }
+
+      const travelerItems: DiscoverItem[] = (profiles || []).map(p => {
+        const plan = plansMap.get(p.id);
+        return {
+          type: 'traveler' as const,
+          tier: 1,
+          data: {
+            id: p.id,
+            name: p.name,
+            age: p.age,
+            bio: p.bio,
+            is_verified: p.is_verified,
+            photos: photosMap.get(p.id) || [],
+            travel_vibes: vibesMap.get(p.id) || [],
+            destination: plan?.destination,
+            start_date: plan?.start_date,
+            end_date: plan?.end_date,
+          },
+        };
+      });
+
+      // Fetch active trips (exclude own)
+      const { data: tripsData } = await supabase
+        .from('trips')
+        .select('*')
+        .eq('is_active', true)
+        .neq('creator_id', myProfileId)
+        .limit(10);
+
+      const tripItems: DiscoverItem[] = (tripsData || []).map(t => ({
+        type: 'trip' as const,
+        priority: 1,
+        data: t as Trip,
+      }));
+
+      // Interleave: Traveler -> Traveler -> Trip
+      const mixed: DiscoverItem[] = [];
+      let tIdx = 0, trIdx = 0;
+      while (tIdx < travelerItems.length || trIdx < tripItems.length) {
+        if (tIdx < travelerItems.length) mixed.push(travelerItems[tIdx++]);
+        if (tIdx < travelerItems.length) mixed.push(travelerItems[tIdx++]);
+        if (trIdx < tripItems.length) mixed.push(tripItems[trIdx++]);
+        if (tIdx >= travelerItems.length && trIdx < tripItems.length) {
+          mixed.push(tripItems[trIdx++]);
         }
       }
 
-      setItems(mixedItems);
+      setItems(mixed);
     } catch (error: any) {
       console.error('Error fetching discover feed:', error);
       toast({
@@ -171,7 +242,7 @@ export const useSwipeProfiles = (destination: string, startDate: string, endDate
 
   return {
     items,
-    profiles: items.filter(i => i.type === 'traveler').map(i => i.data), // for backward compatibility if needed
+    profiles: items.filter(i => i.type === 'traveler').map(i => i.data),
     loading,
     recordSwipe,
     blockUser,
