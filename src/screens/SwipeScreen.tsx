@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
 import { motion, useMotionValue, useTransform, PanInfo, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '@/store/useAppStore';
-import { X, MapPin, MessageCircle, User, Heart, Shield, MoreVertical, Loader2 } from 'lucide-react';
+import { X, MapPin, MessageCircle, User, Heart, Shield, MoreVertical, Loader2, Compass } from 'lucide-react';
 import ReportBlockDialog from '@/components/ReportBlockDialog';
 import { useSwipeProfiles, SwipeProfile } from '@/hooks/useSwipeProfiles';
 import { useAuth } from '@/hooks/useAuth';
 import { AIItineraryAssistant } from '@/components/AIItineraryAssistant';
+import { supabase } from '@/integrations/supabase/client';
+import { NotificationBell } from '@/components/NotificationBell';
+import { DailyLikesIndicator } from '@/components/DailyLikesIndicator';
+import { useDailyLikes } from '@/hooks/useDailyLikes';
 
 const destinationImages: Record<string, string> = {
   'Bali': 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=1200&auto=format&fit=crop',
@@ -191,10 +195,11 @@ const SwipeCard = ({
 
 const SwipeScreen = () => {
   const { setScreen, setMatchedUser, setShowMatch, addMatch, travelDetails } = useAppStore();
-  const { user } = useAuth();
+  const { user, profileId: myProfileId } = useAuth();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<SwipeProfile | null>(null);
+  const { createLike, isExhausted } = useDailyLikes();
 
   const destination = travelDetails?.destination || '';
   const bgImage = destinationImages[destination] || destinationImages['default'];
@@ -213,23 +218,43 @@ const SwipeScreen = () => {
     
     const currentProfile = profiles[currentIndex];
     if (!currentProfile) return;
-    
-    // Record swipe in backend
-    if (user) {
-      const result = await recordSwipe(currentProfile.id, direction);
-      if (result.matched) {
-        // Convert to UserProfile format for match popup
-        const matchedUser = {
-          id: currentProfile.id,
-          name: currentProfile.name,
-          age: currentProfile.age || 0,
-          bio: currentProfile.bio || '',
-          photos: currentProfile.photos.map(p => p.url),
-          travelVibes: currentProfile.travel_vibes,
-        };
-        addMatch(matchedUser);
-        setMatchedUser(matchedUser);
-        setShowMatch(true);
+
+    if (direction === 'right') {
+      if (isExhausted) return;
+      
+      if (user) {
+        const result = await createLike(currentProfile.id);
+        if (!result.success) {
+          setCurrentIndex((prev) => prev + 1);
+          return;
+        }
+        
+        // The create_like_with_limit function handles the swipe insert,
+        // and the check_match trigger handles match creation.
+        // Check for match:
+        const { data: match } = await supabase
+          .from('matches')
+          .select('id')
+          .or(`and(profile1_id.eq.${myProfileId},profile2_id.eq.${currentProfile.id}),and(profile1_id.eq.${currentProfile.id},profile2_id.eq.${myProfileId})`)
+          .maybeSingle();
+
+        if (match) {
+          const matchedUser = {
+            id: currentProfile.id,
+            name: currentProfile.name,
+            age: currentProfile.age || 0,
+            bio: currentProfile.bio || '',
+            photos: currentProfile.photos.map(p => p.url),
+            travelVibes: currentProfile.travel_vibes,
+          };
+          addMatch(matchedUser);
+          setMatchedUser(matchedUser);
+          setShowMatch(true);
+        }
+      }
+    } else {
+      if (user) {
+        await recordSwipe(currentProfile.id, direction);
       }
     }
     
@@ -287,12 +312,21 @@ const SwipeScreen = () => {
           </h1>
         </motion.div>
 
-        <button 
-          onClick={() => setScreen('matches')}
-          className="w-11 h-11 flex items-center justify-center rounded-full bg-white/30 backdrop-blur-xl border border-white/40 shadow-lg transition-all hover:bg-white/40 active:scale-95"
-        >
-          <MessageCircle className="w-5 h-5 text-white" />
-        </button>
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={() => setScreen('trips')}
+            className="w-11 h-11 flex items-center justify-center rounded-full bg-white/30 backdrop-blur-xl border border-white/40 shadow-lg transition-all hover:bg-white/40 active:scale-95"
+          >
+            <Compass className="w-5 h-5 text-white" />
+          </button>
+          <NotificationBell />
+          <button 
+            onClick={() => setScreen('matches')}
+            className="w-11 h-11 flex items-center justify-center rounded-full bg-white/30 backdrop-blur-xl border border-white/40 shadow-lg transition-all hover:bg-white/40 active:scale-95"
+          >
+            <MessageCircle className="w-5 h-5 text-white" />
+          </button>
+        </div>
       </div>
 
       {/* Cards area */}
@@ -373,6 +407,9 @@ const SwipeScreen = () => {
         onReport={handleReport}
         userName={selectedProfile?.name || ''}
       />
+
+      {/* Daily Likes Indicator */}
+      <DailyLikesIndicator />
 
       {/* AI Itinerary Assistant */}
       <AIItineraryAssistant destination={destination} />

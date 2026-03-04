@@ -17,6 +17,7 @@ const AccountScreen = lazy(() => import("@/screens/AccountScreen"));
 const MatchesListScreen = lazy(() => import("@/screens/MatchesListScreen"));
 const AccessRequestScreen = lazy(() => import("@/screens/AccessRequestScreen"));
 const AdminPanelScreen = lazy(() => import("@/screens/AdminPanelScreen"));
+const TripsScreen = lazy(() => import("@/screens/TripsScreen"));
 
 import { pathToScreen, screenToPath, ScreenType } from "@/lib/navigation";
 
@@ -144,13 +145,13 @@ const Index = () => {
       return;
     }
 
-    const protectedScreens: ScreenType[] = ["travel", "swipe", "chat", "account", "matches", "admin"];
+    const protectedScreens: ScreenType[] = ["travel", "swipe", "chat", "account", "matches", "admin", "trips"];
     if (!hasAccess && accessStatus !== "admin" && protectedScreens.includes(currentScreen)) {
       setScreen("access");
       return;
     }
 
-    const profileRequiredScreens: ScreenType[] = ["travel", "swipe", "chat", "matches", "account"];
+    const profileRequiredScreens: ScreenType[] = ["travel", "swipe", "chat", "matches", "account", "trips"];
     if (profileStatus !== "complete" && profileRequiredScreens.includes(currentScreen)) {
       setScreen("profile");
       return;
@@ -244,6 +245,8 @@ const Index = () => {
         return <MatchesListScreen />;
       case "admin":
         return <AdminPanelScreen />;
+      case "trips":
+        return <TripsScreen />;
       default:
         return <LoginScreen />;
     }

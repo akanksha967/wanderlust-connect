@@ -62,7 +62,7 @@ const getInitialScreen = (): ScreenType => {
     // on a protected screen before auth resolves, triggering redirect loops.
     // Index.tsx will route the user to the right screen after auth loads.
     const saved = localStorage.getItem(STORAGE_KEYS.currentScreen);
-    const allowed = ["login", "profile", "travel", "swipe", "chat", "account", "matches", "access", "admin"];
+    const allowed = ["login", "profile", "travel", "swipe", "chat", "account", "matches", "access", "admin", "trips"];
 
     if (saved && allowed.includes(saved)) {
       return saved as ScreenType;
