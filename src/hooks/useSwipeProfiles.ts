@@ -122,6 +122,15 @@ export const useSwipeProfiles = (destination: string, startDate: string, endDate
         .eq('user_id', myProfileId);
       const myTripIds = (myMemberships || []).map(m => m.trip_id);
 
+      // Also get trips created by the user to ensure they're excluded
+      const { data: myCreatedTrips } = await supabase
+        .from('trips')
+        .select('id')
+        .eq('creator_id', myProfileId);
+      const myCreatedTripIds = (myCreatedTrips || []).map(t => t.id);
+
+      const allExcludeTripIds = [...new Set([...myTripIds, ...myCreatedTripIds])];
+
       let tripsQuery = supabase
         .from('trips')
         .select('*')
@@ -129,11 +138,12 @@ export const useSwipeProfiles = (destination: string, startDate: string, endDate
         .neq('creator_id', myProfileId)
         .limit(10);
 
-      if (myTripIds.length > 0) {
-        tripsQuery = tripsQuery.not('id', 'in', `(${myTripIds.join(',')})`);
+      if (allExcludeTripIds.length > 0) {
+        tripsQuery = tripsQuery.not('id', 'in', `(${allExcludeTripIds.join(',')})`);
       }
 
-      const { data: tripsData } = await tripsQuery;
+      const { data: tripsData, error: tripsError } = await tripsQuery;
+      if (tripsError) console.error('Error fetching trips for discover:', tripsError);
 
       const tripItems: DiscoverItem[] = (tripsData || []).map(t => ({
         type: 'trip' as const,

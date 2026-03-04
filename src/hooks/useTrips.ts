@@ -136,15 +136,8 @@ export const useTrips = () => {
 
       if (error) throw error;
 
-      // Auto-add creator as approved member
-      await supabase
-        .from('trip_members')
-        .insert({
-          trip_id: data.id,
-          user_id: profileId,
-          status: 'approved',
-          joined_at: new Date().toISOString(),
-        });
+      // Creator is auto-added via DB trigger (auto_add_trip_creator)
+      // No need for manual insert here
 
       toast({ title: 'Trip created! 🎒', description: 'Your trip board is live' });
       await fetchTrips();
