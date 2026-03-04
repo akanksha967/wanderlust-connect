@@ -132,7 +132,7 @@ const CreateTripModal = ({ isOpen, onClose, onCreate }: {
       >
         {/* Backdrop */}
         <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-        
+
         {/* Modal */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -177,7 +177,7 @@ const CreateTripModal = ({ isOpen, onClose, onCreate }: {
               <option value="Road Trip">Road Trip</option>
             </select>
             <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe your trip..." rows={3} className={`${inputClass} resize-none`} />
-            
+
             <button
               onClick={handleSubmit}
               disabled={!title || !destination || !startDate || !endDate || submitting}
@@ -199,10 +199,13 @@ const TripsScreen = () => {
   const [showCreate, setShowCreate] = useState(false);
   const [activeTab, setActiveTab] = useState<'discover' | 'my'>('discover');
 
-  const matchingTrips = trips.filter(t => 
+  const matchingTrips = trips.filter(t =>
     travelDetails?.destination && t.destination.toLowerCase().includes(travelDetails.destination.toLowerCase())
+    && t.creator_id !== profileId
   );
-  const displayTrips = activeTab === 'my' ? trips.filter(t => t.creator_id === profileId) : trips.filter(t => t.creator_id !== profileId);
+  const displayTrips = activeTab === 'my'
+    ? trips.filter(t => t.creator_id === profileId)
+    : trips.filter(t => t.creator_id !== profileId);
 
   return (
     <div className="h-full flex flex-col relative overflow-hidden">
@@ -218,7 +221,7 @@ const TripsScreen = () => {
         <div className="flex-1">
           <h1 className="text-xl font-display text-white drop-shadow-lg">Trip Boards</h1>
         </div>
-        
+
         <button onClick={() => setShowCreate(true)} className="w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-r from-sky-500 to-indigo-500 border border-white/30 shadow-lg">
           <Plus className="w-5 h-5 text-white" />
         </button>
@@ -230,11 +233,10 @@ const TripsScreen = () => {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-              activeTab === tab
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${activeTab === tab
                 ? 'bg-white/30 text-white border border-white/40'
                 : 'bg-white/10 text-white/60 border border-white/15'
-            }`}
+              }`}
           >
             {tab === 'discover' ? 'Discover' : 'My Trips'}
           </button>
@@ -261,7 +263,7 @@ const TripsScreen = () => {
           <div className="flex flex-col items-center justify-center h-64 text-center px-4">
             <Compass className="w-10 h-10 text-white/25 mb-3" />
             <p className="text-sm text-white/60">
-              {activeTab === 'my' 
+              {activeTab === 'my'
                 ? 'You haven\'t created any trips yet. Tap + to create your first trip board!'
                 : 'No trips available right now. Be the first to create one!'}
             </p>

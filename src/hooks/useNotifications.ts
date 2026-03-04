@@ -87,7 +87,7 @@ export const useNotifications = () => {
     if (!profileId) return;
 
     const channel = supabase
-      .channel('notifications-realtime')
+      .channel(`notifs-${profileId}`)
       .on(
         'postgres_changes',
         {
@@ -96,18 +96,15 @@ export const useNotifications = () => {
           table: 'notifications',
           filter: `user_id=eq.${profileId}`,
         },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            const newNotif = payload.new as Notification;
-            setNotifications(prev => [newNotif, ...prev].sort((a, b) =>
-              new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-            ));
-          } else {
-            fetchNotifications();
-          }
+        async (payload) => {
+          console.log('[Realtime Notif]', payload.eventType);
+          // For any change, refreshing ensures we have the latest state with any linked profile data
+          await fetchNotifications();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('[Realtime Subscription Status]', status);
+      });
 
     return () => {
       supabase.removeChannel(channel);
