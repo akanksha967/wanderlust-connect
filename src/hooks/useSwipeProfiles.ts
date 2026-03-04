@@ -144,11 +144,7 @@ export const useSwipeProfiles = (destination: string, startDate: string, endDate
       setItems(mixed);
     } catch (error: any) {
       console.error('Error fetching discover feed:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load discover feed',
-        variant: 'destructive',
-      });
+      // Don't show error toast for empty results - it's normal
     } finally {
       setLoading(false);
     }
