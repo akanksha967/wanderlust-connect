@@ -73,23 +73,28 @@ export const useSwipeProfiles = (destination: string, startDate: string, endDate
         setLoading(true);
       }
 
+      const effectiveDestination = destination?.trim() || 'Bali';
+      const start = startDate || new Date().toISOString().split('T')[0];
+      const end = endDate || new Date().toISOString().split('T')[0];
+
       // @ts-ignore - function exists in DB but not in generated types
       const { data, error } = await supabase.rpc('get_discover_feed', {
         p_profile_id: myProfileId,
-        p_destination: destination,
-        p_start_date: startDate || new Date().toISOString().split('T')[0],
-        p_end_date: endDate || new Date().toISOString().split('T')[0],
+        p_destination: effectiveDestination,
+        p_start_date: start,
+        p_end_date: end,
         p_limit: 30
       });
 
       if (error) throw error;
 
-      const mixed = (data as any[]) || [];
+      const raw = data as unknown;
+      const mixed = Array.isArray(raw) ? raw : [];
 
       if (isBackground) {
         setItems(prev => {
           const prevKeys = new Set(prev.map(i => `${i.type}:${i.data.id}`));
-          const newItems = mixed.filter(i => !prevKeys.has(`${i.type}:${i.data.id}`));
+          const newItems = mixed.filter((i: DiscoverItem) => !prevKeys.has(`${i.type}:${i.data.id}`));
           return [...prev, ...newItems];
         });
       } else {
@@ -97,6 +102,12 @@ export const useSwipeProfiles = (destination: string, startDate: string, endDate
       }
     } catch (error: any) {
       console.error('Error fetching discover feed:', error);
+      toast({
+        title: 'Couldn’t load feed',
+        description: error?.message || 'Try again in a moment.',
+        variant: 'destructive',
+      });
+      if (!isBackground) setItems([]);
     } finally {
       if (items.length === 0 || !isBackground) {
         setLoading(false);

@@ -85,12 +85,39 @@ export const useNotifications = () => {
     fetchNotifications();
   }, [fetchNotifications]);
 
-  // Real-time subscription
+  // Real-time subscription: show new notifications immediately when someone texts
   useEffect(() => {
     if (!profileId) return;
 
     const channel = supabase
       .channel(`notifs-${profileId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${profileId}`,
+        },
+        (payload) => {
+          if (isClearing.current) return;
+          const row = payload.new as Record<string, unknown>;
+          const newNotif: Notification = {
+            id: row.id as string,
+            user_id: row.user_id as string,
+            type: row.type as string,
+            reference_id: (row.reference_id as string) ?? null,
+            reference_type: (row.reference_type as string) ?? null,
+            title: row.title as string,
+            body: (row.body as string) ?? null,
+            icon: (row.icon as string) ?? null,
+            status: (row.status as string) ?? 'unread',
+            metadata: (row.metadata as Record<string, unknown>) ?? {},
+            created_at: row.created_at as string,
+          };
+          setNotifications((prev) => [newNotif, ...prev]);
+        }
+      )
       .on(
         'postgres_changes',
         {
@@ -100,14 +127,11 @@ export const useNotifications = () => {
           filter: `user_id=eq.${profileId}`,
         },
         async (payload) => {
+          if (payload.eventType === 'INSERT') return; // already handled above
           if (isClearing.current) return;
-
-          // Debounce refresh to handle bulk updates gracefully
           if (refreshTimeout.current) window.clearTimeout(refreshTimeout.current);
           refreshTimeout.current = window.setTimeout(async () => {
-            if (!isClearing.current) {
-              await fetchNotifications();
-            }
+            if (!isClearing.current) await fetchNotifications();
             refreshTimeout.current = null;
           }, 400);
         }

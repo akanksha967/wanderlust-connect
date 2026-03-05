@@ -130,7 +130,12 @@ export const NotificationBell = () => {
               <div className="flex items-center gap-3">
                 {notifications.length > 0 && (
                   <button
-                    onClick={clearAll}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      clearAll();
+                    }}
                     className="text-xs text-white/40 hover:text-white/70 transition-colors"
                   >
                     Clear all
