@@ -802,6 +802,10 @@ export type Database = {
         }[]
       }
       get_my_profile_id: { Args: never; Returns: string }
+      get_or_create_crew_chat: {
+        Args: { p_other_profile_id: string }
+        Returns: Json
+      }
       handle_trip_join_request: {
         Args: { p_requester_id: string; p_trip_id: string }
         Returns: Json

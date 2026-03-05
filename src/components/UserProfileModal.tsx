@@ -23,7 +23,8 @@ const UserProfileModal = ({ profileId, isOpen, onClose }: UserProfileModalProps)
     const [profile, setProfile] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
-    const [matchInfo, setMatchInfo] = useState<{ isMatched: boolean; matchId?: string } | null>(null);
+    const [canChat, setCanChat] = useState(false);
+    const [chatLoading, setChatLoading] = useState(false);
     const { setScreen, setMatchedUser, addMatch } = useAppStore();
     const { profileId: myProfileId } = useAuth();
     const { toast } = useToast();
@@ -32,6 +33,7 @@ const UserProfileModal = ({ profileId, isOpen, onClose }: UserProfileModalProps)
         const fetchProfile = async () => {
             if (!profileId || !isOpen) return;
             setLoading(true);
+            setCanChat(false);
             try {
                 const [profileRes, vibesRes, photosRes, plansRes] = await Promise.all([
                     supabase.from('profiles').select('*').eq('id', profileId).single(),
@@ -50,15 +52,31 @@ const UserProfileModal = ({ profileId, isOpen, onClose }: UserProfileModalProps)
                 });
                 setCurrentPhotoIndex(0);
 
-                // Check if we have a match with this person
+                // Check if can chat: either matched or in same crew
                 if (myProfileId && profileId !== myProfileId) {
-                    const { data: matchData } = await supabase
-                        .from('matches')
-                        .select('id')
-                        .or(`and(profile1_id.eq.${myProfileId},profile2_id.eq.${profileId}),and(profile2_id.eq.${myProfileId},profile1_id.eq.${profileId})`)
-                        .maybeSingle();
+                    const [matchRes, crewRes] = await Promise.all([
+                        supabase.from('matches').select('id')
+                            .or(`and(profile1_id.eq.${myProfileId},profile2_id.eq.${profileId}),and(profile2_id.eq.${myProfileId},profile1_id.eq.${profileId})`)
+                            .maybeSingle(),
+                        supabase.from('trip_members').select('trip_id')
+                            .eq('user_id', myProfileId).eq('status', 'approved'),
+                    ]);
 
-                    setMatchInfo({ isMatched: !!matchData, matchId: matchData?.id });
+                    if (matchRes.data) {
+                        setCanChat(true);
+                    } else if (crewRes.data && crewRes.data.length > 0) {
+                        // Check if other user is in any of the same trips
+                        const myTripIds = crewRes.data.map(t => t.trip_id);
+                        const { data: sharedTrips } = await supabase
+                            .from('trip_members')
+                            .select('trip_id')
+                            .eq('user_id', profileId)
+                            .eq('status', 'approved')
+                            .in('trip_id', myTripIds)
+                            .limit(1);
+                        
+                        setCanChat(!!sharedTrips && sharedTrips.length > 0);
+                    }
                 }
             } catch (error) {
                 console.error('Error fetching profile:', error);
@@ -70,25 +88,43 @@ const UserProfileModal = ({ profileId, isOpen, onClose }: UserProfileModalProps)
         fetchProfile();
     }, [profileId, isOpen, myProfileId]);
 
-    const handleStartChat = () => {
-        if (!profile || !matchInfo?.isMatched) {
-            toast({ title: "You need to match first", description: "Swipe right on this person to start chatting!" });
-            return;
+    const handleStartChat = async () => {
+        if (!profile || !myProfileId) return;
+        
+        setChatLoading(true);
+        try {
+            // Use RPC to get or create a match (works for both matched users and crew members)
+            const { data, error } = await supabase.rpc('get_or_create_crew_chat', {
+                p_other_profile_id: profile.id
+            });
+
+            if (error) throw error;
+            
+            const result = data as any;
+            if (!result.success) {
+                toast({ title: "Can't start chat", description: result.error });
+                return;
+            }
+
+            const matchedUser = {
+                id: profile.id,
+                name: profile.name,
+                age: profile.age || 0,
+                bio: profile.bio || '',
+                photos: profile.photos.map((p: any) => p.url),
+                travelVibes: profile.vibes || [],
+            };
+
+            addMatch(matchedUser);
+            setMatchedUser(matchedUser);
+            onClose();
+            setScreen('chat');
+        } catch (error) {
+            console.error('Error starting chat:', error);
+            toast({ title: "Error", description: "Couldn't start the chat. Try again.", variant: "destructive" });
+        } finally {
+            setChatLoading(false);
         }
-
-        const matchedUser = {
-            id: profile.id,
-            name: profile.name,
-            age: profile.age || 0,
-            bio: profile.bio || '',
-            photos: profile.photos.map((p: any) => p.url),
-            travelVibes: profile.vibes || [],
-        };
-
-        addMatch(matchedUser);
-        setMatchedUser(matchedUser);
-        onClose();
-        setScreen('chat');
     };
 
     if (!isOpen) return null;
@@ -140,14 +176,8 @@ const UserProfileModal = ({ profileId, isOpen, onClose }: UserProfileModalProps)
                                                 </div>
                                             )}
                                             <div className="absolute inset-0 flex">
-                                                <div
-                                                    className="flex-1 cursor-w-resize"
-                                                    onClick={() => setCurrentPhotoIndex(prev => prev > 0 ? prev - 1 : profile.photos.length - 1)}
-                                                />
-                                                <div
-                                                    className="flex-1 cursor-e-resize"
-                                                    onClick={() => setCurrentPhotoIndex(prev => prev < profile.photos.length - 1 ? prev + 1 : 0)}
-                                                />
+                                                <div className="flex-1 cursor-w-resize" onClick={() => setCurrentPhotoIndex(prev => prev > 0 ? prev - 1 : profile.photos.length - 1)} />
+                                                <div className="flex-1 cursor-e-resize" onClick={() => setCurrentPhotoIndex(prev => prev < profile.photos.length - 1 ? prev + 1 : 0)} />
                                             </div>
                                         </>
                                     ) : (
@@ -211,23 +241,23 @@ const UserProfileModal = ({ profileId, isOpen, onClose }: UserProfileModalProps)
                                         </div>
                                     )}
 
-                                    {/* Message Button - only show for other users */}
-                                    {!isOwnProfile && (
+                                    {/* Message Button */}
+                                    {!isOwnProfile && canChat && (
                                         <button
                                             onClick={handleStartChat}
-                                            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-medium text-sm transition-all active:scale-95"
+                                            disabled={chatLoading}
+                                            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-medium text-sm text-white transition-all active:scale-95 disabled:opacity-50"
                                             style={{
-                                                background: matchInfo?.isMatched
-                                                    ? 'linear-gradient(135deg, rgba(99,102,241,0.6), rgba(139,92,246,0.6))'
-                                                    : 'rgba(255,255,255,0.1)',
-                                                border: matchInfo?.isMatched
-                                                    ? '1px solid rgba(167,139,250,0.5)'
-                                                    : '1px solid rgba(255,255,255,0.15)',
-                                                color: matchInfo?.isMatched ? 'white' : 'rgba(255,255,255,0.5)',
+                                                background: 'linear-gradient(135deg, rgba(99,102,241,0.6), rgba(139,92,246,0.6))',
+                                                border: '1px solid rgba(167,139,250,0.5)',
                                             }}
                                         >
-                                            <MessageCircle className="w-4 h-4" />
-                                            {matchInfo?.isMatched ? 'Send Message' : 'Match to chat'}
+                                            {chatLoading ? (
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                            ) : (
+                                                <MessageCircle className="w-4 h-4" />
+                                            )}
+                                            Send Message
                                         </button>
                                     )}
                                 </div>
