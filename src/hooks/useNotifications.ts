@@ -181,7 +181,7 @@ export const useNotifications = () => {
 
       const { error } = await supabase
         .from('notifications')
-        .update({ status: 'cleared' } as any)
+        .update({ status: 'cleared' })
         .eq('user_id', profileId)
         .neq('status', 'cleared');
 

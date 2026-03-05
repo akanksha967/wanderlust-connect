@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
-import { X, MapPin, User, Loader2, Calendar } from 'lucide-react';
+import { X, MapPin, User, Loader2, Calendar, MessageCircle } from 'lucide-react';
+import { useAppStore } from '@/store/useAppStore';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 const glassStyle = {
     background: 'rgba(255,255,255,0.08)',
@@ -20,6 +23,10 @@ const UserProfileModal = ({ profileId, isOpen, onClose }: UserProfileModalProps)
     const [profile, setProfile] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+    const [matchInfo, setMatchInfo] = useState<{ isMatched: boolean; matchId?: string } | null>(null);
+    const { setScreen, setMatchedUser, addMatch } = useAppStore();
+    const { profileId: myProfileId } = useAuth();
+    const { toast } = useToast();
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -42,6 +49,17 @@ const UserProfileModal = ({ profileId, isOpen, onClose }: UserProfileModalProps)
                     plan: plansRes.data
                 });
                 setCurrentPhotoIndex(0);
+
+                // Check if we have a match with this person
+                if (myProfileId && profileId !== myProfileId) {
+                    const { data: matchData } = await supabase
+                        .from('matches')
+                        .select('id')
+                        .or(`and(profile1_id.eq.${myProfileId},profile2_id.eq.${profileId}),and(profile2_id.eq.${myProfileId},profile1_id.eq.${profileId})`)
+                        .maybeSingle();
+
+                    setMatchInfo({ isMatched: !!matchData, matchId: matchData?.id });
+                }
             } catch (error) {
                 console.error('Error fetching profile:', error);
             } finally {
@@ -50,9 +68,32 @@ const UserProfileModal = ({ profileId, isOpen, onClose }: UserProfileModalProps)
         };
 
         fetchProfile();
-    }, [profileId, isOpen]);
+    }, [profileId, isOpen, myProfileId]);
+
+    const handleStartChat = () => {
+        if (!profile || !matchInfo?.isMatched) {
+            toast({ title: "You need to match first", description: "Swipe right on this person to start chatting!" });
+            return;
+        }
+
+        const matchedUser = {
+            id: profile.id,
+            name: profile.name,
+            age: profile.age || 0,
+            bio: profile.bio || '',
+            photos: profile.photos.map((p: any) => p.url),
+            travelVibes: profile.vibes || [],
+        };
+
+        addMatch(matchedUser);
+        setMatchedUser(matchedUser);
+        onClose();
+        setScreen('chat');
+    };
 
     if (!isOpen) return null;
+
+    const isOwnProfile = myProfileId === profileId;
 
     return (
         <AnimatePresence>
@@ -168,6 +209,26 @@ const UserProfileModal = ({ profileId, isOpen, onClose }: UserProfileModalProps)
                                                 <span>{new Date(profile.plan.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                                             </div>
                                         </div>
+                                    )}
+
+                                    {/* Message Button - only show for other users */}
+                                    {!isOwnProfile && (
+                                        <button
+                                            onClick={handleStartChat}
+                                            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-medium text-sm transition-all active:scale-95"
+                                            style={{
+                                                background: matchInfo?.isMatched
+                                                    ? 'linear-gradient(135deg, rgba(99,102,241,0.6), rgba(139,92,246,0.6))'
+                                                    : 'rgba(255,255,255,0.1)',
+                                                border: matchInfo?.isMatched
+                                                    ? '1px solid rgba(167,139,250,0.5)'
+                                                    : '1px solid rgba(255,255,255,0.15)',
+                                                color: matchInfo?.isMatched ? 'white' : 'rgba(255,255,255,0.5)',
+                                            }}
+                                        >
+                                            <MessageCircle className="w-4 h-4" />
+                                            {matchInfo?.isMatched ? 'Send Message' : 'Match to chat'}
+                                        </button>
                                     )}
                                 </div>
                             </div>
