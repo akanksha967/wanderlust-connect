@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, X, Heart, Globe, Plane, Users, ChevronRight } from 'lucide-react';
+import { Bell, X, Heart, Globe, Plane, Users, ChevronRight, MessageCircle } from 'lucide-react';
 import { useNotifications, Notification } from '@/hooks/useNotifications';
 import { useDailyLikes } from '@/hooks/useDailyLikes';
 import { formatDistanceToNow } from 'date-fns';
@@ -10,6 +10,8 @@ const iconMap: Record<string, React.ReactNode> = {
   '🌍': <Globe className="w-4 h-4 text-emerald-400" />,
   '✈️': <Plane className="w-4 h-4 text-sky-400" />,
   '👋': <Users className="w-4 h-4 text-amber-400" />,
+  '💬': <MessageCircle className="w-4 h-4 text-sky-400" />,
+  '💌': <MessageCircle className="w-4 h-4 text-pink-400" />,
 };
 
 const NotificationItem = ({
@@ -31,8 +33,8 @@ const NotificationItem = ({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20, height: 0 }}
       className={`flex items-start gap-3 p-4 rounded-2xl transition-all cursor-pointer ${notification.status === 'unread'
-          ? 'bg-white/[0.12] border border-white/20'
-          : 'bg-white/[0.06] border border-white/10'
+        ? 'bg-white/[0.12] border border-white/20'
+        : 'bg-white/[0.06] border border-white/10'
         }`}
       onClick={() => {
         if (isUnrevealed) onReveal(notification.id);
@@ -57,10 +59,14 @@ const NotificationItem = ({
           </div>
         )}
         <button
-          onClick={(e) => { e.stopPropagation(); onDismiss(notification.id); }}
-          className="w-7 h-7 rounded-full bg-white/[0.08] flex items-center justify-center hover:bg-white/[0.15] transition-all"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDismiss(notification.id);
+          }}
+          className="w-7 h-7 rounded-full bg-white/[0.08] flex items-center justify-center hover:bg-white/[0.2] active:scale-90 transition-all group"
+          title="Dismiss"
         >
-          <X className="w-3.5 h-3.5 text-white/40" />
+          <X className="w-3.5 h-3.5 text-white/40 group-hover:text-white/80" />
         </button>
       </div>
     </motion.div>

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { useToast } from './use-toast';
 
 export interface Notification {
   id: string;
@@ -20,6 +21,7 @@ export const useNotifications = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const { profileId } = useAuth();
+  const { toast } = useToast();
   const isClearing = useRef(false);
   const refreshTimeout = useRef<number | null>(null);
 
@@ -28,10 +30,10 @@ export const useNotifications = () => {
 
     try {
       // Fetch non-like notifications
-      const { data: otherData, error: otherError } = await (supabase
+      const { data: otherData, error: otherError } = await supabase
         .from('notifications')
         .select('*')
-        .eq('user_id', profileId) as any)
+        .eq('user_id', profileId)
         .neq('status', 'cleared')
         .not('type', 'in', '("like","destination_match")')
         .order('created_at', { ascending: false })
@@ -66,9 +68,9 @@ export const useNotifications = () => {
       if (isClearing.current) return;
 
       const all = [
-        ...((otherData as any[]) || []),
-        ...((unreadLikes as any[]) || []),
-        ...((readLikes as any[]) || []),
+        ...((otherData as Notification[]) || []),
+        ...((unreadLikes as Notification[]) || []),
+        ...((readLikes as Notification[]) || []),
       ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
       setNotifications(all);
@@ -98,7 +100,6 @@ export const useNotifications = () => {
           filter: `user_id=eq.${profileId}`,
         },
         async (payload) => {
-          console.log('[Realtime Notif]', payload.eventType);
           if (isClearing.current) return;
 
           // Debounce refresh to handle bulk updates gracefully
@@ -108,12 +109,10 @@ export const useNotifications = () => {
               await fetchNotifications();
             }
             refreshTimeout.current = null;
-          }, 500);
+          }, 400);
         }
       )
-      .subscribe((status) => {
-        console.log('[Realtime Subscription Status]', status);
-      });
+      .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
@@ -121,7 +120,7 @@ export const useNotifications = () => {
     };
   }, [profileId, fetchNotifications]);
 
-  // Count unread from fetched data only (already limited to 3 likes)
+  // Count unread from fetched data only
   const unreadCount = notifications.filter(n => n.status === 'unread').length;
 
   const revealLike = async (notificationId: string) => {
@@ -137,15 +136,21 @@ export const useNotifications = () => {
   };
 
   const dismissNotification = async (notificationId: string) => {
+    if (!profileId) return;
     try {
+      // Optimistic update
+      setNotifications(prev => prev.filter(n => n.id !== notificationId));
+
       const { error } = await supabase
         .from('notifications')
         .update({ status: 'cleared' })
-        .eq('id', notificationId);
+        .eq('id', notificationId)
+        .eq('user_id', profileId);
+
       if (error) throw error;
-      setNotifications(prev => prev.filter(n => n.id !== notificationId));
     } catch (error) {
       console.error('Error dismissing notification:', error);
+      await fetchNotifications();
     }
   };
 
@@ -169,14 +174,12 @@ export const useNotifications = () => {
     try {
       isClearing.current = true;
 
-      // Cancel any pending debounced refresh
       if (refreshTimeout.current) {
         window.clearTimeout(refreshTimeout.current);
         refreshTimeout.current = null;
       }
 
-      // Optimistically clear local state
-      const previousNotifications = [...notifications];
+      // Optimistic
       setNotifications([]);
 
       const { error } = await supabase
@@ -186,18 +189,16 @@ export const useNotifications = () => {
         .neq('status', 'cleared');
 
       if (error) {
-        console.error('Error clearing notifications:', error);
-        // Rollback on error
-        setNotifications(previousNotifications);
+        toast({ title: "Error", description: "Couldn't clear notifications", variant: "destructive" });
+        await fetchNotifications();
         throw error;
       }
     } catch (error) {
       console.error('Error clearing notifications:', error);
     } finally {
-      // Longer delay to ensure all real-time events have processed
       setTimeout(() => {
         isClearing.current = false;
-      }, 2000);
+      }, 1500);
     }
   };
 
