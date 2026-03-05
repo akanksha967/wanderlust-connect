@@ -67,9 +67,10 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const currencySymbol = {
+    const currencyMap: Record<string, string> = {
       'INR': '₹', 'USD': '$', 'EUR': '€', 'GBP': '£', 'JPY': '¥', 'AUD': 'A$', 'THB': '฿'
-    }[currency || 'INR'] || currency || '₹';
+    };
+    const currencySymbol = currencyMap[currency || 'INR'] || currency || '₹';
 
     const numDays = parseInt(days) || 5;
     const budgetStr = budget && budget !== 'moderate' 
